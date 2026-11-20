@@ -48,6 +48,7 @@
           symfony-lsp
           pins.nodejs_26
           pkgs.jq
+          pkgs.gnumake
           shortcuts
         ];
       };
