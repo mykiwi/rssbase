@@ -100,7 +100,8 @@ A reste le seul choix qui tient **Versions lisibles**, **Indépendance des outil
 - Chaque paquet maison a des hashes à rafraîchir à chaque version (source, modules Go, binaire).
 - Un binaire officiel n'est pas reconstruit depuis ses sources : on fait confiance à l'amont pour son contenu.
 - Les paquets maison compilés (PHP, FrankenPHP) ne sont pas dans le cache binaire public : chaque changement les recompile en local.
-- castor et Composer ne se choisissent pas par version, ils suivent la révision qui fournit PHP.
+- castor et Composer ne se choisissent pas par version, ils suivent la révision qui fournit PHP. Le shell de dev coupe la vérification de version
+  de castor (`CASTOR_DISABLE_VERSION_CHECK`), qui ne pourrait que suggérer un `self-update` hors du flake.
 - `flake.lock` continue de porter un hash, celui de l'entrée multiverse.
 
 **Suites obligatoires**
@@ -109,8 +110,8 @@ A reste le seul choix qui tient **Versions lisibles**, **Indépendance des outil
 - [ ] Retirer la surcharge de source de `infra/packages/php.nix` dès que `php86` 8.6.0 est indexé.
 - [ ] Remplacer `infra/packages/mago.nix` par un pin dès que l'index propose la dernière version de Mago.
 - [ ] Retirer la surcharge d'ICU de `intl` dès que la recette nixpkgs utilise la dernière ICU.
-- [ ] Passer Node de 26.13.1 (LTS) à la dernière version publiée, toutes lignes confondues. Aucune story ne le porte encore.
-- [ ] Vérifier castor et Composer, qui suivent la révision de PHP, contre leur dernière version publiée. Aucune story ne le porte encore.
+- [x] Vérifier Node contre sa dernière version publiée : 26.13.1 l'est au 2026-11-20, Node 27 n'existe qu'en alpha.
+- [x] Vérifier castor et Composer, qui suivent la révision de PHP, contre leur dernière version publiée : 1.9.1 et 2.11.2 le sont au 2026-11-20.
 
 ## Links
 
