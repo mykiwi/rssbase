@@ -1,4 +1,4 @@
-{ php86 }:
+{ php86, icu }:
 
 (php86.override {
   # Same change as nixpkgs PR 590480 (php86: 8.6.0RC4 -> 8.6.0). Drop these three lines once the
@@ -25,6 +25,8 @@
       dom
       filter
       iconv
+      # nixpkgs builds intl against ICU 73. Drop this override once it uses the ICU passed by flake.nix or a later one.
+      (intl.overrideAttrs { buildInputs = [ icu ]; })
       mbstring
       openssl
       pdo

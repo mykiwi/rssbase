@@ -16,7 +16,10 @@
         nodejs_26 = "26.13.1";
       };
 
-      php = import ./infra/packages/php.nix { inherit (pins) php86; };
+      php = import ./infra/packages/php.nix {
+        inherit (pins) php86;
+        icu = pkgs.icu79;
+      };
       frankenphp = pkgs.callPackage ./infra/packages/frankenphp.nix { inherit php; };
       mago = pkgs.callPackage ./infra/packages/mago.nix { };
       symfony-lsp = pkgs.callPackage ./infra/packages/symfony-lsp.nix { };
