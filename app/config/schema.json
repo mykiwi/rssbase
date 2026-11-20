@@ -4021,6 +4021,242 @@
                     "fetch_credentials": "same-origin"
                 }
             },
+            "playwright": {
+                "$ref": "#/$defs/types/object_null",
+                "properties": {
+                    "enabled": {
+                        "$ref": "#/$defs/types/boolean",
+                        "default": true,
+                        "description": "Enable Playwright Symfony integration"
+                    },
+                    "intercepted_hosts": {
+                        "$ref": "#/$defs/types/array_null",
+                        "items": {
+                            "$ref": "#/$defs/types/scalar"
+                        },
+                        "default": [
+                            "localhost",
+                            "127.0.0.1",
+                            "testapp.local"
+                        ],
+                        "description": "List of hosts to intercept for in-process handling"
+                    },
+                    "debug": {
+                        "$ref": "#/$defs/types/boolean",
+                        "default": "%kernel.debug%",
+                        "description": "Enable debug mode for Playwright integration"
+                    },
+                    "node_path": {
+                        "$ref": "#/$defs/types/scalar",
+                        "default": null,
+                        "description": "Path to the Node.js executable running the Playwright server (auto-detected when null, can be overridden per browser)"
+                    },
+                    "default_browser": {
+                        "$ref": "#/$defs/types/scalar",
+                        "default": "default",
+                        "description": "Name of the default Playwright browser to autowire"
+                    },
+                    "base_url": {
+                        "$ref": "#/$defs/types/scalar",
+                        "default": "%env(default::PLAYWRIGHT_BASE_URL)%",
+                        "description": "Base URL used when Playwright builds absolute URLs during tests (defaults to the PLAYWRIGHT_BASE_URL env var when defined, http://localhost otherwise)"
+                    },
+                    "debug_logging": {
+                        "$ref": "#/$defs/types/boolean",
+                        "default": false,
+                        "description": "Enable verbose Playwright logging without requiring environment variables"
+                    },
+                    "browsers": {
+                        "$ref": "#/$defs/types/object_null",
+                        "additionalProperties": {
+                            "$ref": "#/$defs/types/object_null",
+                            "properties": {
+                                "type": {
+                                    "anyOf": [
+                                        {
+                                            "enum": [
+                                                "chromium",
+                                                "firefox",
+                                                "webkit"
+                                            ]
+                                        },
+                                        {
+                                            "$ref": "#/$defs/types/param"
+                                        }
+                                    ],
+                                    "default": "chromium",
+                                    "description": "Browser engine type"
+                                },
+                                "headless": {
+                                    "$ref": "#/$defs/types/boolean",
+                                    "default": true
+                                },
+                                "timeout_ms": {
+                                    "$ref": "#/$defs/types/integer",
+                                    "minimum": 0,
+                                    "default": 30000,
+                                    "description": "Timeout in milliseconds for Playwright operations"
+                                },
+                                "slowmo_ms": {
+                                    "$ref": "#/$defs/types/integer",
+                                    "minimum": 0,
+                                    "default": 0,
+                                    "description": "Slow down every operation by the given milliseconds"
+                                },
+                                "args": {
+                                    "$ref": "#/$defs/types/array_null",
+                                    "items": {
+                                        "$ref": "#/$defs/types/scalar"
+                                    },
+                                    "description": "Browser launch arguments"
+                                },
+                                "env": {
+                                    "$ref": "#/$defs/types/object_null",
+                                    "additionalProperties": {
+                                        "$ref": "#/$defs/types/scalar"
+                                    },
+                                    "description": "Environment variables for the Playwright Node.js server process"
+                                },
+                                "node_path": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": null,
+                                    "description": "Override global node_path for this browser"
+                                },
+                                "min_node_version": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": "20.0.0",
+                                    "description": "Minimum Node.js version required to launch the server"
+                                },
+                                "channel": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": null,
+                                    "description": "Browser distribution channel, e.g. chrome-beta or msedge"
+                                },
+                                "screenshot_dir": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": null,
+                                    "description": "Default directory where page screenshots are saved"
+                                },
+                                "downloads_dir": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": null,
+                                    "description": "Directory where downloads are stored"
+                                },
+                                "videos_dir": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": null,
+                                    "description": "Directory where context videos are recorded"
+                                },
+                                "tracing": {
+                                    "$ref": "#/$defs/types/object_null",
+                                    "properties": {
+                                        "enabled": {
+                                            "$ref": "#/$defs/types/boolean",
+                                            "default": false
+                                        },
+                                        "dir": {
+                                            "$ref": "#/$defs/types/scalar",
+                                            "default": null
+                                        },
+                                        "screenshots": {
+                                            "$ref": "#/$defs/types/boolean",
+                                            "default": false
+                                        },
+                                        "snapshots": {
+                                            "$ref": "#/$defs/types/boolean",
+                                            "default": false
+                                        }
+                                    },
+                                    "additionalProperties": false,
+                                    "description": "Record a Playwright trace for contexts created from this configuration"
+                                },
+                                "proxy": {
+                                    "$ref": "#/$defs/types/object_null",
+                                    "properties": {
+                                        "server": {
+                                            "$ref": "#/$defs/types/scalar",
+                                            "description": "Proxy server, e.g. http://host:port"
+                                        },
+                                        "username": {
+                                            "$ref": "#/$defs/types/scalar",
+                                            "default": null
+                                        },
+                                        "password": {
+                                            "$ref": "#/$defs/types/scalar",
+                                            "default": null
+                                        },
+                                        "bypass": {
+                                            "$ref": "#/$defs/types/scalar",
+                                            "default": null,
+                                            "description": "Comma-separated hosts to bypass"
+                                        }
+                                    },
+                                    "additionalProperties": false,
+                                    "description": "Proxy applied to the browser"
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "default": {
+                            "default": {
+                                "type": "chromium",
+                                "headless": true,
+                                "timeout_ms": 30000,
+                                "slowmo_ms": 0,
+                                "args": [],
+                                "env": []
+                            }
+                        },
+                        "description": "Named Playwright browsers with per-browser configuration"
+                    },
+                    "assets": {
+                        "$ref": "#/$defs/types/object_null",
+                        "properties": {
+                            "public_roots": {
+                                "$ref": "#/$defs/types/array_null",
+                                "items": {
+                                    "$ref": "#/$defs/types/scalar"
+                                },
+                                "default": [
+                                    "%kernel.project_dir%/public"
+                                ],
+                                "description": "Filesystem roots that expose publicly accessible assets"
+                            },
+                            "prefixes": {
+                                "$ref": "#/$defs/types/array_null",
+                                "items": {
+                                    "$ref": "#/$defs/types/scalar"
+                                },
+                                "default": [
+                                    "/assets",
+                                    "/build",
+                                    "/_framework/ux"
+                                ],
+                                "description": "URL prefixes that should be served directly by the asset bridge"
+                            },
+                            "disable_cache": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": true,
+                                "description": "Disable HTTP caching of assets served via the bridge (useful for tests)"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "default": {
+                            "public_roots": [
+                                "%kernel.project_dir%/public"
+                            ],
+                            "prefixes": [
+                                "/assets",
+                                "/build",
+                                "/_framework/ux"
+                            ],
+                            "disable_cache": true
+                        },
+                        "description": "Asset handling configuration used by the in-process dev server bridge"
+                    }
+                },
+                "additionalProperties": false
+            },
             "property_access": {
                 "anyOf": [
                     {
@@ -4831,6 +5067,9 @@
                     "$ref": "#/$defs/nodes/live_component"
                 },
                 "parameters": true,
+                "playwright": {
+                    "$ref": "#/$defs/nodes/playwright"
+                },
                 "property_access": {
                     "$ref": "#/$defs/nodes/property_access"
                 },

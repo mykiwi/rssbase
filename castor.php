@@ -50,6 +50,9 @@ function install(): void
     io()->section('Installing PHP and JavaScript dependencies');
     run(['composer', 'install', '-n', '--prefer-dist', '--optimize-autoloader']);
 
+    io()->section('Installing Chromium for the browser tests');
+    run(['vendor/bin/playwright-install', 'chromium']);
+
     io()->section('Building the stylesheet with Tailwind');
     run(['bin/console', 'tailwind:build']);
 

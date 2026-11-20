@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "bad1759fa2890f4abc27dc8a7d329ff5",
+    "content-hash": "47f72b01dce5276fbbe86db2673dcfd5",
     "packages": [
         {
             "name": "composer/semver",
@@ -6637,6 +6637,179 @@
             ],
             "time": "2026-11-19T12:17:15+00:00",
             "published-time": "2026-11-19T12:18:28+00:00"
+        },
+        {
+            "name": "playwright-php/playwright",
+            "version": "v1.6.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/playwright-php/playwright.git",
+                "reference": "9b98992d064a1b549c029acf2f66576e321adb91"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/playwright-php/playwright/zipball/9b98992d064a1b549c029acf2f66576e321adb91",
+                "reference": "9b98992d064a1b549c029acf2f66576e321adb91",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.2",
+                "psr/clock": "^1.0",
+                "psr/log": "^2.0 || ^3.0",
+                "symfony/console": "^6.4 || ^7.3 || ^8.0",
+                "symfony/process": "^6.4 || ^7.3 || ^8.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.40",
+                "monolog/monolog": "^3.9",
+                "phpstan/phpstan": "^2.1",
+                "phpunit/phpunit": "^11.5",
+                "symfony/var-dumper": "^6.4 || ^7.3 || ^8.0"
+            },
+            "bin": [
+                "bin/playwright-install"
+            ],
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "1.x-dev"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/Testing/functions.php"
+                ],
+                "psr-4": {
+                    "Playwright\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Simon André",
+                    "email": "smn.andre@gmail.com",
+                    "homepage": "https://github.com/smnandre"
+                },
+                {
+                    "name": "Playwright PHP Contributors",
+                    "homepage": "https://github.com/playwright-php"
+                }
+            ],
+            "description": "Modern PHP library for Playwright automation: browsing, scraping, screenshots, testing, and more.",
+            "keywords": [
+                "automation",
+                "browser",
+                "chromium",
+                "firefox",
+                "headless",
+                "php",
+                "playwright",
+                "scraping",
+                "screenshots",
+                "test",
+                "testing",
+                "web",
+                "webkit"
+            ],
+            "support": {
+                "issues": "https://github.com/playwright-php/playwright/issues",
+                "source": "https://github.com/playwright-php/playwright/tree/v1.6.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/smnandre",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-11-07T23:05:13+00:00",
+            "published-time": "2026-11-07T23:07:15+00:00"
+        },
+        {
+            "name": "playwright-php/playwright-symfony",
+            "version": "v0.12.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/playwright-php/playwright-symfony.git",
+                "reference": "7c972684bb7ad7c5f1850382d3a1ce08948f009e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/playwright-php/playwright-symfony/zipball/7c972684bb7ad7c5f1850382d3a1ce08948f009e",
+                "reference": "7c972684bb7ad7c5f1850382d3a1ce08948f009e",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.2",
+                "playwright-php/playwright": "^1.5.1",
+                "symfony/browser-kit": "^6.4 || ^7.0 || ^8.0",
+                "symfony/framework-bundle": "^6.4 || ^7.0 || ^8.0",
+                "symfony/http-foundation": "^6.4 || ^7.0 || ^8.0",
+                "symfony/http-kernel": "^6.4 || ^7.0 || ^8.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.40",
+                "phpstan/phpstan": "^2.1",
+                "phpunit/phpunit": "^11.5",
+                "symfony/asset": "^6.4 || ^7.0 || ^8.0",
+                "symfony/asset-mapper": "^6.4 || ^7.0 || ^8.0",
+                "symfony/css-selector": "^6.4 || ^7.0 || ^8.0",
+                "symfony/event-dispatcher": "^6.4 || ^7.0 || ^8.0",
+                "symfony/mime": "^6.4 || ^7.0 || ^8.0",
+                "symfony/phpunit-bridge": "^6.4 || ^7.0 || ^8.0",
+                "symfony/security-bundle": "^6.4 || ^7.0 || ^8.0",
+                "symfony/stopwatch": "^6.4 || ^7.0 || ^8.0",
+                "symfony/ux-live-component": "^2.33 || ^3.0",
+                "symfony/ux-turbo": "^2.33 || ^3.0",
+                "symfony/web-profiler-bundle": "^6.4 || ^7.0 || ^8.0"
+            },
+            "type": "symfony-bundle",
+            "autoload": {
+                "psr-4": {
+                    "Playwright\\Symfony\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Simon André",
+                    "email": "smn.andre@gmail.com",
+                    "homepage": "https://github.com/smnandre"
+                },
+                {
+                    "name": "Playwright PHP Contributors",
+                    "homepage": "https://github.com/playwright-php/playwright"
+                }
+            ],
+            "description": "Playwright PHP integration for Symfony BrowserKit, DomCrawler and WebTestCase",
+            "keywords": [
+                "browserkit",
+                "domcrawler",
+                "e2e",
+                "playwright",
+                "symfony",
+                "symfony-bundle",
+                "symfony-e2e",
+                "symfony-test",
+                "test"
+            ],
+            "support": {
+                "issues": "https://github.com/playwright-php/playwright-symfony/issues",
+                "source": "https://github.com/playwright-php/playwright-symfony/tree/v0.12.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/smnandre",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-11-06T21:46:09+00:00",
+            "published-time": "2026-11-06T21:47:27+00:00"
         },
         {
             "name": "sebastian/cli-parser",

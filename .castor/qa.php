@@ -26,6 +26,7 @@ function all(): int
         'analyze' => fail_on_exit_code(analyze(...)),
         'symfony_lsp' => fail_on_exit_code(symfony_lsp(...)),
         'phpunit' => fail_on_exit_code(phpunit(...)),
+        'e2e' => fail_on_exit_code(e2e(...)),
     ];
 
     if ($inCi) {
@@ -98,6 +99,17 @@ function phpunit(#[AsRawTokens] array $rawTokens = []): int
     io()->section('Running PHPUnit...');
 
     return exit_code(['bin/phpunit', '--testsuite', 'default', ...$rawTokens]);
+}
+
+/**
+ * @param list<string> $rawTokens
+ */
+#[AsTask(description: 'Runs the PHPUnit "e2e" suite in Chromium, with requests handled by the test kernel', aliases: ['e2e'])]
+function e2e(#[AsRawTokens] array $rawTokens = []): int
+{
+    io()->section('Running the browser tests...');
+
+    return exit_code(['bin/phpunit', '--testsuite', 'e2e', ...$rawTokens]);
 }
 
 #[AsTask(description: 'Audits the Composer dependencies for security advisories')]

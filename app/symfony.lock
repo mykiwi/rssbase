@@ -50,6 +50,9 @@
             "bin/phpunit"
         ]
     },
+    "playwright-php/playwright-symfony": {
+        "version": "v0.12.0"
+    },
     "symfony/asset-mapper": {
         "version": "8.2",
         "recipe": {
