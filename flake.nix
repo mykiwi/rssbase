@@ -19,6 +19,7 @@
       php = import ./infra/packages/php.nix { inherit (pins) php86; };
       frankenphp = pkgs.callPackage ./infra/packages/frankenphp.nix { inherit php; };
       mago = pkgs.callPackage ./infra/packages/mago.nix { };
+      symfony-lsp = pkgs.callPackage ./infra/packages/symfony-lsp.nix { };
 
       shortcuts = pkgs.runCommand "shortcuts" { } ''
         mkdir -p $out/bin
@@ -29,7 +30,12 @@
     in
     {
       packages.${system} = {
-        inherit php frankenphp mago;
+        inherit
+          php
+          frankenphp
+          mago
+          symfony-lsp
+          ;
       };
 
       devShells.${system}.default = pkgs.mkShellNoCC {
@@ -39,13 +45,19 @@
           php.packages.castor
           frankenphp
           mago
+          symfony-lsp
           pins.nodejs_26
           shortcuts
         ];
       };
 
       checks.${system} = {
-        inherit php frankenphp mago;
+        inherit
+          php
+          frankenphp
+          mago
+          symfony-lsp
+          ;
       };
     };
 }
