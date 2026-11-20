@@ -34,6 +34,11 @@
       "date": "2026-11-20",
       "type": "Implémentation",
       "description": "Extension intl ajoutée au PHP maison (1c49acf, demande utilisateur : Symfony 8.2 la réclame en dev et en prod), ce qui solde la dette notée à l'entrée précédente. Écart : liée à ICU 79.1 du jeu daté au lieu de l'ICU 73 de nixpkgs (règle utilisateur : dernière version ; même glibc et même GCC) ; 505 tests de l'extension verts, castor qa en CI vert, image vérifiée."
+    },
+    {
+      "date": "2026-11-20",
+      "type": "Implémentation",
+      "description": "Serveur Playwright MCP vérifié par la commande exacte de .mcp.json (demande utilisateur) : 25 outils, navigation vers la page servie par castor start, titre Hello world lu, aucune erreur de console ; ce qui solde le dernier critère de sortie ouvert. Écart : .playwright-mcp/, où le serveur écrit journaux et instantanés, ajouté au .gitignore racine."
     }
   ]
 }

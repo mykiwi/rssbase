@@ -74,7 +74,7 @@ Monolithe Symfony servi par FrankenPHP en mode worker : un lecteur RSS adossé �
 - **Composer** : `2.11.2` résolu, du PHP maison (`flake.nix`).
 - **Tâches** : castor `1.9.1` résolu (`flake.nix`), point d'entrée `castor.php` et un fichier par espace de noms dans `.castor/` (`app`, `qa`, `docker`) ; castor demande à `app/Makefile` les fichiers générés (vendor, importmap, feuille de style, Chromium, base), reconstruits seulement quand une source change (`castor.php`, `.castor/`, `app/Makefile`).
 - **Commandes QA / build** : `nix develop -c castor install`, `castor start` (port 8000 ou suivant libre), `castor qa`, `castor docker:up` (port 8080 ou suivant libre) (`AGENTS.md`).
-- **Assistants IA** : Mate `v1.0.0-BETA1` (CLI, plus de serveur MCP), extensions Symfony et Monolog, invoqué par `nix develop -c app/vendor/bin/mate` ; skills générés dans `app/.agents/skills/` et `app/.claude/skills/` (`app/composer.lock`, `app/mate/`). Playwright MCP `@playwright/mcp` `0.0.86` par `nix develop -c npx`, profil en mémoire (`.mcp.json`).
+- **Assistants IA** : Mate `v1.0.0-BETA1` (CLI, plus de serveur MCP), extensions Symfony et Monolog, invoqué par `nix develop -c app/vendor/bin/mate` ; skills générés dans `app/.agents/skills/` et `app/.claude/skills/` (`app/composer.lock`, `app/mate/`). Playwright MCP `@playwright/mcp` `0.0.86` par `nix develop -c npx`, profil en mémoire, sorties dans `.playwright-mcp/` ignoré par git (`.mcp.json`, `.gitignore`).
 - **Services de dev** : aucun service externe ; SQLite est un fichier local.
 
 ## Contraintes & dette de stack connues
@@ -83,7 +83,6 @@ Monolithe Symfony servi par FrankenPHP en mode worker : un lecteur RSS adossé �
 - **Surcharges en attente de nixpkgs** : source de PHP 8.6.0 (`infra/packages/php.nix`), ICU de `intl` (`infra/packages/php.nix`), binaire de Mago (`infra/packages/mago.nix`) ; chacune porte la condition de son retrait.
 - **Paquets maison** : PHP ZTS et FrankenPHP absents du cache binaire, recompilés en local à chaque changement d'extension ou de version (environ 3 minutes pour FrankenPHP).
 - **Binaires hors Nix** : Tailwind, Chromium et `@playwright/mcp` sont téléchargés par leurs outils ; Chromium n'est pas épinglé par un lockfile (`playwright` `^1.62` installé sans lockfile).
-- **Playwright MCP** : démarrage depuis une session d'agent non vérifié à ce jour.
 - **Mode worker et E2E** : la suite `e2e` passe par le noyau de test, pas par FrankenPHP ; le mode worker n'est vérifié qu'à la main.
 - **Nommage** : projet `rssbase`, dossier du dépôt `symfony-atproto`.
 - **Dépendance protocole** : les spaces AT Protocol (données privées) ne sont pas garantis disponibles ni outillés en PHP ; le stockage SQLite temporaire en dépend.
@@ -92,3 +91,4 @@ Monolithe Symfony servi par FrankenPHP en mode worker : un lecteur RSS adossé �
 
 - 2026-11-20 — Création — inventaire d'intention (stack cible, non amorcée)
 - 2026-11-20 — Éditer — toutes couches — intentions remplacées par les preuves fichier après l'amorçage de la story 001 : versions résolues, runtime natif Nix, image limitée au runtime, UX CSS reporté, Doctrine et Monolog, Mate en CLI, Playwright MCP
+- 2026-11-20 — Éditer — outillage — démarrage de Playwright MCP vérifié, dossier de sorties `.playwright-mcp/` ignoré
