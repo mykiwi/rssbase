@@ -1,81 +1,94 @@
 # Stack technique — rssbase
 
-> Dernière mise à jour : 2026-11-20 — **stack cible, non encore amorcée**. Le dépôt ne contient aucun manifeste : chaque entrée est une intention déclarée par l'utilisateur (_source : déclaratif utilisateur_) ou marquée _non renseigné_. À recartographier en mode Éditer dès le premier scaffolding, pour remplacer les intentions par des preuves fichier.
+> Dernière mise à jour : 2026-11-20 — cartographie factuelle de la stack, amorcée par la story `001-t-stack-hello-world`. Chaque entrée est prouvée par un fichier du dépôt (source entre parenthèses) ou marquée _non renseigné_. Contrainte déclarée et version résolue sont distinguées : « contrainte » vient d'un manifeste, « résolu » d'un lockfile ou d'une dérivation Nix.
 
 ## Vue d'ensemble
 
-Monolithe Symfony servi par FrankenPHP : un lecteur RSS adossé à AT Protocol (login, stockage des données utilisateur dans le PDS). Rendu côté serveur en Twig et Live Components, base SQLite, exécution sous Docker.
+Monolithe Symfony servi par FrankenPHP en mode worker : un lecteur RSS adossé à AT Protocol (login, stockage des données utilisateur dans le PDS). Rendu côté serveur en Twig, base SQLite. Le développement tourne en natif dans un shell Nix ; Docker ne porte qu'une image de runtime. Aucun hébergement de production n'est défini.
 
 | Couche | Techno principale |
 |---|---|
-| Langage(s) | PHP 8.6 |
-| Backend | Symfony 8.2, FrankenPHP |
-| Frontend | Twig Components, Live Components, UX CSS, UX Toolkit (kit Shadcn) |
-| Données | SQLite |
-| Ops | Docker, Docker Compose |
+| Langage(s) | PHP 8.6.0 (build maison), Node 26 pour l'outillage |
+| Backend | Symfony 8.2 (beta), FrankenPHP 1.13.6 en mode worker |
+| Frontend | Twig Components, Live Components, AssetMapper, Tailwind 4, UX Toolkit (kit Shadcn) |
+| Données | SQLite via Doctrine ORM |
+| Ops | Image Docker de runtime construite par le flake, Docker Compose |
 | DevOps | _non renseigné_ (pas de CI) |
 
 ## Langages & runtimes
 
-- **PHP** `8.6` (cible) — _source : déclaratif utilisateur_
-- **FrankenPHP** — serveur d'application PHP — _source : déclaratif utilisateur_
+- **PHP** `8.6.0` résolu, ZTS, `embed`, extensions limitées à ce que l'application exige (ctype, dom, filter, iconv, intl, mbstring, openssl, pdo, pdo_sqlite, session, simplexml, tokenizer, xmlwriter) — source de 8.6.0 surchargée sur la recette `php86` 8.6.0RC4 tant que l'index multiverse ne connaît pas 8.6.0 (`infra/packages/php.nix`, `flake.nix`). Contrainte applicative `php >=8.6` (`app/composer.json`).
+- **ICU** `79.1` résolu pour `intl`, au lieu de l'ICU 73 de nixpkgs (`flake.nix`, `infra/packages/php.nix`).
+- **FrankenPHP** `1.13.6` résolu, Caddy 2.11.9, compilé contre le PHP maison, point d'entrée amont (Mercure et Vulcain inclus) (`infra/packages/frankenphp.nix`).
+- **Node** `26.13.1` résolu, outillage seulement (Playwright, `npx`) (`flake.nix`).
 
 ## Backend
 
-- **Framework** : Symfony `8.2` (cible) — _source : déclaratif utilisateur_
-- **ORM / données** : _non renseigné_ (Doctrine probable, non décidé)
-- **Libs structurantes** : client AT Protocol (OAuth, records, spaces) — _non renseigné_, choix à trancher en `/tech-plan` ou `/adr`
+- **Framework** : Symfony, contrainte `8.2.*` avec `minimum-stability: beta` et `prefer-stable`, résolu `v8.2.0-BETA2` (`app/composer.json`, `app/composer.lock`).
+- **Runtime** : `symfony/runtime` `v8.2.0-BETA2`, `FrankenPhpWorkerRunner` embarqué, aucun runtime tiers (`app/composer.lock`, `infra/frankenphp/Caddyfile`).
+- **ORM / données** : Doctrine ORM `3.8.0`, DoctrineBundle `3.4.2`, DoctrineMigrationsBundle `4.0.1` résolus ; migrations dans `app/src/Migrations/`, aucune entité ni migration (`app/composer.lock`, `app/config/packages/doctrine*.yaml`).
+- **Logs** : MonologBundle `v4.1.0` résolu, configuration de la recette (`app/composer.lock`, `app/config/packages/monolog.yaml`).
+- **Libs structurantes** : client AT Protocol (OAuth, records, spaces) — _non renseigné_, à trancher avec la première story fonctionnelle.
 
 ## Frontend
 
-- **Composants** : Symfony UX Twig Components et Live Components — _source : déclaratif utilisateur_
-- **CSS** : Symfony UX CSS (https://ux.symfony.com/css) — _source : déclaratif utilisateur_
-- **UI kit** : Symfony UX Toolkit, kit Shadcn (https://ux.symfony.com/toolkit/kits/shadcn) — _source : déclaratif utilisateur_
-- **Bundler / build** : _non renseigné_
-- **TypeScript** : _non renseigné_
+- **Composants** : Twig Components `v3.7.0` et Live Components `v3.7.2` résolus, aucun composant interactif (`app/composer.lock`).
+- **Bundler / build** : AssetMapper avec importmap, Stimulus `3.2.2` via StimulusBundle `v3.7.0`, sans Node ni bundler JS (`app/importmap.php`, `app/composer.lock`).
+- **CSS** : Tailwind `v4.3.5` (binaire épinglé), via `symfonycasts/tailwind-bundle` `v1.0.0` ; sources limitées à `assets`, `templates` et `src` par `@source` (`app/config/packages/symfonycasts_tailwind.yaml`, `app/assets/styles/app.css`).
+- **UI kit** : UX Toolkit `v3.7.1` (dev), kit Shadcn ; composants copiés dans `app/templates/components/`, thème `shadcn` `4.23.0` et `tw-animate-css` `1.4.0` par l'importmap, extensions Twig `tales-from-a-dev/twig-tailwind-extra` `v1.5.0` et `twig/html-extra` `v3.29.0` (`app/composer.lock`, `app/importmap.php`).
+- **UX CSS** : reporté, non installé (plan de la story 001).
+- **TypeScript** : non.
 
 ## Données & stockage
 
-- **Base de données** : SQLite — _source : déclaratif utilisateur_. Héberge aussi le stockage local temporaire des données privées tant que les spaces AT Protocol ne sont pas utilisables (plan B acté dans l'atelier de vision).
-- **Données utilisateur portables** : PDS AT Protocol de l'utilisateur (records publics, spaces pour le privé) — service externe, _source : atelier de vision_
+- **Base de données** : SQLite, un fichier par environnement, `app/var/data_<environnement>.db` (`app/.env`, `DATABASE_URL`). Hébergera aussi le stockage local temporaire des données privées tant que les spaces AT Protocol ne sont pas utilisables (plan B acté dans l'atelier de vision).
+- **Données utilisateur portables** : PDS AT Protocol de l'utilisateur (records publics, spaces pour le privé) — service externe, _source : atelier de vision_, non intégré.
 
 ## Ops / Infrastructure
 
-- **Conteneurisation** : Docker — _source : déclaratif utilisateur_
-- **Orchestration** : Docker Compose (stack Docker en premier) — _source : déclaratif utilisateur_
-- **Hébergement de production** : _non renseigné_
+- **Conteneurisation** : image `rssbase-dev`, runtime seul (FrankenPHP, PHP, Caddyfile, certificats racine), construite par `dockerTools.streamLayeredImage` sans Dockerfile ; l'application n'est pas dans l'image (`infra/packages/docker-image-dev.nix`, `.castor/docker.php`).
+- **Orchestration** : Docker Compose, service unique qui monte `./app`, tourne sous l'identifiant de l'utilisateur de l'hôte et publie le port sur la boucle locale (`compose.yaml`).
+- **Serveur HTTP** : Caddyfile partagé par le shell de dev et l'image, piloté par variables d'environnement ; HTTP seulement, écoute sur la boucle locale (`infra/frankenphp/Caddyfile`).
+- **Hébergement de production** : _non renseigné_ (aucun hébergement défini).
 - **CDN / reverse proxy** : _non renseigné_
-- **Gestion des secrets** : _non renseigné_
-- **Environnements** : _non renseigné_
+- **Gestion des secrets** : `app/.env` sans secret, secrets en `app/.env.local` non versionné (`app/.env`, `app/.gitignore`) ; production _non renseigné_.
+- **Environnements** : `dev`, `test` et `prod` Symfony en local (`app/.env`, `app/.env.dev`, `app/.env.test`) ; aucun environnement distant.
 
 ## DevOps / CI-CD
 
-- **Pipeline CI** : _non renseigné_
-- **Tests** : PHPUnit, php-playwright — _source : déclaratif utilisateur_
-- **Analyse statique / style** : Mago — _source : déclaratif utilisateur_
-- **Hooks git / automatisation deps** : _non renseigné_
+- **Pipeline CI** : _non renseigné_ (pas de `.github/` ni d'autre CI). `castor qa` reconnaît `CI` : vérification du formatage au lieu de sa correction, et `composer audit` (`.castor/qa.php`).
+- **Tests** : PHPUnit `13.4.8` résolu, suites `default` (fonctionnel, intégration) et `e2e` ; navigateur par `playwright-php/playwright` `v1.6.0` et `playwright-php/playwright-symfony` `v0.12.0` dans le noyau de test, Chromium téléchargé par `playwright-install` (`app/composer.lock`, `app/phpunit.dist.xml`).
+- **Analyse statique / style** : Mago `1.60.2`, binaire officiel (format, lint, analyse, Twig), zéro signalement jusqu'au niveau note (`infra/packages/mago.nix`, `app/mago.toml`) ; symfony-lsp `0.24.2`, binaire officiel (`infra/packages/symfony-lsp.nix`).
+- **Hooks git / automatisation deps** : aucun hook git. Hook Claude Code `PostToolUse` qui passe Mago sur chaque fichier PHP ou Twig édité (`.claude/settings.json`, `.claude/hooks/mago.sh`).
 - **Déploiement** : _non renseigné_
 
 ## Monitoring / observabilité
 
 - **Erreurs** : _non renseigné_
 - **Métriques / traces** : _non renseigné_
-- **Logs** : _non renseigné_
+- **Logs** : Monolog, fichier par environnement en dev, `php://stderr` en prod, configuration de la recette (`app/config/packages/monolog.yaml`) ; aucune centralisation.
 
 ## Outillage de développement local
 
-- **Environnement** : Nix, `flake.nix` avec `devShells.default` — _source : déclaratif utilisateur, `AGENTS.md`_
-- **Tâches** : castor en priorité, Makefile en complément — _source : déclaratif utilisateur, `AGENTS.md`_
-- **Assistants IA** : MCP Mate, MCP Playwright — _source : déclaratif utilisateur_
-- **Services de dev** : Docker Compose — _source : déclaratif utilisateur_
+- **Environnement** : Nix, `flake.nix` avec `devShells.default` ; unique entrée `nixpkgs-multiverse`, jeu de paquets daté `2026-11-19` et pins par version (`flake.nix`, `flake.lock`). Flake limité à `x86_64-linux`.
+- **Composer** : `2.11.2` résolu, du PHP maison (`flake.nix`).
+- **Tâches** : castor `1.9.1` résolu (`flake.nix`), point d'entrée `castor.php` et un fichier par espace de noms dans `.castor/` (`app`, `qa`, `docker`) ; castor demande à `app/Makefile` les fichiers générés (vendor, importmap, feuille de style, Chromium, base), reconstruits seulement quand une source change (`castor.php`, `.castor/`, `app/Makefile`).
+- **Commandes QA / build** : `nix develop -c castor install`, `castor start` (port 8000 ou suivant libre), `castor qa`, `castor docker:up` (port 8080 ou suivant libre) (`AGENTS.md`).
+- **Assistants IA** : Mate `v1.0.0-BETA1` (CLI, plus de serveur MCP), extensions Symfony et Monolog, invoqué par `nix develop -c app/vendor/bin/mate` ; skills générés dans `app/.agents/skills/` et `app/.claude/skills/` (`app/composer.lock`, `app/mate/`). Playwright MCP `@playwright/mcp` `0.0.86` par `nix develop -c npx`, profil en mémoire (`.mcp.json`).
+- **Services de dev** : aucun service externe ; SQLite est un fichier local.
 
 ## Contraintes & dette de stack connues
 
-- **Versions non vérifiées** : PHP 8.6 et Symfony 8.2 sont des cibles déclarées ; à confirmer par `composer.json` et le lockfile au scaffolding.
-- **Non amorcée** : aucun template récupéré. Le scaffolding (projet Symfony, `flake.nix`, `Dockerfile`, `compose.yaml`, tâches castor) reste à faire.
+- **Symfony beta** : `minimum-stability: beta` à retirer au passage à Symfony 8.2.0 stable (`app/composer.json`).
+- **Surcharges en attente de nixpkgs** : source de PHP 8.6.0 (`infra/packages/php.nix`), ICU de `intl` (`infra/packages/php.nix`), binaire de Mago (`infra/packages/mago.nix`) ; chacune porte la condition de son retrait.
+- **Paquets maison** : PHP ZTS et FrankenPHP absents du cache binaire, recompilés en local à chaque changement d'extension ou de version (environ 3 minutes pour FrankenPHP).
+- **Binaires hors Nix** : Tailwind, Chromium et `@playwright/mcp` sont téléchargés par leurs outils ; Chromium n'est pas épinglé par un lockfile (`playwright` `^1.62` installé sans lockfile).
+- **Playwright MCP** : démarrage depuis une session d'agent non vérifié à ce jour.
+- **Mode worker et E2E** : la suite `e2e` passe par le noyau de test, pas par FrankenPHP ; le mode worker n'est vérifié qu'à la main.
 - **Nommage** : projet `rssbase`, dossier du dépôt `symfony-atproto`.
 - **Dépendance protocole** : les spaces AT Protocol (données privées) ne sont pas garantis disponibles ni outillés en PHP ; le stockage SQLite temporaire en dépend.
 
 ## Changelog
 
 - 2026-11-20 — Création — inventaire d'intention (stack cible, non amorcée)
+- 2026-11-20 — Éditer — toutes couches — intentions remplacées par les preuves fichier après l'amorçage de la story 001 : versions résolues, runtime natif Nix, image limitée au runtime, UX CSS reporté, Doctrine et Monolog, Mate en CLI, Playwright MCP
