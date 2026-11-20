@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "nix",
+      "args": ["develop", "-c", "npx", "@playwright/mcp@0.0.86", "--isolated"]
+    }
+  }
+}

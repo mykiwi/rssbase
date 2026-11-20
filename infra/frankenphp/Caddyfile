@@ -1,0 +1,35 @@
+# Paths are relative to the working directory: start FrankenPHP from app/.
+{
+	admin {$CADDY_ADMIN:localhost:2019}
+
+	{$CADDY_GLOBAL_OPTIONS}
+
+	frankenphp {
+		{$FRANKENPHP_CONFIG}
+	}
+}
+
+# Restart the workers when the code changes. var/ is left out: Symfony writes PHP files there,
+# and config/reference.php is regenerated with the container.
+(watch_code) {
+	watch ./src/**/*.php
+	watch ./config/**/*.{yaml,yml}
+	watch ./config/bundles.php
+	watch ./templates/**/*.twig
+	watch ./.env*
+	watch ./vendor/composer/installed.json
+}
+
+{$SERVER_NAME:http://localhost:8000} {
+	bind {$SERVER_BIND:127.0.0.1 [::1]}
+
+	root public/
+	encode zstd br gzip
+
+	php_server {
+		worker {
+			file ./public/index.php
+			{$FRANKENPHP_WORKER_CONFIG}
+		}
+	}
+}

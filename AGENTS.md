@@ -5,8 +5,29 @@ so switching readers loses nothing. Personal tool first, social layer later. Vis
 
 ## Stack
 
-Target stack, not scaffolded yet: PHP 8.6, Symfony 8.2 on FrankenPHP, SQLite, Twig and Live Components with the UX Toolkit Shadcn kit, Docker Compose,
-Nix flake, castor tasks. Details and unverified versions: [`forge/stack.md`](forge/stack.md).
+PHP 8.6, Symfony 8.2 on FrankenPHP in worker mode, SQLite through Doctrine, Twig, Twig Components and Live Components, the UX Toolkit Shadcn kit,
+Tailwind through AssetMapper. Details: [`forge/stack.md`](forge/stack.md).
+
+- `app/`: the Symfony application. [`app/AGENTS.md`](app/AGENTS.md) gives its Symfony conventions.
+- `flake.nix`: the dev shell. It pins tool versions through `nixpkgs-multiverse`, except for the packages of `infra/packages/`, which pin their own
+  source or binary (PHP, FrankenPHP, Mago, symfony-lsp, the development image). `infra/frankenphp/Caddyfile` is the server configuration.
+- `castor.php` and `.castor/`: the tasks. They ask `app/Makefile` for generated files (vendor, importmap, stylesheet, Chromium, database), which it
+  rebuilds only when a source changed.
+
+## Commands
+
+Run them from the repository root, through the dev shell:
+
+- `nix develop -c castor install`: installs the application.
+- `nix develop -c castor start`: serves it in the foreground on `http://localhost:8000`, or the next free port, restarts the workers and rebuilds the
+  stylesheet when the code changes. `castor stop` stops it.
+- `nix develop -c castor qa`: formats, lints and analyzes with Mago, checks with symfony-lsp, runs the PHPUnit `default` and `e2e` suites. With `CI=1`,
+  it checks the formatting instead of fixing it and runs `composer audit`. `castor list` shows the single tasks (`qa:phpunit`, `qa:e2e`...).
+- `nix develop -c castor docker:up`: serves `app/` mounted in the development image on `http://localhost:8080`, or the next free port.
+  `castor docker:down` stops it.
+- `nix develop -c castor mate tools:list`: lists the diagnostic tools of Mate (profiler, logs, container), from any directory of the repository. Usage:
+  [`app/mate/AGENT_INSTRUCTIONS.md`](app/mate/AGENT_INSTRUCTIONS.md).
+- `.mcp.json` declares the Playwright MCP server, to drive a browser.
 
 ## Domain rules
 
@@ -19,8 +40,12 @@ Nix flake, castor tasks. Details and unverified versions: [`forge/stack.md`](for
 
 ## Pitfalls
 
-- There is no `composer.json`, castor task, or `Makefile` yet. Do not invent commands; scaffold from `forge/stack.md` and confirm versions when the
-  manifests exist.
+- The agent shell has no PHP, Composer or castor: they exist only in the dev shell. Entering it takes a few seconds, so chain related commands in
+  one `nix develop -c bash -c '...'`.
+- PHP is a build of the project with only the extensions the application needs. Add a missing one in `infra/packages/php.nix`: the next `nix develop`
+  compiles PHP and FrankenPHP again.
+- Symfony 8.2 is in beta: `app/composer.json` keeps `minimum-stability: beta` until the stable release.
+- Tailwind generates only the classes it finds in `app/assets`, `app/templates` and `app/src` (the `@source` lines of `app/assets/styles/app.css`).
 
 # Working together
 
@@ -129,6 +154,13 @@ investigation for every edit. My explicit instructions take precedence over loca
   NULL handling, duplicate behavior, and ordering, and test meaningful boundaries against the real database engine.
 - Keep transactions short and related writes atomic. Use the database clock for database-owned timestamps. Check that constraints and foreign keys
   preserve the intended deletion, retention, and TTL behavior.
+
+## Commits
+
+- Make atomic commits: one logical change per commit, each leaving the repository in a working state.
+- Write commit messages in English and follow [Conventional Commits](https://www.conventionalcommits.org/) so the semver bump can be derived from history:
+  `fix` is a patch, `feat` a minor, and `!` after the type or a `BREAKING CHANGE:` footer a major.
+- Start every subject with an emoji matching the change, then a single space, then the type: `✨ feat(reader): add OPML import`.
 
 ## Communication and handoff
 

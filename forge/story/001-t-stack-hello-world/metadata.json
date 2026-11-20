@@ -1,0 +1,75 @@
+{
+  "version": 3,
+  "title": "Amorcer la stack technique avec un hello world",
+  "created": "2026-11-20",
+  "updated": "2026-11-20",
+  "tags": [
+    "scaffolding"
+  ],
+  "changelog": [
+    {
+      "date": "2026-11-20",
+      "type": "Création",
+      "description": "Plan technique rédigé : runtime natif Nix via nixpkgs-multiverse, PHP 8.6 et FrankenPHP 1.13.6 en paquets maison, Symfony 8.2 dans app/, page hello world statique."
+    },
+    {
+      "date": "2026-11-20",
+      "type": "Planification",
+      "description": "PHP fixé à 8.6.0 finale sans repli sur une version candidate : surcharge de la source dans infra/packages/php.nix tant que multiverse ne l'indexe pas."
+    },
+    {
+      "date": "2026-11-20",
+      "type": "ADR",
+      "description": "ADR-0001 (runtime natif Nix, PHP et FrankenPHP en paquets maison) et ADR-0002 (sélection des versions par nixpkgs-multiverse) rédigés en proposed."
+    },
+    {
+      "date": "2026-11-20",
+      "type": "Implémentation",
+      "description": "Partielle : étapes 1 à 8 sur 10 livrées et commitées (jusqu'à 4b9cabf), castor qa et ci verts ; restent 9 (Mate, Playwright MCP) et 10 (mesure du mode worker, documentation). Écarts : PHP 8.6.0 par surcharge de php86 calquée sur la PR nixpkgs 590480, SAPI CGI/FPM/phpdbg retirées (inutiles) ; Mago 1.60.2 en binaire officiel (règle utilisateur : dernière version, et 1.60.2 exige rustc 1.100 absent de nixpkgs), ADR-0002 à amender ; symfony-lsp 0.24.2 (binaire officiel), jq et gnumake ajoutés au shell, raccourcis cas/mag/fra (demandes utilisateur) ; Node 26 (LTS active) ; flake x86_64-linux seul ; admin Caddy sur socket Unix (localhost:2019 déjà pris) ; surveillance des workers par motifs explicites (Symfony réécrit var/) ; squelette Symfony créé depuis 8.1.99 puis passé à la main en 8.2.* beta (pas de tag 8.2), name et description ajoutés pour composer validate --strict ; fichiers des recettes retouchés pour zéro signalement Mago (seuil note), config/bundles.php exclu du linter (Flex le réécrit sans strict_types) ; castor qa en parallèle avec alias ci, composer audit seulement en CI ou à la main, formatage en --check en CI (demandes utilisateur) ; hook Claude Code PostToolUse qui passe Mago sur les fichiers PHP et Twig édités (demande utilisateur), symfony-lsp exclu du hook (1,5 à 2 s par fichier) ; kit Shadcn 3.7.1 : bundle twig-tailwind-extra enregistré à la main (pas de recette Flex), Tailwind v4.3.5 épinglé à la main (tailwind:init exige un terminal) ; Doctrine : migrations dans src/Migrations (recette du bundle 4), pas de doctrine:database:create (non supporté pour SQLite par DBAL 4), intégration Docker de Flex désactivée ; E2E par playwright-symfony dans le noyau de test, sans FrankenPHP (décision utilisateur : vitesse), le mode worker n'est donc vérifié qu'à la main ; Chromium non épinglé par composer.lock (playwright ^1.62 installé sans lockfile) ; app/Makefile : castor appelle make --jobs sur les seules cibles nécessaires, composer install --no-scripts (demande utilisateur) ; Docker : image rssbase-dev (docker-image-dev.nix), port libre choisi à partir de 8080 (8080 pris sur la machine), network_mode bridge (pools d'adresses de Docker épuisés) ; cache PHPUnit dans var/phpunit (demande utilisateur). À reprendre : Mate est une CLI depuis la 1.0 (serveur MCP retiré, question ouverte tranchée : rien dans .mcp.json pour Mate) ; ADR-0001 et ADR-0002 à passer en accepted via /forge:adr."
+    },
+    {
+      "date": "2026-11-20",
+      "type": "Implémentation",
+      "description": "Étapes 9 et 10 livrées (jusqu'à db3a403) : castor qa en CI vert, nix flake check OK ; depuis un clone propre, castor install puis castor start et castor docker:up servent GET / en 200 avec Hello world. Mesure GET / (prod, cache chaud, 200 requêtes, commit 46b92d3, deux passes) : médiane classique 11,28 et 11,05 ms, worker 1,95 et 3,77 ms. Restent : forge/stack.md à recartographier par /forge:stack (invocation réservée à l'utilisateur) ; démarrage du serveur Playwright MCP non vérifié (npx bloqué par le mode auto, à vérifier dans une session qui charge .mcp.json). Écarts : Mate 1.0.0-BETA1 forcé par ^1.0 (prefer-stable choisissait 0.15.0) ; invocation nix develop -c app/vendor/bin/mate depuis la racine (le shell de l'agent n'a pas PHP) ; mate init écrit app/CLAUDE.md, un bloc géré dans app/AGENTS.md et 7 skills dans app/.agents et app/.claude, commités (recommandation amont : changements visibles en revue) ; plugin symfony/ai-mate-composer-plugin autorisé (relance mate discover après composer require ou update) ; .mcp.json passe par nix develop (Node du flake et non le Node global) avec --isolated (profil en mémoire), navigateur Chrome de la machine (--browser ne propose plus chromium) ; Tailwind limité à assets, templates et src par @source, hors plan (le Markdown de Mate ajoutait 4 utilitaires) ; banc classique par un Caddyfile jetable sans le bloc worker (le Caddyfile du projet n'a pas d'interrupteur). Dette : Symfony 8.2 journalise l'absence de l'extension intl, non ajoutée faute d'échec constaté."
+    },
+    {
+      "date": "2026-11-20",
+      "type": "Implémentation",
+      "description": "Extension intl ajoutée au PHP maison (1c49acf, demande utilisateur : Symfony 8.2 la réclame en dev et en prod), ce qui solde la dette notée à l'entrée précédente. Écart : liée à ICU 79.1 du jeu daté au lieu de l'ICU 73 de nixpkgs (règle utilisateur : dernière version ; même glibc et même GCC) ; 505 tests de l'extension verts, castor qa en CI vert, image vérifiée."
+    },
+    {
+      "date": "2026-11-20",
+      "type": "Implémentation",
+      "description": "Serveur Playwright MCP vérifié par la commande exacte de .mcp.json (demande utilisateur) : 25 outils, navigation vers la page servie par castor start, titre Hello world lu, aucune erreur de console ; ce qui solde le dernier critère de sortie ouvert. Écart : .playwright-mcp/, où le serveur écrit journaux et instantanés, ajouté au .gitignore racine."
+    },
+    {
+      "date": "2026-11-20",
+      "type": "Review",
+      "description": "Review ouverte : corrections requises, 0 bloquant, 1 important ([ROBUSTESSE] make supprime la base de dev sur une migration en échec), 10 mineurs. Double chargement de la page dans le test E2E écarté par l'utilisateur (le plan le prévoyait contre l'état conservé du mode worker)."
+    },
+    {
+      "date": "2026-11-20",
+      "type": "Review",
+      "description": "Prêt à commiter ; 1 important et 9 mineurs corrigés : [ROBUSTESSE] base de dev en .PRECIOUS, [ROBUSTESSE] castor qa formate avant le make partagé, [BUG] hook Mago limité aux chemins de mago.toml, [ROBUSTESSE] castor start refuse un second serveur, [UX] sortie de docker:build visible, [UX] tailwind:build --watch lancé par castor start, [TEST] test de connexion par pragma_database_list, [CONV] ext-intl et ext-pdo_sqlite requis, [DOC] formulations d'AGENTS.md, [DOC] Mate invoqué par castor mate depuis tout dossier. 1 mineur laissé en dette par l'utilisateur : [PLAN] aucune racine de GC pour PHP et FrankenPHP maison."
+    },
+    {
+      "date": "2026-11-20",
+      "type": "Sync",
+      "description": "27 écarts relevés dont 15 réalignés dans le plan, 12/12 critères de sortie et 10/10 étapes cochés, 2 non livrés, 6 dettes ouvertes, stack.md retouché."
+    },
+    {
+      "date": "2026-11-20",
+      "type": "Livraison",
+      "description": "La story livre la stack hello world : Symfony 8.2 sur FrankenPHP natif Nix, qualité, tests, Docker et outillage agent, avec les corrections de review."
+    },
+    {
+      "date": "2026-11-20",
+      "type": "ADR",
+      "description": "ADR-0002 amendé et passé en accepted : multiverse quand il propose la dernière version publiée (toutes lignes, LTS comprises), sinon paquet maison dans infra/packages/."
+    }
+  ],
+  "delivery": {
+    "date": "2026-11-20",
+    "release": null
+  }
+}
