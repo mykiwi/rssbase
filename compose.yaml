@@ -1,0 +1,15 @@
+# Run through castor (docker:up, docker:down), which builds the image and sets the variables below.
+name: rssbase
+
+services:
+  app:
+    image: rssbase-dev:latest
+    # The host user, so that the files the application writes in app/var/ belong to them.
+    user: '${HOST_UID:?}:${HOST_GID:?}'
+    # Docker's default bridge: a single service needs no network of its own, whose subnet the Docker
+    # daemon may have no address pool left to allocate.
+    network_mode: bridge
+    volumes:
+      - ./app:/app
+    ports:
+      - '127.0.0.1:${HTTP_PORT:?}:8080'

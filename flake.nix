@@ -20,6 +20,7 @@
       frankenphp = pkgs.callPackage ./infra/packages/frankenphp.nix { inherit php; };
       mago = pkgs.callPackage ./infra/packages/mago.nix { };
       symfony-lsp = pkgs.callPackage ./infra/packages/symfony-lsp.nix { };
+      docker-image-dev = pkgs.callPackage ./infra/packages/docker-image-dev.nix { inherit frankenphp; };
 
       shortcuts = pkgs.runCommand "shortcuts" { } ''
         mkdir -p $out/bin
@@ -35,6 +36,7 @@
           frankenphp
           mago
           symfony-lsp
+          docker-image-dev
           ;
       };
 

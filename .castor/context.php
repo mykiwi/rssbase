@@ -19,6 +19,7 @@ function create_default_context(): Context
         'admin_address' => "unix/{$rootDir}/app/var/frankenphp-dev.sock",
         // Preferred ports: castor takes the next free one when another program holds them.
         'http_port' => 8000,
+        'docker_http_port' => 8080,
     ];
 
     // A PTY only helps when someone can answer prompts (composer, bin/console...): in CI, pipes
