@@ -8,13 +8,13 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class HomePageTest extends WebTestCase
 {
-    public function testHomePageSaysHelloWorld(): void
+    public function testHomePageSaysHelloWorldInACard(): void
     {
         $client = static::createClient();
         $client->request('GET', uri: '/');
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextSame('h1', text: 'Hello world');
+        self::assertSelectorTextSame('[data-slot="card"] [data-slot="card-title"] h1', text: 'Hello world');
     }
 
     public function testUnknownUrlIsNotFound(): void

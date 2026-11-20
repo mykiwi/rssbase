@@ -1,0 +1,3 @@
+# yaml-language-server: $schema=../schema.json
+symfonycasts_tailwind:
+    binary_version: 'v4.3.5'

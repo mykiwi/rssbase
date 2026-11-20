@@ -170,6 +170,161 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         marshaller?: scalar|Param|null, // The marshaller service to use for this pool.
  *     }>,
  * }
+ * @psalm-type TypeInfoConfig = bool|array{
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
+ *     aliases?: array<string, scalar|Param|null>,
+ * }
+ * @psalm-type PropertyAccessConfig = bool|array{ // Property access configuration
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
+ *     magic_call?: bool|Param, // Default: false
+ *     magic_get?: bool|Param, // Default: true
+ *     magic_set?: bool|Param, // Default: true
+ *     throw_exception_on_invalid_index?: bool|Param, // Default: false
+ *     throw_exception_on_invalid_property_path?: bool|Param, // Default: true
+ *     wildcard_reads?: bool|Param, // Enables reading every element of a collection through a "[*]" wildcard. // Default: false
+ * }
+ * @psalm-type PropertyInfoConfig = bool|array{ // Property info configuration
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
+ *     with_constructor_extractor?: bool|Param, // Registers the constructor extractor. // Default: true
+ * }
+ * @psalm-type AssetMapperConfig = bool|array{
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
+ *     paths?: Param|string|array<string, scalar|Param|null>,
+ *     excluded_patterns?: list<scalar|Param|null>,
+ *     exclude_dotfiles?: bool|Param, // If true, any files starting with "." will be excluded from the asset mapper. // Default: true
+ *     server?: bool|Param, // If true, a "dev server" will return the assets from the public directory (true in "debug" mode only by default). // Resolved at compile time // Default: "%kernel.debug%"
+ *     public_prefix?: scalar|Param|null, // The public path where the assets will be written to (and served from when "server" is true). // Default: "/assets/"
+ *     metadata_dir?: scalar|Param|null, // The directory where "asset-map:compile" writes manifest.json, importmap.json and entrypoint.*.json. These files are read by PHP only, so they do not need to be exposed to the browser. // Default: null
+ *     missing_import_mode?: "strict"|"warn"|"ignore"|Param|null, // Behavior if an asset cannot be found when imported from JavaScript or CSS files - e.g. "import './non-existent.js'". "strict" means an exception is thrown, "warn" means a warning is logged, "ignore" means the import is left as-is. Defaults to "strict" in debug mode and to "warn" otherwise. // Default: null
+ *     extensions?: array<string, scalar|Param|null>,
+ *     importmap_path?: scalar|Param|null, // The path of the importmap.php file. // Default: "%kernel.project_dir%/importmap.php"
+ *     importmap_polyfill?: scalar|Param|null, // The importmap name that will be used to load the polyfill. Set to false to disable. // Default: "es-module-shims"
+ *     importmap_entries?: "all"|"reachable"|Param, // Which entries end up in the rendered importmap: "all" of them, or only the ones "reachable" from the rendered entrypoints (their eager and lazy import chains) plus the polyfill. // Default: "all"
+ *     importmap_script_attributes?: array<string, scalar|Param|null>,
+ *     importmap_integrity_algorithms?: list<"sha256"|"sha384"|"sha512"|Param>,
+ *     vendor_dir?: scalar|Param|null, // The directory to store JavaScript vendors. // Default: "%kernel.project_dir%/assets/vendor"
+ *     minimum_release_age?: int|Param, // Minimum age in seconds a package version must have to be considered when checking for updates (0 disables the check). Enabling it makes update checks download the full npm metadata document, which is larger than the abbreviated one. // Default: 0
+ *     precompress?: bool|array{ // Precompress assets with Brotli, Zstandard and gzip.
+ *         enabled?: bool|Param, // Resolved at compile time // Default: false
+ *         formats?: list<scalar|Param|null>,
+ *         extensions?: list<scalar|Param|null>,
+ *     },
+ * }
+ * @psalm-type HttpClientConfig = bool|array{
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
+ *     max_host_connections?: int|Param, // The maximum number of connections to a single host.
+ *     recorder?: bool|array{ // Record HTTP exchanges into HAR files and replay them in tests (see RecorderHttpClient).
+ *         enabled?: bool|Param|null, // Defaults to true when "framework.test" is enabled, to false otherwise. // Resolved at compile time // Default: null
+ *         redactor?: scalar|Param|null, // Service id of a RedactorInterface; when set, "redact" and "redact_except" are ignored. // Default: null
+ *         redact?: list<scalar|Param|null>,
+ *         redact_except?: list<scalar|Param|null>,
+ *     },
+ *     default_options?: array{
+ *         vars?: array<string, mixed>,
+ *         headers?: array<string, mixed>,
+ *         max_redirects?: int|Param, // The maximum number of redirects to follow.
+ *         http_version?: scalar|Param|null, // The default HTTP version, typically 1.1 or 2.0, leave to null for the best version.
+ *         resolve?: array<string, scalar|Param|null>,
+ *         proxy?: scalar|Param|null, // The URL of the proxy to pass requests through or null for automatic detection.
+ *         no_proxy?: scalar|Param|null, // A comma separated list of hosts that do not require a proxy to be reached.
+ *         timeout?: float|Param, // The idle timeout, defaults to the "default_socket_timeout" ini parameter.
+ *         max_duration?: float|Param, // The maximum execution time for the request+response as a whole.
+ *         max_connect_duration?: float|Param, // The maximum duration allowed for DNS + TCP + TLS connection; a value lower than or equal to 0 means unlimited.
+ *         bindto?: scalar|Param|null, // A network interface name, IP address, a host name or a UNIX socket to bind to.
+ *         verify_peer?: bool|Param, // Indicates if the peer should be verified in a TLS context.
+ *         verify_host?: bool|Param, // Indicates if the host should exist as a certificate common name.
+ *         cafile?: scalar|Param|null, // A certificate authority file.
+ *         capath?: scalar|Param|null, // A directory that contains multiple certificate authority files.
+ *         local_cert?: scalar|Param|null, // A PEM formatted certificate file.
+ *         local_pk?: scalar|Param|null, // A private key file.
+ *         passphrase?: scalar|Param|null, // The passphrase used to encrypt the "local_pk" file.
+ *         ciphers?: scalar|Param|null, // A list of TLS ciphers separated by colons, commas or spaces (e.g. "RC3-SHA:TLS13-AES-128-GCM-SHA256"...).
+ *         peer_fingerprint?: array{ // Associative array: hashing algorithm => hash(es).
+ *             sha1?: mixed,
+ *             pin-sha256?: mixed,
+ *             md5?: mixed,
+ *         },
+ *         crypto_method?: scalar|Param|null, // The minimum version of TLS to accept; must be one of STREAM_CRYPTO_METHOD_TLSv*_CLIENT constants.
+ *         extra?: array<string, mixed>,
+ *         rate_limiter?: scalar|Param|null, // Rate limiter name to use for throttling requests. // Default: null
+ *         caching?: bool|array{ // Caching configuration.
+ *             enabled?: bool|Param, // Resolved at compile time // Default: false
+ *             cache_pool?: string|Param, // The taggable cache pool to use for storing the responses. // Default: "cache.http_client"
+ *             shared?: bool|Param, // Indicates whether the cache is shared (public) or private. // Default: true
+ *             max_ttl?: int|Param, // The maximum TTL (in seconds) allowed for cached responses. // Default: 86400
+ *         },
+ *         retry_failed?: bool|array{
+ *             enabled?: bool|Param, // Resolved at compile time // Default: false
+ *             base_uris?: Param|string|list<string|Param>,
+ *             retry_strategy?: scalar|Param|null, // service id to override the retry strategy. // Default: null
+ *             http_codes?: Param|int|string|array<string, array{ // Default: []
+ *                 code?: int|Param,
+ *                 methods?: Param|string|list<string|Param>,
+ *             }>,
+ *             max_retries?: int|Param, // Default: 3
+ *             delay?: int|Param, // Time in ms to delay (or the initial value when multiplier is used). // Default: 1000
+ *             multiplier?: float|Param, // If greater than 1, delay will grow exponentially for each retry: delay * (multiple ^ retries). // Default: 2
+ *             max_delay?: int|Param, // Max time in ms that a retry should ever be delayed (0 = infinite). // Default: 0
+ *             jitter?: float|Param, // Randomness in percent (between 0 and 1) to apply to the delay. // Default: 0.1
+ *         },
+ *     },
+ *     mock_response_factory?: scalar|Param|null, // `true` to always return empty 200 responses, or the id of the service to use to generate mock responses - which should be either an invokable or an iterable.
+ *     scoped_clients?: array<string, Param|string|array{ // Default: []
+ *         scope?: scalar|Param|null, // The regular expression that the request URL must match before adding the other options. When none is provided, the base URI is used instead. The regular expression should end with a "/", for example "https://api\.github\.com/", so that it doesn't match other hosts.
+ *         base_uri?: scalar|Param|null, // The URI to resolve relative URLs, following rules in RFC 3985, section 2.
+ *         auth_basic?: scalar|Param|null, // An HTTP Basic authentication "username:password".
+ *         auth_bearer?: scalar|Param|null, // A token enabling HTTP Bearer authorization.
+ *         auth_ntlm?: scalar|Param|null, // A "username:password" pair to use Microsoft NTLM authentication (requires the cURL extension).
+ *         query?: array<string, scalar|Param|null>,
+ *         mock_response_factory?: scalar|Param|null, // `true` to always return empty 200 responses, `false` to disable mocking, or the id of the service to use to generate mock responses (invokable or iterable).
+ *         headers?: array<string, mixed>,
+ *         max_redirects?: int|Param, // The maximum number of redirects to follow.
+ *         http_version?: scalar|Param|null, // The default HTTP version, typically 1.1 or 2.0, leave to null for the best version.
+ *         resolve?: array<string, scalar|Param|null>,
+ *         proxy?: scalar|Param|null, // The URL of the proxy to pass requests through or null for automatic detection.
+ *         no_proxy?: scalar|Param|null, // A comma separated list of hosts that do not require a proxy to be reached.
+ *         timeout?: float|Param, // The idle timeout, defaults to the "default_socket_timeout" ini parameter.
+ *         max_duration?: float|Param, // The maximum execution time for the request+response as a whole.
+ *         max_connect_duration?: float|Param, // The maximum duration allowed for DNS + TCP + TLS connection; a value lower than or equal to 0 means unlimited.
+ *         bindto?: scalar|Param|null, // A network interface name, IP address, a host name or a UNIX socket to bind to.
+ *         verify_peer?: bool|Param, // Indicates if the peer should be verified in a TLS context.
+ *         verify_host?: bool|Param, // Indicates if the host should exist as a certificate common name.
+ *         cafile?: scalar|Param|null, // A certificate authority file.
+ *         capath?: scalar|Param|null, // A directory that contains multiple certificate authority files.
+ *         local_cert?: scalar|Param|null, // A PEM formatted certificate file.
+ *         local_pk?: scalar|Param|null, // A private key file.
+ *         passphrase?: scalar|Param|null, // The passphrase used to encrypt the "local_pk" file.
+ *         ciphers?: scalar|Param|null, // A list of TLS ciphers separated by colons, commas or spaces (e.g. "RC3-SHA:TLS13-AES-128-GCM-SHA256"...).
+ *         peer_fingerprint?: array{ // Associative array: hashing algorithm => hash(es).
+ *             sha1?: mixed,
+ *             pin-sha256?: mixed,
+ *             md5?: mixed,
+ *         },
+ *         crypto_method?: scalar|Param|null, // The minimum version of TLS to accept; must be one of STREAM_CRYPTO_METHOD_TLSv*_CLIENT constants.
+ *         extra?: array<string, mixed>,
+ *         rate_limiter?: scalar|Param|null, // Rate limiter name to use for throttling requests. // Default: null
+ *         caching?: bool|array{ // Caching configuration.
+ *             enabled?: bool|Param, // Resolved at compile time // Default: false
+ *             cache_pool?: string|Param, // The taggable cache pool to use for storing the responses. // Default: "cache.http_client"
+ *             shared?: bool|Param, // Indicates whether the cache is shared (public) or private. // Default: true
+ *             max_ttl?: int|Param, // The maximum TTL (in seconds) allowed for cached responses. // Default: 86400
+ *         },
+ *         retry_failed?: bool|array{
+ *             enabled?: bool|Param, // Resolved at compile time // Default: false
+ *             base_uris?: Param|string|list<string|Param>,
+ *             retry_strategy?: scalar|Param|null, // service id to override the retry strategy. // Default: null
+ *             http_codes?: Param|int|string|array<string, array{ // Default: []
+ *                 code?: int|Param,
+ *                 methods?: Param|string|list<string|Param>,
+ *             }>,
+ *             max_retries?: int|Param, // Default: 3
+ *             delay?: int|Param, // Time in ms to delay (or the initial value when multiplier is used). // Default: 1000
+ *             multiplier?: float|Param, // If greater than 1, delay will grow exponentially for each retry: delay * (multiple ^ retries). // Default: 2
+ *             max_delay?: int|Param, // Max time in ms that a retry should ever be delayed (0 = infinite). // Default: 0
+ *             jitter?: float|Param, // Randomness in percent (between 0 and 1) to apply to the delay. // Default: 0.1
+ *         },
+ *     }>,
+ * }
  * @psalm-type FrameworkConfig = array{
  *     secret?: scalar|Param|null, // A secret that must not change. The options that sign data default to it and take a list of secrets to rotate theirs.
  *     http_method_override?: bool|Param, // Set true to enable support for the '_method' request parameter to determine the intended HTTP method on POST requests. // Default: false
@@ -245,20 +400,20 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     workflows?: mixed,
  *     router?: RouterConfig,
  *     assets?: mixed,
- *     asset_mapper?: mixed,
+ *     asset_mapper?: AssetMapperConfig,
  *     translator?: mixed,
  *     validation?: mixed,
  *     serializer?: mixed,
- *     property_access?: mixed,
- *     type_info?: mixed,
- *     property_info?: mixed,
+ *     property_access?: PropertyAccessConfig,
+ *     type_info?: TypeInfoConfig,
+ *     property_info?: PropertyInfoConfig,
  *     cache?: CacheConfig,
  *     web_link?: mixed,
  *     lock?: mixed,
  *     semaphore?: mixed,
  *     messenger?: mixed,
  *     scheduler?: mixed,
- *     http_client?: mixed,
+ *     http_client?: HttpClientConfig,
  *     mailer?: mixed,
  *     notifier?: mixed,
  *     rate_limiter?: mixed,
@@ -352,23 +507,92 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     intercept_redirects?: bool|Param, // Default: false
  *     excluded_ajax_paths?: scalar|Param|null, // Default: "^/((index|app(_[\\w]+)?)\\.php/)?_wdt"
  * }
+ * @psalm-type TwigComponentConfig = array{
+ *     defaults?: array<string, Param|string|array{ // Default: []
+ *         template_directory?: scalar|Param|null, // Default: "components"
+ *         name_prefix?: scalar|Param|null, // Default: ""
+ *     }>,
+ *     anonymous_template_directory?: scalar|Param|null, // Defaults to `components`
+ *     profiler?: bool|array{ // Enables the profiler for Twig Component
+ *         enabled?: bool|Param, // Default: "%kernel.debug%"
+ *         collect_components?: bool|Param, // Collect components instances // Default: true
+ *     },
+ * }
+ * @psalm-type StimulusConfig = array{
+ *     controller_paths?: list<scalar|Param|null>,
+ *     controllers_json?: scalar|Param|null, // Default: "%kernel.project_dir%/assets/controllers.json"
+ * }
+ * @psalm-type LiveComponentConfig = array{
+ *     secret?: scalar|Param|null, // The secret used to compute fingerprints and checksums // Default: "%kernel.secret%"
+ *     fetch_credentials?: "same-origin"|"include"|"omit"|Param, // The default fetch credentials mode for all Live Components ('same-origin', 'include', 'omit') // Default: "same-origin"
+ * }
+ * @psalm-type SymfonycastsTailwindConfig = array{
+ *     input_css?: list<scalar|Param|null>,
+ *     config_file?: scalar|Param|null, // Path to the tailwind.config.js file // Default: "%kernel.project_dir%/tailwind.config.js"
+ *     binary?: scalar|Param|null, // The tailwind binary to use instead of downloading a new one // Default: null
+ *     binary_version?: scalar|Param|null, // Tailwind CLI version to download - required unless "binary" is set (run "tailwind:init" to configure) // Default: null
+ *     binary_platform?: "auto"|"linux-arm64"|"linux-arm64-musl"|"linux-x64"|"linux-x64-musl"|"macos-arm64"|"macos-x64"|"windows-x64"|Param, // Tailwind CLI platform to download - "auto" will try to detect the platform automatically // Default: "auto"
+ *     postcss_config_file?: scalar|Param|null, // Path to PostCSS config file which is passed to the Tailwind CLI // Default: null
+ *     strict_mode?: bool|Param|null, // When enabled, an exception will be thrown if there are no built assets (default: false in `test` env, true otherwise) // Default: null
+ *     process_timeout?: int|Param, // Timeout in seconds for the Tailwind build process - use "0" to disable // Default: 60
+ * }
+ * @psalm-type UxToolkitConfig = array{
+ *     components?: array{ // Where "ux:install" installs the Twig components of recipes.
+ *         dir?: scalar|Param|null, // The directory TwigComponent loads anonymous components from, relative to the project directory. It must match your configuration: the Twig "default_path" followed by the TwigComponent "anonymous_template_directory". // Default: "templates/components"
+ *         subdirectory?: scalar|Param|null, // A subdirectory of "dir" to install the components in. Their names get it as a prefix, which the installer adds to the copied files, e.g. "<twig:ui:Button>" for "ui". // Default: null
+ *     },
+ *     controllers?: array{ // Where "ux:install" installs the Stimulus controllers of recipes.
+ *         dir?: scalar|Param|null, // The directory your Stimulus setup loads controllers from, relative to the project directory. It must match your configuration: an entry of "stimulus.controller_paths" with AssetMapper, the "controllersDir" option with Reprise, or the directory passed to "require.context()" with Webpack Encore. // Default: "assets/controllers"
+ *         subdirectory?: scalar|Param|null, // A subdirectory of "dir" to install the controllers in. Their identifiers get it as a prefix, which the installer adds to the copied files, e.g. "ui--dialog" for "ui". // Default: null
+ *     },
+ *     preview?: bool|array{ // Wires the preview assets of kits into AssetMapper, Tailwind and the importmap.
+ *         enabled?: bool|Param, // Resolved at compile time // Default: false
+ *         kits?: list<scalar|Param|null>,
+ *     },
+ * }
+ * @psalm-type TalesFromADevTwigExtraTailwindConfig = array{
+ *     tailwind_merge?: array{
+ *         additional_configuration?: mixed, // Default: []
+ *     },
+ * }
  * @psalm-type ConfigType = array{
  *     imports?: ImportsConfig,
  *     parameters?: ParametersConfig,
  *     services?: ServicesConfig,
  *     router?: RouterConfig,
  *     cache?: CacheConfig,
+ *     type_info?: TypeInfoConfig,
+ *     property_access?: PropertyAccessConfig,
+ *     property_info?: PropertyInfoConfig,
+ *     asset_mapper?: AssetMapperConfig,
+ *     http_client?: HttpClientConfig,
  *     framework?: FrameworkConfig,
  *     twig?: TwigConfig,
+ *     twig_component?: TwigComponentConfig,
+ *     stimulus?: StimulusConfig,
+ *     live_component?: LiveComponentConfig,
+ *     symfonycasts_tailwind?: SymfonycastsTailwindConfig,
+ *     tales_from_a_dev_twig_extra_tailwind?: TalesFromADevTwigExtraTailwindConfig,
  *     "when@dev"?: array{
  *         imports?: ImportsConfig,
  *         parameters?: ParametersConfig,
  *         services?: ServicesConfig,
  *         router?: RouterConfig,
  *         cache?: CacheConfig,
+ *         type_info?: TypeInfoConfig,
+ *         property_access?: PropertyAccessConfig,
+ *         property_info?: PropertyInfoConfig,
+ *         asset_mapper?: AssetMapperConfig,
+ *         http_client?: HttpClientConfig,
  *         framework?: FrameworkConfig,
  *         twig?: TwigConfig,
  *         web_profiler?: WebProfilerConfig,
+ *         twig_component?: TwigComponentConfig,
+ *         stimulus?: StimulusConfig,
+ *         live_component?: LiveComponentConfig,
+ *         symfonycasts_tailwind?: SymfonycastsTailwindConfig,
+ *         ux_toolkit?: UxToolkitConfig,
+ *         tales_from_a_dev_twig_extra_tailwind?: TalesFromADevTwigExtraTailwindConfig,
  *     },
  *     "when@prod"?: array{
  *         imports?: ImportsConfig,
@@ -376,8 +600,18 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         services?: ServicesConfig,
  *         router?: RouterConfig,
  *         cache?: CacheConfig,
+ *         type_info?: TypeInfoConfig,
+ *         property_access?: PropertyAccessConfig,
+ *         property_info?: PropertyInfoConfig,
+ *         asset_mapper?: AssetMapperConfig,
+ *         http_client?: HttpClientConfig,
  *         framework?: FrameworkConfig,
  *         twig?: TwigConfig,
+ *         twig_component?: TwigComponentConfig,
+ *         stimulus?: StimulusConfig,
+ *         live_component?: LiveComponentConfig,
+ *         symfonycasts_tailwind?: SymfonycastsTailwindConfig,
+ *         tales_from_a_dev_twig_extra_tailwind?: TalesFromADevTwigExtraTailwindConfig,
  *     },
  *     "when@test"?: array{
  *         imports?: ImportsConfig,
@@ -385,9 +619,20 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         services?: ServicesConfig,
  *         router?: RouterConfig,
  *         cache?: CacheConfig,
+ *         type_info?: TypeInfoConfig,
+ *         property_access?: PropertyAccessConfig,
+ *         property_info?: PropertyInfoConfig,
+ *         asset_mapper?: AssetMapperConfig,
+ *         http_client?: HttpClientConfig,
  *         framework?: FrameworkConfig,
  *         twig?: TwigConfig,
  *         web_profiler?: WebProfilerConfig,
+ *         twig_component?: TwigComponentConfig,
+ *         stimulus?: StimulusConfig,
+ *         live_component?: LiveComponentConfig,
+ *         symfonycasts_tailwind?: SymfonycastsTailwindConfig,
+ *         ux_toolkit?: UxToolkitConfig,
+ *         tales_from_a_dev_twig_extra_tailwind?: TalesFromADevTwigExtraTailwindConfig,
  *     },
  *     ...<string, ExtensionType|array{ // extra keys must follow the when@%env% pattern or match an extension alias
  *         imports?: ImportsConfig,

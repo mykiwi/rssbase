@@ -10,6 +10,8 @@ excludes = ["config/reference.php"]
 [linter]
 integrations = ["symfony", "phpunit"]
 minimum-fail-level = "note"
+# Rewritten by Symfony Flex on each package install, which drops declare(strict_types=1).
+excludes = ["config/bundles.php"]
 
 [analyzer]
 minimum-fail-level = "note"

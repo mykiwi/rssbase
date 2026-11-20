@@ -143,6 +143,420 @@
             }
         },
         "nodes": {
+            "asset_mapper": {
+                "anyOf": [
+                    {
+                        "$ref": "#/$defs/types/object_null",
+                        "properties": {
+                            "enabled": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": true
+                            },
+                            "paths": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/$defs/types/object_null",
+                                        "additionalProperties": {
+                                            "$ref": "#/$defs/types/scalar"
+                                        }
+                                    },
+                                    {
+                                        "$ref": "#/$defs/types/array_null",
+                                        "items": {
+                                            "$ref": "#/$defs/types/scalar"
+                                        }
+                                    },
+                                    {
+                                        "type": [
+                                            "string"
+                                        ]
+                                    }
+                                ],
+                                "description": "Directories that hold assets that should be in the mapper. Can be a simple array of an array of [\"path/to/assets\": \"namespace\"].",
+                                "examples": [
+                                    [
+                                        "assets/"
+                                    ]
+                                ]
+                            },
+                            "excluded_patterns": {
+                                "$ref": "#/$defs/types/array_null",
+                                "items": {
+                                    "$ref": "#/$defs/types/scalar"
+                                },
+                                "description": "Array of glob patterns of asset file paths that should not be in the asset mapper.",
+                                "examples": [
+                                    [
+                                        "*/assets/build/*",
+                                        "*/*_.scss"
+                                    ]
+                                ]
+                            },
+                            "exclude_dotfiles": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": true,
+                                "description": "If true, any files starting with \".\" will be excluded from the asset mapper."
+                            },
+                            "server": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": "%kernel.debug%",
+                                "description": "If true, a \"dev server\" will return the assets from the public directory (true in \"debug\" mode only by default)."
+                            },
+                            "public_prefix": {
+                                "$ref": "#/$defs/types/scalar",
+                                "default": "/assets/",
+                                "description": "The public path where the assets will be written to (and served from when \"server\" is true)."
+                            },
+                            "metadata_dir": {
+                                "$ref": "#/$defs/types/scalar",
+                                "default": null,
+                                "description": "The directory where \"asset-map:compile\" writes manifest.json, importmap.json and entrypoint.*.json. These files are read by PHP only, so they do not need to be exposed to the browser.",
+                                "examples": [
+                                    "%kernel.project_dir%/var/assets"
+                                ]
+                            },
+                            "missing_import_mode": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            "strict",
+                                            "warn",
+                                            "ignore",
+                                            null
+                                        ]
+                                    },
+                                    {
+                                        "$ref": "#/$defs/types/param"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Behavior if an asset cannot be found when imported from JavaScript or CSS files - e.g. \"import './non-existent.js'\". \"strict\" means an exception is thrown, \"warn\" means a warning is logged, \"ignore\" means the import is left as-is. Defaults to \"strict\" in debug mode and to \"warn\" otherwise."
+                            },
+                            "extensions": {
+                                "$ref": "#/$defs/types/object_null",
+                                "additionalProperties": {
+                                    "$ref": "#/$defs/types/scalar"
+                                },
+                                "description": "Key-value pair of file extensions set to their mime type.",
+                                "examples": [
+                                    {
+                                        ".zip": "application/zip"
+                                    }
+                                ]
+                            },
+                            "importmap_path": {
+                                "$ref": "#/$defs/types/scalar",
+                                "default": "%kernel.project_dir%/importmap.php",
+                                "description": "The path of the importmap.php file."
+                            },
+                            "importmap_polyfill": {
+                                "$ref": "#/$defs/types/scalar",
+                                "default": "es-module-shims",
+                                "description": "The importmap name that will be used to load the polyfill. Set to false to disable."
+                            },
+                            "importmap_entries": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            "all",
+                                            "reachable"
+                                        ]
+                                    },
+                                    {
+                                        "$ref": "#/$defs/types/param"
+                                    }
+                                ],
+                                "default": "all",
+                                "description": "Which entries end up in the rendered importmap: \"all\" of them, or only the ones \"reachable\" from the rendered entrypoints (their eager and lazy import chains) plus the polyfill."
+                            },
+                            "importmap_script_attributes": {
+                                "$ref": "#/$defs/types/object_null",
+                                "additionalProperties": {
+                                    "$ref": "#/$defs/types/scalar"
+                                },
+                                "description": "Key-value pair of attributes to add to script tags output for the importmap.",
+                                "examples": [
+                                    {
+                                        "data-turbo-track": "reload"
+                                    }
+                                ]
+                            },
+                            "importmap_integrity_algorithms": {
+                                "$ref": "#/$defs/types/array_null",
+                                "items": {
+                                    "anyOf": [
+                                        {
+                                            "enum": [
+                                                "sha256",
+                                                "sha384",
+                                                "sha512"
+                                            ]
+                                        },
+                                        {
+                                            "$ref": "#/$defs/types/param"
+                                        }
+                                    ]
+                                },
+                                "description": "Algorithms used to compute the integrity of the importmap resources."
+                            },
+                            "vendor_dir": {
+                                "$ref": "#/$defs/types/scalar",
+                                "default": "%kernel.project_dir%/assets/vendor",
+                                "description": "The directory to store JavaScript vendors."
+                            },
+                            "minimum_release_age": {
+                                "$ref": "#/$defs/types/integer",
+                                "minimum": 0,
+                                "default": 0,
+                                "description": "Minimum age in seconds a package version must have to be considered when checking for updates (0 disables the check). Enabling it makes update checks download the full npm metadata document, which is larger than the abbreviated one."
+                            },
+                            "precompress": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/$defs/types/object_null",
+                                        "properties": {
+                                            "enabled": {
+                                                "$ref": "#/$defs/types/boolean",
+                                                "default": false
+                                            },
+                                            "formats": {
+                                                "$ref": "#/$defs/types/array_null",
+                                                "items": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                },
+                                                "description": "Array of formats to enable. \"brotli\", \"zstandard\" and \"gzip\" are supported. Defaults to all formats supported by the system. The entire list must be provided."
+                                            },
+                                            "extensions": {
+                                                "$ref": "#/$defs/types/array_null",
+                                                "items": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                },
+                                                "default": [
+                                                    "css",
+                                                    "cur",
+                                                    "eot",
+                                                    "html",
+                                                    "js",
+                                                    "json",
+                                                    "md",
+                                                    "otc",
+                                                    "otf",
+                                                    "proto",
+                                                    "rss",
+                                                    "rtf",
+                                                    "svg",
+                                                    "ttc",
+                                                    "ttf",
+                                                    "txt",
+                                                    "wasm",
+                                                    "xml"
+                                                ],
+                                                "description": "Array of extensions to compress. The entire list must be provided, no merging occurs."
+                                            }
+                                        },
+                                        "patternProperties": {
+                                            "^format$": {
+                                                "anyOf": [
+                                                    {
+                                                        "$ref": "#/$defs/types/scalar"
+                                                    },
+                                                    {
+                                                        "$ref": "#/$defs/types/array_null",
+                                                        "items": {
+                                                            "$ref": "#/$defs/types/scalar"
+                                                        },
+                                                        "description": "Array of formats to enable. \"brotli\", \"zstandard\" and \"gzip\" are supported. Defaults to all formats supported by the system. The entire list must be provided."
+                                                    }
+                                                ]
+                                            },
+                                            "^extension$": {
+                                                "anyOf": [
+                                                    {
+                                                        "$ref": "#/$defs/types/scalar"
+                                                    },
+                                                    {
+                                                        "$ref": "#/$defs/types/array_null",
+                                                        "items": {
+                                                            "$ref": "#/$defs/types/scalar"
+                                                        },
+                                                        "default": [
+                                                            "css",
+                                                            "cur",
+                                                            "eot",
+                                                            "html",
+                                                            "js",
+                                                            "json",
+                                                            "md",
+                                                            "otc",
+                                                            "otf",
+                                                            "proto",
+                                                            "rss",
+                                                            "rtf",
+                                                            "svg",
+                                                            "ttc",
+                                                            "ttf",
+                                                            "txt",
+                                                            "wasm",
+                                                            "xml"
+                                                        ],
+                                                        "description": "Array of extensions to compress. The entire list must be provided, no merging occurs."
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    },
+                                    {
+                                        "type": [
+                                            "boolean"
+                                        ]
+                                    }
+                                ],
+                                "default": {
+                                    "enabled": false,
+                                    "formats": [],
+                                    "extensions": [
+                                        "css",
+                                        "cur",
+                                        "eot",
+                                        "html",
+                                        "js",
+                                        "json",
+                                        "md",
+                                        "otc",
+                                        "otf",
+                                        "proto",
+                                        "rss",
+                                        "rtf",
+                                        "svg",
+                                        "ttc",
+                                        "ttf",
+                                        "txt",
+                                        "wasm",
+                                        "xml"
+                                    ]
+                                },
+                                "description": "Precompress assets with Brotli, Zstandard and gzip."
+                            }
+                        },
+                        "patternProperties": {
+                            "^path$": {
+                                "$ref": "#/$defs/types/variable"
+                            },
+                            "^excluded_pattern$": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/$defs/types/scalar"
+                                    },
+                                    {
+                                        "$ref": "#/$defs/types/array_null",
+                                        "items": {
+                                            "$ref": "#/$defs/types/scalar"
+                                        },
+                                        "description": "Array of glob patterns of asset file paths that should not be in the asset mapper.",
+                                        "examples": [
+                                            [
+                                                "*/assets/build/*",
+                                                "*/*_.scss"
+                                            ]
+                                        ]
+                                    }
+                                ]
+                            },
+                            "^extension$": {
+                                "$ref": "#/$defs/types/variable"
+                            },
+                            "^importmap_script_attribute$": {
+                                "$ref": "#/$defs/types/variable"
+                            },
+                            "^importmap_integrity_algorithm$": {
+                                "anyOf": [
+                                    {
+                                        "anyOf": [
+                                            {
+                                                "enum": [
+                                                    "sha256",
+                                                    "sha384",
+                                                    "sha512"
+                                                ]
+                                            },
+                                            {
+                                                "$ref": "#/$defs/types/param"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "$ref": "#/$defs/types/array_null",
+                                        "items": {
+                                            "anyOf": [
+                                                {
+                                                    "enum": [
+                                                        "sha256",
+                                                        "sha384",
+                                                        "sha512"
+                                                    ]
+                                                },
+                                                {
+                                                    "$ref": "#/$defs/types/param"
+                                                }
+                                            ]
+                                        },
+                                        "description": "Algorithms used to compute the integrity of the importmap resources."
+                                    }
+                                ]
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    {
+                        "type": [
+                            "boolean"
+                        ]
+                    }
+                ],
+                "default": {
+                    "enabled": true,
+                    "paths": [],
+                    "excluded_patterns": [],
+                    "exclude_dotfiles": true,
+                    "server": "%kernel.debug%",
+                    "public_prefix": "/assets/",
+                    "metadata_dir": null,
+                    "missing_import_mode": null,
+                    "extensions": [],
+                    "importmap_path": "%kernel.project_dir%/importmap.php",
+                    "importmap_polyfill": "es-module-shims",
+                    "importmap_entries": "all",
+                    "importmap_script_attributes": [],
+                    "importmap_integrity_algorithms": [],
+                    "vendor_dir": "%kernel.project_dir%/assets/vendor",
+                    "minimum_release_age": 0,
+                    "precompress": {
+                        "enabled": false,
+                        "formats": [],
+                        "extensions": [
+                            "css",
+                            "cur",
+                            "eot",
+                            "html",
+                            "js",
+                            "json",
+                            "md",
+                            "otc",
+                            "otf",
+                            "proto",
+                            "rss",
+                            "rtf",
+                            "svg",
+                            "ttc",
+                            "ttf",
+                            "txt",
+                            "wasm",
+                            "xml"
+                        ]
+                    }
+                }
+            },
             "cache": {
                 "$ref": "#/$defs/types/object_null",
                 "properties": {
@@ -983,7 +1397,7 @@
                         "$ref": "#/$defs/types/variable"
                     },
                     "asset_mapper": {
-                        "$ref": "#/$defs/types/variable"
+                        "$ref": "#/$defs/nodes/asset_mapper"
                     },
                     "translator": {
                         "$ref": "#/$defs/types/variable"
@@ -995,13 +1409,13 @@
                         "$ref": "#/$defs/types/variable"
                     },
                     "property_access": {
-                        "$ref": "#/$defs/types/variable"
+                        "$ref": "#/$defs/nodes/property_access"
                     },
                     "type_info": {
-                        "$ref": "#/$defs/types/variable"
+                        "$ref": "#/$defs/nodes/type_info"
                     },
                     "property_info": {
-                        "$ref": "#/$defs/types/variable"
+                        "$ref": "#/$defs/nodes/property_info"
                     },
                     "cache": {
                         "$ref": "#/$defs/nodes/cache"
@@ -1022,7 +1436,7 @@
                         "$ref": "#/$defs/types/variable"
                     },
                     "http_client": {
-                        "$ref": "#/$defs/types/variable"
+                        "$ref": "#/$defs/nodes/http_client"
                     },
                     "mailer": {
                         "$ref": "#/$defs/types/variable"
@@ -1365,6 +1779,917 @@
                 },
                 "additionalProperties": false
             },
+            "http_client": {
+                "anyOf": [
+                    {
+                        "$ref": "#/$defs/types/object_null",
+                        "properties": {
+                            "enabled": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": true
+                            },
+                            "max_host_connections": {
+                                "$ref": "#/$defs/types/integer",
+                                "description": "The maximum number of connections to a single host."
+                            },
+                            "recorder": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/$defs/types/object_null",
+                                        "properties": {
+                                            "enabled": {
+                                                "$ref": "#/$defs/types/boolean_null",
+                                                "default": null,
+                                                "description": "Defaults to true when \"framework.test\" is enabled, to false otherwise."
+                                            },
+                                            "redactor": {
+                                                "$ref": "#/$defs/types/scalar",
+                                                "default": null,
+                                                "description": "Service id of a RedactorInterface; when set, \"redact\" and \"redact_except\" are ignored."
+                                            },
+                                            "redact": {
+                                                "$ref": "#/$defs/types/array_null",
+                                                "items": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                },
+                                                "description": "Header, query-string, form and JSON field names masked in recorded files, in addition to the built-in ones."
+                                            },
+                                            "redact_except": {
+                                                "$ref": "#/$defs/types/array_null",
+                                                "items": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                },
+                                                "description": "Names never masked, removed from the built-in lists."
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    },
+                                    {
+                                        "type": [
+                                            "boolean"
+                                        ]
+                                    }
+                                ],
+                                "default": {
+                                    "enabled": null,
+                                    "redactor": null,
+                                    "redact": [],
+                                    "redact_except": []
+                                },
+                                "description": "Record HTTP exchanges into HAR files and replay them in tests (see RecorderHttpClient)."
+                            },
+                            "default_options": {
+                                "$ref": "#/$defs/types/object_null",
+                                "properties": {
+                                    "vars": {
+                                        "$ref": "#/$defs/types/object_null",
+                                        "additionalProperties": {
+                                            "$ref": "#/$defs/types/variable"
+                                        },
+                                        "description": "Associative array: the default vars used to expand the templated URI."
+                                    },
+                                    "headers": {
+                                        "$ref": "#/$defs/types/object_null",
+                                        "additionalProperties": {
+                                            "$ref": "#/$defs/types/variable"
+                                        },
+                                        "description": "Associative array: header => value(s)."
+                                    },
+                                    "max_redirects": {
+                                        "$ref": "#/$defs/types/integer",
+                                        "description": "The maximum number of redirects to follow."
+                                    },
+                                    "http_version": {
+                                        "$ref": "#/$defs/types/scalar",
+                                        "description": "The default HTTP version, typically 1.1 or 2.0, leave to null for the best version."
+                                    },
+                                    "resolve": {
+                                        "anyOf": [
+                                            {
+                                                "$ref": "#/$defs/types/object_null",
+                                                "additionalProperties": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                }
+                                            },
+                                            {
+                                                "$ref": "#/$defs/types/array_null",
+                                                "items": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                }
+                                            }
+                                        ],
+                                        "description": "Associative array: domain => IP."
+                                    },
+                                    "proxy": {
+                                        "$ref": "#/$defs/types/scalar",
+                                        "description": "The URL of the proxy to pass requests through or null for automatic detection."
+                                    },
+                                    "no_proxy": {
+                                        "$ref": "#/$defs/types/scalar",
+                                        "description": "A comma separated list of hosts that do not require a proxy to be reached."
+                                    },
+                                    "timeout": {
+                                        "$ref": "#/$defs/types/number",
+                                        "description": "The idle timeout, defaults to the \"default_socket_timeout\" ini parameter."
+                                    },
+                                    "max_duration": {
+                                        "$ref": "#/$defs/types/number",
+                                        "description": "The maximum execution time for the request+response as a whole."
+                                    },
+                                    "max_connect_duration": {
+                                        "$ref": "#/$defs/types/number",
+                                        "description": "The maximum duration allowed for DNS + TCP + TLS connection; a value lower than or equal to 0 means unlimited."
+                                    },
+                                    "bindto": {
+                                        "$ref": "#/$defs/types/scalar",
+                                        "description": "A network interface name, IP address, a host name or a UNIX socket to bind to."
+                                    },
+                                    "verify_peer": {
+                                        "$ref": "#/$defs/types/boolean",
+                                        "description": "Indicates if the peer should be verified in a TLS context."
+                                    },
+                                    "verify_host": {
+                                        "$ref": "#/$defs/types/boolean",
+                                        "description": "Indicates if the host should exist as a certificate common name."
+                                    },
+                                    "cafile": {
+                                        "$ref": "#/$defs/types/scalar",
+                                        "description": "A certificate authority file."
+                                    },
+                                    "capath": {
+                                        "$ref": "#/$defs/types/scalar",
+                                        "description": "A directory that contains multiple certificate authority files."
+                                    },
+                                    "local_cert": {
+                                        "$ref": "#/$defs/types/scalar",
+                                        "description": "A PEM formatted certificate file."
+                                    },
+                                    "local_pk": {
+                                        "$ref": "#/$defs/types/scalar",
+                                        "description": "A private key file."
+                                    },
+                                    "passphrase": {
+                                        "$ref": "#/$defs/types/scalar",
+                                        "description": "The passphrase used to encrypt the \"local_pk\" file."
+                                    },
+                                    "ciphers": {
+                                        "$ref": "#/$defs/types/scalar",
+                                        "description": "A list of TLS ciphers separated by colons, commas or spaces (e.g. \"RC3-SHA:TLS13-AES-128-GCM-SHA256\"...)."
+                                    },
+                                    "peer_fingerprint": {
+                                        "$ref": "#/$defs/types/object_null",
+                                        "properties": {
+                                            "sha1": {
+                                                "$ref": "#/$defs/types/variable"
+                                            },
+                                            "pin-sha256": {
+                                                "$ref": "#/$defs/types/variable"
+                                            },
+                                            "md5": {
+                                                "$ref": "#/$defs/types/variable"
+                                            }
+                                        },
+                                        "additionalProperties": false,
+                                        "description": "Associative array: hashing algorithm => hash(es)."
+                                    },
+                                    "crypto_method": {
+                                        "$ref": "#/$defs/types/scalar",
+                                        "description": "The minimum version of TLS to accept; must be one of STREAM_CRYPTO_METHOD_TLSv*_CLIENT constants."
+                                    },
+                                    "extra": {
+                                        "$ref": "#/$defs/types/object_null",
+                                        "additionalProperties": {
+                                            "$ref": "#/$defs/types/variable"
+                                        },
+                                        "description": "Extra options for specific HTTP client."
+                                    },
+                                    "rate_limiter": {
+                                        "$ref": "#/$defs/types/scalar",
+                                        "default": null,
+                                        "description": "Rate limiter name to use for throttling requests."
+                                    },
+                                    "caching": {
+                                        "anyOf": [
+                                            {
+                                                "$ref": "#/$defs/types/object_null",
+                                                "properties": {
+                                                    "enabled": {
+                                                        "$ref": "#/$defs/types/boolean",
+                                                        "default": false
+                                                    },
+                                                    "cache_pool": {
+                                                        "$ref": "#/$defs/types/string_null",
+                                                        "default": "cache.http_client",
+                                                        "description": "The taggable cache pool to use for storing the responses."
+                                                    },
+                                                    "shared": {
+                                                        "$ref": "#/$defs/types/boolean",
+                                                        "default": true,
+                                                        "description": "Indicates whether the cache is shared (public) or private."
+                                                    },
+                                                    "max_ttl": {
+                                                        "$ref": "#/$defs/types/integer",
+                                                        "minimum": 1,
+                                                        "default": 86400,
+                                                        "description": "The maximum TTL (in seconds) allowed for cached responses."
+                                                    }
+                                                },
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": [
+                                                    "boolean"
+                                                ]
+                                            }
+                                        ],
+                                        "default": {
+                                            "enabled": false,
+                                            "cache_pool": "cache.http_client",
+                                            "shared": true,
+                                            "max_ttl": 86400
+                                        },
+                                        "description": "Caching configuration."
+                                    },
+                                    "retry_failed": {
+                                        "anyOf": [
+                                            {
+                                                "$ref": "#/$defs/types/object_null",
+                                                "properties": {
+                                                    "enabled": {
+                                                        "$ref": "#/$defs/types/boolean",
+                                                        "default": false
+                                                    },
+                                                    "base_uris": {
+                                                        "anyOf": [
+                                                            {
+                                                                "$ref": "#/$defs/types/array_null",
+                                                                "items": {
+                                                                    "$ref": "#/$defs/types/string_null"
+                                                                }
+                                                            },
+                                                            {
+                                                                "type": [
+                                                                    "string"
+                                                                ]
+                                                            }
+                                                        ],
+                                                        "description": "Additional URIs to retry against, tried in turn after the base URI, one per attempt."
+                                                    },
+                                                    "retry_strategy": {
+                                                        "$ref": "#/$defs/types/scalar",
+                                                        "default": null,
+                                                        "description": "service id to override the retry strategy."
+                                                    },
+                                                    "http_codes": {
+                                                        "anyOf": [
+                                                            {
+                                                                "$ref": "#/$defs/types/object_null",
+                                                                "additionalProperties": {
+                                                                    "$ref": "#/$defs/types/object_null",
+                                                                    "properties": {
+                                                                        "code": {
+                                                                            "$ref": "#/$defs/types/integer"
+                                                                        },
+                                                                        "methods": {
+                                                                            "anyOf": [
+                                                                                {
+                                                                                    "$ref": "#/$defs/types/array_null",
+                                                                                    "items": {
+                                                                                        "$ref": "#/$defs/types/string_null"
+                                                                                    }
+                                                                                },
+                                                                                {
+                                                                                    "type": [
+                                                                                        "string"
+                                                                                    ]
+                                                                                }
+                                                                            ],
+                                                                            "description": "A list of HTTP methods that triggers a retry for this status code. When empty, all methods are retried."
+                                                                        }
+                                                                    },
+                                                                    "patternProperties": {
+                                                                        "^method$": {
+                                                                            "anyOf": [
+                                                                                {
+                                                                                    "$ref": "#/$defs/types/string_null"
+                                                                                },
+                                                                                {
+                                                                                    "anyOf": [
+                                                                                        {
+                                                                                            "$ref": "#/$defs/types/array_null",
+                                                                                            "items": {
+                                                                                                "$ref": "#/$defs/types/string_null"
+                                                                                            }
+                                                                                        },
+                                                                                        {
+                                                                                            "type": [
+                                                                                                "string"
+                                                                                            ]
+                                                                                        }
+                                                                                    ],
+                                                                                    "description": "A list of HTTP methods that triggers a retry for this status code. When empty, all methods are retried."
+                                                                                }
+                                                                            ]
+                                                                        }
+                                                                    },
+                                                                    "additionalProperties": false
+                                                                }
+                                                            },
+                                                            {
+                                                                "type": [
+                                                                    "integer",
+                                                                    "string"
+                                                                ]
+                                                            }
+                                                        ],
+                                                        "description": "A list of HTTP status code that triggers a retry."
+                                                    },
+                                                    "max_retries": {
+                                                        "$ref": "#/$defs/types/integer",
+                                                        "minimum": 0,
+                                                        "default": 3
+                                                    },
+                                                    "delay": {
+                                                        "$ref": "#/$defs/types/integer",
+                                                        "minimum": 0,
+                                                        "default": 1000,
+                                                        "description": "Time in ms to delay (or the initial value when multiplier is used)."
+                                                    },
+                                                    "multiplier": {
+                                                        "$ref": "#/$defs/types/number",
+                                                        "minimum": 1,
+                                                        "default": 2,
+                                                        "description": "If greater than 1, delay will grow exponentially for each retry: delay * (multiple ^ retries)."
+                                                    },
+                                                    "max_delay": {
+                                                        "$ref": "#/$defs/types/integer",
+                                                        "minimum": 0,
+                                                        "default": 0,
+                                                        "description": "Max time in ms that a retry should ever be delayed (0 = infinite)."
+                                                    },
+                                                    "jitter": {
+                                                        "$ref": "#/$defs/types/number",
+                                                        "minimum": 0,
+                                                        "maximum": 1,
+                                                        "default": 0.1,
+                                                        "description": "Randomness in percent (between 0 and 1) to apply to the delay."
+                                                    }
+                                                },
+                                                "patternProperties": {
+                                                    "^http_code$": {
+                                                        "$ref": "#/$defs/types/variable"
+                                                    }
+                                                },
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": [
+                                                    "boolean"
+                                                ]
+                                            }
+                                        ],
+                                        "default": {
+                                            "enabled": false,
+                                            "base_uris": [],
+                                            "retry_strategy": null,
+                                            "http_codes": [],
+                                            "max_retries": 3,
+                                            "delay": 1000,
+                                            "multiplier": 2,
+                                            "max_delay": 0,
+                                            "jitter": 0.1
+                                        }
+                                    }
+                                },
+                                "patternProperties": {
+                                    "^var$": {
+                                        "$ref": "#/$defs/types/variable"
+                                    },
+                                    "^header$": {
+                                        "$ref": "#/$defs/types/variable"
+                                    }
+                                },
+                                "additionalProperties": false
+                            },
+                            "mock_response_factory": {
+                                "$ref": "#/$defs/types/scalar",
+                                "description": "`true` to always return empty 200 responses, or the id of the service to use to generate mock responses - which should be either an invokable or an iterable."
+                            },
+                            "scoped_clients": {
+                                "$ref": "#/$defs/types/object_null",
+                                "additionalProperties": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/$defs/types/object_null",
+                                            "properties": {
+                                                "scope": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "description": "The regular expression that the request URL must match before adding the other options. When none is provided, the base URI is used instead. The regular expression should end with a \"/\", for example \"https://api\\.github\\.com/\", so that it doesn't match other hosts."
+                                                },
+                                                "base_uri": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "description": "The URI to resolve relative URLs, following rules in RFC 3985, section 2."
+                                                },
+                                                "auth_basic": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "description": "An HTTP Basic authentication \"username:password\"."
+                                                },
+                                                "auth_bearer": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "description": "A token enabling HTTP Bearer authorization."
+                                                },
+                                                "auth_ntlm": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "description": "A \"username:password\" pair to use Microsoft NTLM authentication (requires the cURL extension)."
+                                                },
+                                                "query": {
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/$defs/types/object_null",
+                                                            "additionalProperties": {
+                                                                "$ref": "#/$defs/types/scalar"
+                                                            }
+                                                        },
+                                                        {
+                                                            "$ref": "#/$defs/types/array_null",
+                                                            "items": {
+                                                                "$ref": "#/$defs/types/scalar"
+                                                            }
+                                                        }
+                                                    ],
+                                                    "description": "Associative array of query string values merged with the base URI."
+                                                },
+                                                "mock_response_factory": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "description": "`true` to always return empty 200 responses, `false` to disable mocking, or the id of the service to use to generate mock responses (invokable or iterable)."
+                                                },
+                                                "headers": {
+                                                    "$ref": "#/$defs/types/object_null",
+                                                    "additionalProperties": {
+                                                        "$ref": "#/$defs/types/variable"
+                                                    },
+                                                    "description": "Associative array: header => value(s)."
+                                                },
+                                                "max_redirects": {
+                                                    "$ref": "#/$defs/types/integer",
+                                                    "description": "The maximum number of redirects to follow."
+                                                },
+                                                "http_version": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "description": "The default HTTP version, typically 1.1 or 2.0, leave to null for the best version."
+                                                },
+                                                "resolve": {
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/$defs/types/object_null",
+                                                            "additionalProperties": {
+                                                                "$ref": "#/$defs/types/scalar"
+                                                            }
+                                                        },
+                                                        {
+                                                            "$ref": "#/$defs/types/array_null",
+                                                            "items": {
+                                                                "$ref": "#/$defs/types/scalar"
+                                                            }
+                                                        }
+                                                    ],
+                                                    "description": "Associative array: domain => IP."
+                                                },
+                                                "proxy": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "description": "The URL of the proxy to pass requests through or null for automatic detection."
+                                                },
+                                                "no_proxy": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "description": "A comma separated list of hosts that do not require a proxy to be reached."
+                                                },
+                                                "timeout": {
+                                                    "$ref": "#/$defs/types/number",
+                                                    "description": "The idle timeout, defaults to the \"default_socket_timeout\" ini parameter."
+                                                },
+                                                "max_duration": {
+                                                    "$ref": "#/$defs/types/number",
+                                                    "description": "The maximum execution time for the request+response as a whole."
+                                                },
+                                                "max_connect_duration": {
+                                                    "$ref": "#/$defs/types/number",
+                                                    "description": "The maximum duration allowed for DNS + TCP + TLS connection; a value lower than or equal to 0 means unlimited."
+                                                },
+                                                "bindto": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "description": "A network interface name, IP address, a host name or a UNIX socket to bind to."
+                                                },
+                                                "verify_peer": {
+                                                    "$ref": "#/$defs/types/boolean",
+                                                    "description": "Indicates if the peer should be verified in a TLS context."
+                                                },
+                                                "verify_host": {
+                                                    "$ref": "#/$defs/types/boolean",
+                                                    "description": "Indicates if the host should exist as a certificate common name."
+                                                },
+                                                "cafile": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "description": "A certificate authority file."
+                                                },
+                                                "capath": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "description": "A directory that contains multiple certificate authority files."
+                                                },
+                                                "local_cert": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "description": "A PEM formatted certificate file."
+                                                },
+                                                "local_pk": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "description": "A private key file."
+                                                },
+                                                "passphrase": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "description": "The passphrase used to encrypt the \"local_pk\" file."
+                                                },
+                                                "ciphers": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "description": "A list of TLS ciphers separated by colons, commas or spaces (e.g. \"RC3-SHA:TLS13-AES-128-GCM-SHA256\"...)."
+                                                },
+                                                "peer_fingerprint": {
+                                                    "$ref": "#/$defs/types/object_null",
+                                                    "properties": {
+                                                        "sha1": {
+                                                            "$ref": "#/$defs/types/variable"
+                                                        },
+                                                        "pin-sha256": {
+                                                            "$ref": "#/$defs/types/variable"
+                                                        },
+                                                        "md5": {
+                                                            "$ref": "#/$defs/types/variable"
+                                                        }
+                                                    },
+                                                    "additionalProperties": false,
+                                                    "description": "Associative array: hashing algorithm => hash(es)."
+                                                },
+                                                "crypto_method": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "description": "The minimum version of TLS to accept; must be one of STREAM_CRYPTO_METHOD_TLSv*_CLIENT constants."
+                                                },
+                                                "extra": {
+                                                    "$ref": "#/$defs/types/object_null",
+                                                    "additionalProperties": {
+                                                        "$ref": "#/$defs/types/variable"
+                                                    },
+                                                    "description": "Extra options for specific HTTP client."
+                                                },
+                                                "rate_limiter": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "default": null,
+                                                    "description": "Rate limiter name to use for throttling requests."
+                                                },
+                                                "caching": {
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/$defs/types/object_null",
+                                                            "properties": {
+                                                                "enabled": {
+                                                                    "$ref": "#/$defs/types/boolean",
+                                                                    "default": false
+                                                                },
+                                                                "cache_pool": {
+                                                                    "$ref": "#/$defs/types/string_null",
+                                                                    "default": "cache.http_client",
+                                                                    "description": "The taggable cache pool to use for storing the responses."
+                                                                },
+                                                                "shared": {
+                                                                    "$ref": "#/$defs/types/boolean",
+                                                                    "default": true,
+                                                                    "description": "Indicates whether the cache is shared (public) or private."
+                                                                },
+                                                                "max_ttl": {
+                                                                    "$ref": "#/$defs/types/integer",
+                                                                    "minimum": 1,
+                                                                    "default": 86400,
+                                                                    "description": "The maximum TTL (in seconds) allowed for cached responses."
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        },
+                                                        {
+                                                            "type": [
+                                                                "boolean"
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "default": {
+                                                        "enabled": false,
+                                                        "cache_pool": "cache.http_client",
+                                                        "shared": true,
+                                                        "max_ttl": 86400
+                                                    },
+                                                    "description": "Caching configuration."
+                                                },
+                                                "retry_failed": {
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/$defs/types/object_null",
+                                                            "properties": {
+                                                                "enabled": {
+                                                                    "$ref": "#/$defs/types/boolean",
+                                                                    "default": false
+                                                                },
+                                                                "base_uris": {
+                                                                    "anyOf": [
+                                                                        {
+                                                                            "$ref": "#/$defs/types/array_null",
+                                                                            "items": {
+                                                                                "$ref": "#/$defs/types/string_null"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "type": [
+                                                                                "string"
+                                                                            ]
+                                                                        }
+                                                                    ],
+                                                                    "description": "Additional URIs to retry against, tried in turn after the base URI, one per attempt."
+                                                                },
+                                                                "retry_strategy": {
+                                                                    "$ref": "#/$defs/types/scalar",
+                                                                    "default": null,
+                                                                    "description": "service id to override the retry strategy."
+                                                                },
+                                                                "http_codes": {
+                                                                    "anyOf": [
+                                                                        {
+                                                                            "$ref": "#/$defs/types/object_null",
+                                                                            "additionalProperties": {
+                                                                                "$ref": "#/$defs/types/object_null",
+                                                                                "properties": {
+                                                                                    "code": {
+                                                                                        "$ref": "#/$defs/types/integer"
+                                                                                    },
+                                                                                    "methods": {
+                                                                                        "anyOf": [
+                                                                                            {
+                                                                                                "$ref": "#/$defs/types/array_null",
+                                                                                                "items": {
+                                                                                                    "$ref": "#/$defs/types/string_null"
+                                                                                                }
+                                                                                            },
+                                                                                            {
+                                                                                                "type": [
+                                                                                                    "string"
+                                                                                                ]
+                                                                                            }
+                                                                                        ],
+                                                                                        "description": "A list of HTTP methods that triggers a retry for this status code. When empty, all methods are retried."
+                                                                                    }
+                                                                                },
+                                                                                "patternProperties": {
+                                                                                    "^method$": {
+                                                                                        "anyOf": [
+                                                                                            {
+                                                                                                "$ref": "#/$defs/types/string_null"
+                                                                                            },
+                                                                                            {
+                                                                                                "anyOf": [
+                                                                                                    {
+                                                                                                        "$ref": "#/$defs/types/array_null",
+                                                                                                        "items": {
+                                                                                                            "$ref": "#/$defs/types/string_null"
+                                                                                                        }
+                                                                                                    },
+                                                                                                    {
+                                                                                                        "type": [
+                                                                                                            "string"
+                                                                                                        ]
+                                                                                                    }
+                                                                                                ],
+                                                                                                "description": "A list of HTTP methods that triggers a retry for this status code. When empty, all methods are retried."
+                                                                                            }
+                                                                                        ]
+                                                                                    }
+                                                                                },
+                                                                                "additionalProperties": false
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "type": [
+                                                                                "integer",
+                                                                                "string"
+                                                                            ]
+                                                                        }
+                                                                    ],
+                                                                    "description": "A list of HTTP status code that triggers a retry."
+                                                                },
+                                                                "max_retries": {
+                                                                    "$ref": "#/$defs/types/integer",
+                                                                    "minimum": 0,
+                                                                    "default": 3
+                                                                },
+                                                                "delay": {
+                                                                    "$ref": "#/$defs/types/integer",
+                                                                    "minimum": 0,
+                                                                    "default": 1000,
+                                                                    "description": "Time in ms to delay (or the initial value when multiplier is used)."
+                                                                },
+                                                                "multiplier": {
+                                                                    "$ref": "#/$defs/types/number",
+                                                                    "minimum": 1,
+                                                                    "default": 2,
+                                                                    "description": "If greater than 1, delay will grow exponentially for each retry: delay * (multiple ^ retries)."
+                                                                },
+                                                                "max_delay": {
+                                                                    "$ref": "#/$defs/types/integer",
+                                                                    "minimum": 0,
+                                                                    "default": 0,
+                                                                    "description": "Max time in ms that a retry should ever be delayed (0 = infinite)."
+                                                                },
+                                                                "jitter": {
+                                                                    "$ref": "#/$defs/types/number",
+                                                                    "minimum": 0,
+                                                                    "maximum": 1,
+                                                                    "default": 0.1,
+                                                                    "description": "Randomness in percent (between 0 and 1) to apply to the delay."
+                                                                }
+                                                            },
+                                                            "patternProperties": {
+                                                                "^http_code$": {
+                                                                    "$ref": "#/$defs/types/variable"
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        },
+                                                        {
+                                                            "type": [
+                                                                "boolean"
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "default": {
+                                                        "enabled": false,
+                                                        "base_uris": [],
+                                                        "retry_strategy": null,
+                                                        "http_codes": [],
+                                                        "max_retries": 3,
+                                                        "delay": 1000,
+                                                        "multiplier": 2,
+                                                        "max_delay": 0,
+                                                        "jitter": 0.1
+                                                    }
+                                                }
+                                            },
+                                            "patternProperties": {
+                                                "^header$": {
+                                                    "$ref": "#/$defs/types/variable"
+                                                }
+                                            },
+                                            "additionalProperties": false
+                                        },
+                                        {
+                                            "type": [
+                                                "string"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        "patternProperties": {
+                            "^scoped_client$": {
+                                "$ref": "#/$defs/types/variable"
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    {
+                        "type": [
+                            "boolean"
+                        ]
+                    }
+                ],
+                "default": {
+                    "enabled": true,
+                    "recorder": {
+                        "enabled": null,
+                        "redactor": null,
+                        "redact": [],
+                        "redact_except": []
+                    },
+                    "scoped_clients": []
+                }
+            },
+            "live_component": {
+                "$ref": "#/$defs/types/object_null",
+                "properties": {
+                    "secret": {
+                        "$ref": "#/$defs/types/scalar",
+                        "default": "%kernel.secret%",
+                        "description": "The secret used to compute fingerprints and checksums"
+                    },
+                    "fetch_credentials": {
+                        "anyOf": [
+                            {
+                                "enum": [
+                                    "same-origin",
+                                    "include",
+                                    "omit"
+                                ]
+                            },
+                            {
+                                "$ref": "#/$defs/types/param"
+                            }
+                        ],
+                        "default": "same-origin",
+                        "description": "The default fetch credentials mode for all Live Components ('same-origin', 'include', 'omit')"
+                    }
+                },
+                "additionalProperties": false,
+                "default": {
+                    "secret": "%kernel.secret%",
+                    "fetch_credentials": "same-origin"
+                }
+            },
+            "property_access": {
+                "anyOf": [
+                    {
+                        "$ref": "#/$defs/types/object_null",
+                        "properties": {
+                            "enabled": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": true
+                            },
+                            "magic_call": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": false
+                            },
+                            "magic_get": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": true
+                            },
+                            "magic_set": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": true
+                            },
+                            "throw_exception_on_invalid_index": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": false
+                            },
+                            "throw_exception_on_invalid_property_path": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": true
+                            },
+                            "wildcard_reads": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": false,
+                                "description": "Enables reading every element of a collection through a \"[*]\" wildcard."
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    {
+                        "type": [
+                            "boolean"
+                        ]
+                    }
+                ],
+                "default": {
+                    "enabled": true,
+                    "magic_call": false,
+                    "magic_get": true,
+                    "magic_set": true,
+                    "throw_exception_on_invalid_index": false,
+                    "throw_exception_on_invalid_property_path": true,
+                    "wildcard_reads": false
+                },
+                "description": "Property access configuration"
+            },
+            "property_info": {
+                "anyOf": [
+                    {
+                        "$ref": "#/$defs/types/object_null",
+                        "properties": {
+                            "enabled": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": true
+                            },
+                            "with_constructor_extractor": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": true,
+                                "description": "Registers the constructor extractor."
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    {
+                        "type": [
+                            "boolean"
+                        ]
+                    }
+                ],
+                "default": {
+                    "enabled": true,
+                    "with_constructor_extractor": true
+                },
+                "description": "Property info configuration"
+            },
             "router": {
                 "anyOf": [
                     {
@@ -1419,6 +2744,108 @@
                     "https_port": 443,
                     "utf8": true
                 }
+            },
+            "stimulus": {
+                "$ref": "#/$defs/types/object_null",
+                "properties": {
+                    "controller_paths": {
+                        "$ref": "#/$defs/types/array_null",
+                        "items": {
+                            "$ref": "#/$defs/types/scalar"
+                        },
+                        "default": [
+                            "%kernel.project_dir%/assets/controllers"
+                        ]
+                    },
+                    "controllers_json": {
+                        "$ref": "#/$defs/types/scalar",
+                        "default": "%kernel.project_dir%/assets/controllers.json"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "symfonycasts_tailwind": {
+                "$ref": "#/$defs/types/object_null",
+                "properties": {
+                    "input_css": {
+                        "$ref": "#/$defs/types/variable",
+                        "default": [
+                            "%kernel.project_dir%/assets/styles/app.css"
+                        ],
+                        "description": "Paths to CSS files to process through Tailwind"
+                    },
+                    "config_file": {
+                        "$ref": "#/$defs/types/scalar",
+                        "default": "%kernel.project_dir%/tailwind.config.js",
+                        "description": "Path to the tailwind.config.js file"
+                    },
+                    "binary": {
+                        "$ref": "#/$defs/types/scalar",
+                        "default": null,
+                        "description": "The tailwind binary to use instead of downloading a new one"
+                    },
+                    "binary_version": {
+                        "$ref": "#/$defs/types/scalar",
+                        "default": null,
+                        "description": "Tailwind CLI version to download - required unless \"binary\" is set (run \"tailwind:init\" to configure)"
+                    },
+                    "binary_platform": {
+                        "anyOf": [
+                            {
+                                "enum": [
+                                    "auto",
+                                    "linux-arm64",
+                                    "linux-arm64-musl",
+                                    "linux-x64",
+                                    "linux-x64-musl",
+                                    "macos-arm64",
+                                    "macos-x64",
+                                    "windows-x64"
+                                ]
+                            },
+                            {
+                                "$ref": "#/$defs/types/param"
+                            }
+                        ],
+                        "default": "auto",
+                        "description": "Tailwind CLI platform to download - \"auto\" will try to detect the platform automatically"
+                    },
+                    "postcss_config_file": {
+                        "$ref": "#/$defs/types/scalar",
+                        "default": null,
+                        "description": "Path to PostCSS config file which is passed to the Tailwind CLI"
+                    },
+                    "strict_mode": {
+                        "$ref": "#/$defs/types/boolean_null",
+                        "default": null,
+                        "description": "When enabled, an exception will be thrown if there are no built assets (default: false in `test` env, true otherwise)"
+                    },
+                    "process_timeout": {
+                        "$ref": "#/$defs/types/integer",
+                        "default": 60,
+                        "description": "Timeout in seconds for the Tailwind build process - use \"0\" to disable"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "tales_from_a_dev_twig_extra_tailwind": {
+                "$ref": "#/$defs/types/object_null",
+                "properties": {
+                    "tailwind_merge": {
+                        "$ref": "#/$defs/types/object_null",
+                        "properties": {
+                            "additional_configuration": {
+                                "$ref": "#/$defs/types/variable",
+                                "default": []
+                            }
+                        },
+                        "additionalProperties": false,
+                        "default": {
+                            "additional_configuration": []
+                        }
+                    }
+                },
+                "additionalProperties": false
             },
             "twig": {
                 "$ref": "#/$defs/types/object_null",
@@ -1615,6 +3042,197 @@
                 },
                 "additionalProperties": false
             },
+            "twig_component": {
+                "$ref": "#/$defs/types/object_null",
+                "properties": {
+                    "defaults": {
+                        "$ref": "#/$defs/types/object_null",
+                        "additionalProperties": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/$defs/types/object_null",
+                                    "properties": {
+                                        "template_directory": {
+                                            "$ref": "#/$defs/types/scalar",
+                                            "default": "components"
+                                        },
+                                        "name_prefix": {
+                                            "$ref": "#/$defs/types/scalar",
+                                            "default": ""
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                },
+                                {
+                                    "type": [
+                                        "string"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "anonymous_template_directory": {
+                        "$ref": "#/$defs/types/scalar",
+                        "description": "Defaults to `components`"
+                    },
+                    "profiler": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/types/object_null",
+                                "properties": {
+                                    "enabled": {
+                                        "$ref": "#/$defs/types/boolean",
+                                        "default": "%kernel.debug%"
+                                    },
+                                    "collect_components": {
+                                        "$ref": "#/$defs/types/boolean",
+                                        "default": true,
+                                        "description": "Collect components instances"
+                                    }
+                                },
+                                "additionalProperties": false
+                            },
+                            {
+                                "type": [
+                                    "boolean"
+                                ]
+                            }
+                        ],
+                        "default": {
+                            "enabled": "%kernel.debug%",
+                            "collect_components": true
+                        },
+                        "description": "Enables the profiler for Twig Component"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "type_info": {
+                "anyOf": [
+                    {
+                        "$ref": "#/$defs/types/object_null",
+                        "properties": {
+                            "enabled": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": true
+                            },
+                            "aliases": {
+                                "$ref": "#/$defs/types/object_null",
+                                "additionalProperties": {
+                                    "$ref": "#/$defs/types/scalar"
+                                },
+                                "description": "Additional type aliases to be used during type context creation."
+                            }
+                        },
+                        "patternProperties": {
+                            "^alias$": {
+                                "$ref": "#/$defs/types/variable"
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    {
+                        "type": [
+                            "boolean"
+                        ]
+                    }
+                ],
+                "default": {
+                    "enabled": true,
+                    "aliases": []
+                }
+            },
+            "ux_toolkit": {
+                "$ref": "#/$defs/types/object_null",
+                "properties": {
+                    "components": {
+                        "$ref": "#/$defs/types/object_null",
+                        "properties": {
+                            "dir": {
+                                "$ref": "#/$defs/types/scalar",
+                                "default": "templates/components",
+                                "description": "The directory TwigComponent loads anonymous components from, relative to the project directory. It must match your configuration: the Twig \"default_path\" followed by the TwigComponent \"anonymous_template_directory\".",
+                                "examples": [
+                                    "templates/ui"
+                                ]
+                            },
+                            "subdirectory": {
+                                "$ref": "#/$defs/types/scalar",
+                                "default": null,
+                                "description": "A subdirectory of \"dir\" to install the components in. Their names get it as a prefix, which the installer adds to the copied files, e.g. \"<twig:ui:Button>\" for \"ui\".",
+                                "examples": [
+                                    "ui"
+                                ]
+                            }
+                        },
+                        "additionalProperties": false,
+                        "default": {
+                            "dir": "templates/components",
+                            "subdirectory": null
+                        },
+                        "description": "Where \"ux:install\" installs the Twig components of recipes."
+                    },
+                    "controllers": {
+                        "$ref": "#/$defs/types/object_null",
+                        "properties": {
+                            "dir": {
+                                "$ref": "#/$defs/types/scalar",
+                                "default": "assets/controllers",
+                                "description": "The directory your Stimulus setup loads controllers from, relative to the project directory. It must match your configuration: an entry of \"stimulus.controller_paths\" with AssetMapper, the \"controllersDir\" option with Reprise, or the directory passed to \"require.context()\" with Webpack Encore.",
+                                "examples": [
+                                    "assets/js/controllers"
+                                ]
+                            },
+                            "subdirectory": {
+                                "$ref": "#/$defs/types/scalar",
+                                "default": null,
+                                "description": "A subdirectory of \"dir\" to install the controllers in. Their identifiers get it as a prefix, which the installer adds to the copied files, e.g. \"ui--dialog\" for \"ui\".",
+                                "examples": [
+                                    "ui"
+                                ]
+                            }
+                        },
+                        "additionalProperties": false,
+                        "default": {
+                            "dir": "assets/controllers",
+                            "subdirectory": null
+                        },
+                        "description": "Where \"ux:install\" installs the Stimulus controllers of recipes."
+                    },
+                    "preview": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/types/object_null",
+                                "properties": {
+                                    "enabled": {
+                                        "$ref": "#/$defs/types/boolean",
+                                        "default": false
+                                    },
+                                    "kits": {
+                                        "$ref": "#/$defs/types/array_null",
+                                        "items": {
+                                            "$ref": "#/$defs/types/scalar"
+                                        },
+                                        "description": "The kits to preview: names of kits shipped with the Toolkit, or directories of external kits, absolute or relative to the project directory. Defaults to every kit shipped with the Toolkit."
+                                    }
+                                },
+                                "additionalProperties": false
+                            },
+                            {
+                                "type": [
+                                    "boolean"
+                                ]
+                            }
+                        ],
+                        "default": {
+                            "enabled": false,
+                            "kits": []
+                        },
+                        "description": "Wires the preview assets of kits into AssetMapper, Tailwind and the importmap."
+                    }
+                },
+                "additionalProperties": false
+            },
             "web_profiler": {
                 "$ref": "#/$defs/types/object_null",
                 "properties": {
@@ -1662,35 +3280,98 @@
     },
     "type": "object",
     "properties": {
+        "asset_mapper": {
+            "$ref": "#/$defs/nodes/asset_mapper"
+        },
         "cache": {
             "$ref": "#/$defs/nodes/cache"
         },
         "framework": {
             "$ref": "#/$defs/nodes/framework"
         },
+        "http_client": {
+            "$ref": "#/$defs/nodes/http_client"
+        },
+        "live_component": {
+            "$ref": "#/$defs/nodes/live_component"
+        },
+        "property_access": {
+            "$ref": "#/$defs/nodes/property_access"
+        },
+        "property_info": {
+            "$ref": "#/$defs/nodes/property_info"
+        },
         "router": {
             "$ref": "#/$defs/nodes/router"
+        },
+        "stimulus": {
+            "$ref": "#/$defs/nodes/stimulus"
+        },
+        "symfonycasts_tailwind": {
+            "$ref": "#/$defs/nodes/symfonycasts_tailwind"
+        },
+        "tales_from_a_dev_twig_extra_tailwind": {
+            "$ref": "#/$defs/nodes/tales_from_a_dev_twig_extra_tailwind"
         },
         "twig": {
             "$ref": "#/$defs/nodes/twig"
         },
+        "twig_component": {
+            "$ref": "#/$defs/nodes/twig_component"
+        },
+        "type_info": {
+            "$ref": "#/$defs/nodes/type_info"
+        },
         "when@dev": {
             "$ref": "#/$defs/types/object_null",
             "properties": {
+                "asset_mapper": {
+                    "$ref": "#/$defs/nodes/asset_mapper"
+                },
                 "cache": {
                     "$ref": "#/$defs/nodes/cache"
                 },
                 "framework": {
                     "$ref": "#/$defs/nodes/framework"
                 },
+                "http_client": {
+                    "$ref": "#/$defs/nodes/http_client"
+                },
                 "imports": true,
+                "live_component": {
+                    "$ref": "#/$defs/nodes/live_component"
+                },
                 "parameters": true,
+                "property_access": {
+                    "$ref": "#/$defs/nodes/property_access"
+                },
+                "property_info": {
+                    "$ref": "#/$defs/nodes/property_info"
+                },
                 "router": {
                     "$ref": "#/$defs/nodes/router"
                 },
                 "services": true,
+                "stimulus": {
+                    "$ref": "#/$defs/nodes/stimulus"
+                },
+                "symfonycasts_tailwind": {
+                    "$ref": "#/$defs/nodes/symfonycasts_tailwind"
+                },
+                "tales_from_a_dev_twig_extra_tailwind": {
+                    "$ref": "#/$defs/nodes/tales_from_a_dev_twig_extra_tailwind"
+                },
                 "twig": {
                     "$ref": "#/$defs/nodes/twig"
+                },
+                "twig_component": {
+                    "$ref": "#/$defs/nodes/twig_component"
+                },
+                "type_info": {
+                    "$ref": "#/$defs/nodes/type_info"
+                },
+                "ux_toolkit": {
+                    "$ref": "#/$defs/nodes/ux_toolkit"
                 },
                 "web_profiler": {
                     "$ref": "#/$defs/nodes/web_profiler"
@@ -1701,20 +3382,53 @@
         "when@test": {
             "$ref": "#/$defs/types/object_null",
             "properties": {
+                "asset_mapper": {
+                    "$ref": "#/$defs/nodes/asset_mapper"
+                },
                 "cache": {
                     "$ref": "#/$defs/nodes/cache"
                 },
                 "framework": {
                     "$ref": "#/$defs/nodes/framework"
                 },
+                "http_client": {
+                    "$ref": "#/$defs/nodes/http_client"
+                },
                 "imports": true,
+                "live_component": {
+                    "$ref": "#/$defs/nodes/live_component"
+                },
                 "parameters": true,
+                "property_access": {
+                    "$ref": "#/$defs/nodes/property_access"
+                },
+                "property_info": {
+                    "$ref": "#/$defs/nodes/property_info"
+                },
                 "router": {
                     "$ref": "#/$defs/nodes/router"
                 },
                 "services": true,
+                "stimulus": {
+                    "$ref": "#/$defs/nodes/stimulus"
+                },
+                "symfonycasts_tailwind": {
+                    "$ref": "#/$defs/nodes/symfonycasts_tailwind"
+                },
+                "tales_from_a_dev_twig_extra_tailwind": {
+                    "$ref": "#/$defs/nodes/tales_from_a_dev_twig_extra_tailwind"
+                },
                 "twig": {
                     "$ref": "#/$defs/nodes/twig"
+                },
+                "twig_component": {
+                    "$ref": "#/$defs/nodes/twig_component"
+                },
+                "type_info": {
+                    "$ref": "#/$defs/nodes/type_info"
+                },
+                "ux_toolkit": {
+                    "$ref": "#/$defs/nodes/ux_toolkit"
                 },
                 "web_profiler": {
                     "$ref": "#/$defs/nodes/web_profiler"
@@ -1727,17 +3441,47 @@
         "^when@[a-zA-Z0-9]+$": {
             "$ref": "#/$defs/types/object_null",
             "properties": {
+                "asset_mapper": {
+                    "$ref": "#/$defs/nodes/asset_mapper"
+                },
                 "cache": {
                     "$ref": "#/$defs/nodes/cache"
                 },
                 "framework": {
                     "$ref": "#/$defs/nodes/framework"
                 },
+                "http_client": {
+                    "$ref": "#/$defs/nodes/http_client"
+                },
+                "live_component": {
+                    "$ref": "#/$defs/nodes/live_component"
+                },
+                "property_access": {
+                    "$ref": "#/$defs/nodes/property_access"
+                },
+                "property_info": {
+                    "$ref": "#/$defs/nodes/property_info"
+                },
                 "router": {
                     "$ref": "#/$defs/nodes/router"
                 },
+                "stimulus": {
+                    "$ref": "#/$defs/nodes/stimulus"
+                },
+                "symfonycasts_tailwind": {
+                    "$ref": "#/$defs/nodes/symfonycasts_tailwind"
+                },
+                "tales_from_a_dev_twig_extra_tailwind": {
+                    "$ref": "#/$defs/nodes/tales_from_a_dev_twig_extra_tailwind"
+                },
                 "twig": {
                     "$ref": "#/$defs/nodes/twig"
+                },
+                "twig_component": {
+                    "$ref": "#/$defs/nodes/twig_component"
+                },
+                "type_info": {
+                    "$ref": "#/$defs/nodes/type_info"
                 }
             }
         }

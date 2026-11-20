@@ -41,13 +41,17 @@ function stop(): void
     run(['frankenphp', 'stop', '--address', context()['admin_address']]);
 }
 
-#[AsTask(description: 'Installs the application (composer, ...)', namespace: 'app', aliases: ['install'])]
+#[AsTask(description: 'Installs the application (composer, importmap, Tailwind build...)', namespace: 'app', aliases: ['install'])]
 function install(): void
 {
     io()->title('Installing the application');
 
-    io()->section('Installing PHP dependencies');
+    // The auto-scripts of composer.json also install the importmap packages in assets/vendor/.
+    io()->section('Installing PHP and JavaScript dependencies');
     run(['composer', 'install', '-n', '--prefer-dist', '--optimize-autoloader']);
+
+    io()->section('Building the stylesheet with Tailwind');
+    run(['bin/console', 'tailwind:build']);
 }
 
 #[AsTask(description: 'Clears and warms the application cache', namespace: 'app', aliases: ['cache-clear'])]
