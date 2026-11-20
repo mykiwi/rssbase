@@ -61,6 +61,11 @@
       "date": "2026-11-20",
       "type": "Livraison",
       "description": "La story livre la stack hello world : Symfony 8.2 sur FrankenPHP natif Nix, qualité, tests, Docker et outillage agent, avec les corrections de review."
+    },
+    {
+      "date": "2026-11-20",
+      "type": "ADR",
+      "description": "ADR-0002 amendé et passé en accepted : multiverse quand il propose la dernière version publiée (toutes lignes, LTS comprises), sinon paquet maison dans infra/packages/."
     }
   ],
   "delivery": {

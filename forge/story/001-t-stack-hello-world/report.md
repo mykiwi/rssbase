@@ -61,6 +61,10 @@ La stack cible tourne sur les versions visées, mais par plus de surcharges que 
 | Plugin `symfony/ai-mate-composer-plugin` autorisé | Relance `mate discover` après `composer require` ou `update` | — |
 | `.playwright-mcp/` ignoré par git | Le serveur MCP y écrit journaux et instantanés | `plan.md` §Périmètre |
 
+## Décisions architecturales
+
+- ADR-0002 — Sélection des versions d'outils par nixpkgs-multiverse (accepted, amendé : repli sur un paquet maison quand l'index n'a pas la dernière version) — `forge/adr/0002-selection-versions-nixpkgs-multiverse.md`
+
 ## Dette technique identifiée
 
 1. **[PLAN] Rien ne protège PHP et FrankenPHP maison du ramasse-miettes Nix** — `flake.nix:46` — le plan dit ces paquets « compilés une fois puis gardés dans le store », mais seuls les shells ouverts les retiennent : un `nix store gc` sans shell ouvert impose une recompilation complète au prochain `nix develop`. Laissé en dette par l'utilisateur. Action : poser une racine de GC (`nix develop --profile`, nix-direnv, ou `--out-link`).
