@@ -18,6 +18,10 @@ function all(): int
 {
     $inCi = false !== getenv('CI');
 
+    // Everything the jobs below need, built once: their own make calls then find nothing to do, and
+    // parallel jobs cannot race on the same recipe.
+    \make('stylesheet', 'chromium');
+
     // The formatter writes the files that the linter and the analyzer read, so it runs first, alone.
     $format = format(check: $inCi);
 
@@ -71,6 +75,8 @@ function lint(): int
 {
     io()->section('Linting with Mago...');
 
+    \make('vendor');
+
     return max(exit_code(['mago', 'lint']), exit_code(['mago', 'twig:lint']));
 }
 
@@ -79,6 +85,8 @@ function analyze(): int
 {
     io()->section('Analyzing with Mago...');
 
+    \make('vendor');
+
     return exit_code(['mago', 'analyze']);
 }
 
@@ -86,6 +94,8 @@ function analyze(): int
 function symfony_lsp(): int
 {
     io()->section('Checking with symfony-lsp...');
+
+    \make('vendor');
 
     return exit_code(['symfony-lsp', 'check']);
 }
@@ -98,6 +108,9 @@ function phpunit(#[AsRawTokens] array $rawTokens = []): int
 {
     io()->section('Running PHPUnit...');
 
+    // The functional tests render pages, which need the stylesheet.
+    \make('stylesheet');
+
     return exit_code(['bin/phpunit', '--testsuite', 'default', ...$rawTokens]);
 }
 
@@ -108,6 +121,8 @@ function phpunit(#[AsRawTokens] array $rawTokens = []): int
 function e2e(#[AsRawTokens] array $rawTokens = []): int
 {
     io()->section('Running the browser tests...');
+
+    \make('stylesheet', 'chromium');
 
     return exit_code(['bin/phpunit', '--testsuite', 'e2e', ...$rawTokens]);
 }

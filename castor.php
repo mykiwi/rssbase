@@ -19,6 +19,8 @@ function start(): void
 {
     $c = context();
 
+    make('stylesheet', 'database');
+
     io()->title("Serving the application on http://localhost:{$c['http_port']}");
 
     run(
@@ -41,22 +43,26 @@ function stop(): void
     run(['frankenphp', 'stop', '--address', context()['admin_address']]);
 }
 
-#[AsTask(description: 'Installs the application (composer, importmap, Tailwind build...)', namespace: 'app', aliases: ['install'])]
+#[AsTask(
+    description: 'Installs the application (composer, importmap, Tailwind build, Chromium, database), skipping what is up to date',
+    namespace: 'app',
+    aliases: ['install'],
+)]
 function install(): void
 {
     io()->title('Installing the application');
 
-    // The auto-scripts of composer.json also install the importmap packages in assets/vendor/.
-    io()->section('Installing PHP and JavaScript dependencies');
-    run(['composer', 'install', '-n', '--prefer-dist', '--optimize-autoloader']);
+    make('install');
+}
 
-    io()->section('Installing Chromium for the browser tests');
-    run(['vendor/bin/playwright-install', 'chromium']);
-
-    io()->section('Building the stylesheet with Tailwind');
-    run(['bin/console', 'tailwind:build']);
-
-    migrate();
+/**
+ * Brings targets of app/Makefile up to date: a generated file is rebuilt only when one of its sources
+ * changed, and independent targets build in parallel.
+ */
+function make(string ...$targets): void
+{
+    // An unbounded --jobs is fine: the graph of app/Makefile never has more than a few runnable recipes.
+    run(['make', '--jobs', '--silent', '--no-print-directory', ...$targets]);
 }
 
 #[AsTask(description: 'Clears and warms the application cache', namespace: 'app', aliases: ['cache-clear'])]
@@ -64,6 +70,7 @@ function cache_clear(): void
 {
     io()->title('Clearing the application cache');
 
+    make('vendor');
     run(['bin/console', 'cache:clear']);
 }
 
@@ -71,6 +78,8 @@ function cache_clear(): void
 function migrate(): void
 {
     io()->title('Migrating the database schema');
+
+    make('vendor');
 
     // SQLite creates the database file on the first connection: DBAL 4 cannot list SQLite databases,
     // so doctrine:database:create fails.
