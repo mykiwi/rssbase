@@ -52,6 +52,8 @@ function install(): void
 
     io()->section('Building the stylesheet with Tailwind');
     run(['bin/console', 'tailwind:build']);
+
+    migrate();
 }
 
 #[AsTask(description: 'Clears and warms the application cache', namespace: 'app', aliases: ['cache-clear'])]
@@ -60,4 +62,14 @@ function cache_clear(): void
     io()->title('Clearing the application cache');
 
     run(['bin/console', 'cache:clear']);
+}
+
+#[AsTask(description: 'Migrates the database schema', namespace: 'app:db', aliases: ['migrate'])]
+function migrate(): void
+{
+    io()->title('Migrating the database schema');
+
+    // SQLite creates the database file on the first connection: DBAL 4 cannot list SQLite databases,
+    // so doctrine:database:create fails.
+    run(['bin/console', 'doctrine:migrations:migrate', '-n', '--allow-no-migration', '--all-or-nothing']);
 }

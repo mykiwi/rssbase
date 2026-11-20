@@ -8,7 +8,7 @@ excludes = ["config/reference.php"]
 
 # Any finding fails, down to notes: the project keeps zero findings.
 [linter]
-integrations = ["symfony", "phpunit"]
+integrations = ["symfony", "phpunit", "doctrine"]
 minimum-fail-level = "note"
 # Rewritten by Symfony Flex on each package install, which drops declare(strict_types=1).
 excludes = ["config/bundles.php"]
