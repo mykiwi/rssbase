@@ -13,7 +13,6 @@
 
 ###> phpunit/phpunit ###
 /phpunit.xml
-/.phpunit.cache/
 ###< phpunit/phpunit ###
 
 ###> symfony/asset-mapper ###
