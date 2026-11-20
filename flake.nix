@@ -56,6 +56,9 @@
           pkgs.gnumake
           shortcuts
         ];
+
+        # castor comes from this flake (ADR-0002): its own check for a newer release could only suggest a self-update.
+        env.CASTOR_DISABLE_VERSION_CHECK = "1";
       };
 
       checks.${system} = {
