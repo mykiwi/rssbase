@@ -28,7 +28,7 @@ var/make/bundles: vendor/composer/installed.json
 	mkdir -p $(@D)
 	touch $@
 
-# Tailwind looks for class names in every file of the project that git does not ignore.
+# The @source lines of assets/styles/app.css limit the search for class names to these directories.
 var/tailwind/app.built.css: config/packages/symfonycasts_tailwind.yaml assets/vendor/installed.php \
 		$(shell find assets templates src -type f -not -path 'assets/vendor/*')
 	bin/console tailwind:build

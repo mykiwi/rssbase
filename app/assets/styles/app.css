@@ -1,4 +1,8 @@
-@import 'tailwindcss';
+@import 'tailwindcss' source(none);
+
+@source '..';
+@source '../../templates';
+@source '../../src';
 
 @import '../vendor/tw-animate-css/dist/tw-animate.css';
 @import '../vendor/shadcn/dist/tailwind.css';
