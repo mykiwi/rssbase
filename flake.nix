@@ -47,6 +47,7 @@
           mago
           symfony-lsp
           pins.nodejs_26
+          pkgs.jq
           shortcuts
         ];
       };
