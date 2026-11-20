@@ -14,6 +14,11 @@
       "date": "2026-11-20",
       "type": "Planification",
       "description": "PHP fixé à 8.6.0 finale sans repli sur une version candidate : surcharge de la source dans infra/packages/php.nix tant que multiverse ne l'indexe pas."
+    },
+    {
+      "date": "2026-11-20",
+      "type": "ADR",
+      "description": "ADR-0001 (runtime natif Nix, PHP et FrankenPHP en paquets maison) et ADR-0002 (sélection des versions par nixpkgs-multiverse) rédigés en proposed."
     }
   ]
 }

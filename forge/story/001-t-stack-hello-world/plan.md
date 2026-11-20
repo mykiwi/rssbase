@@ -4,6 +4,8 @@
 > **Registre** : technique
 > **Story** : `forge/story/001-t-stack-hello-world/`
 > **Amont** : aucun
+> **ADR** : `forge/adr/0001-runtime-natif-nix-paquets-maison.md`
+> **ADR** : `forge/adr/0002-selection-versions-nixpkgs-multiverse.md`
 
 ## Motivation
 
