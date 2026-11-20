@@ -130,6 +130,13 @@ investigation for every edit. My explicit instructions take precedence over loca
 - Keep transactions short and related writes atomic. Use the database clock for database-owned timestamps. Check that constraints and foreign keys
   preserve the intended deletion, retention, and TTL behavior.
 
+## Commits
+
+- Make atomic commits: one logical change per commit, each leaving the repository in a working state.
+- Write commit messages in English and follow [Conventional Commits](https://www.conventionalcommits.org/) so the semver bump can be derived from history:
+  `fix` is a patch, `feat` a minor, and `!` after the type or a `BREAKING CHANGE:` footer a major.
+- Start every subject with an emoji matching the change, then a single space, then the type: `✨ feat(reader): add OPML import`.
+
 ## Communication and handoff
 
 - No first person.
