@@ -1,0 +1,19 @@
+{
+  "version": 3,
+  "title": "Amorcer la stack technique avec un hello world",
+  "created": "2026-11-20",
+  "updated": "2026-11-20",
+  "tags": ["scaffolding"],
+  "changelog": [
+    {
+      "date": "2026-11-20",
+      "type": "Création",
+      "description": "Plan technique rédigé : runtime natif Nix via nixpkgs-multiverse, PHP 8.6 et FrankenPHP 1.13.6 en paquets maison, Symfony 8.2 dans app/, page hello world statique."
+    },
+    {
+      "date": "2026-11-20",
+      "type": "Planification",
+      "description": "PHP fixé à 8.6.0 finale sans repli sur une version candidate : surcharge de la source dans infra/packages/php.nix tant que multiverse ne l'indexe pas."
+    }
+  ]
+}
