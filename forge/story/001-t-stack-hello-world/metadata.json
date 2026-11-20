@@ -29,6 +29,11 @@
       "date": "2026-11-20",
       "type": "Implémentation",
       "description": "Étapes 9 et 10 livrées (jusqu'à db3a403) : castor qa en CI vert, nix flake check OK ; depuis un clone propre, castor install puis castor start et castor docker:up servent GET / en 200 avec Hello world. Mesure GET / (prod, cache chaud, 200 requêtes, commit 46b92d3, deux passes) : médiane classique 11,28 et 11,05 ms, worker 1,95 et 3,77 ms. Restent : forge/stack.md à recartographier par /forge:stack (invocation réservée à l'utilisateur) ; démarrage du serveur Playwright MCP non vérifié (npx bloqué par le mode auto, à vérifier dans une session qui charge .mcp.json). Écarts : Mate 1.0.0-BETA1 forcé par ^1.0 (prefer-stable choisissait 0.15.0) ; invocation nix develop -c app/vendor/bin/mate depuis la racine (le shell de l'agent n'a pas PHP) ; mate init écrit app/CLAUDE.md, un bloc géré dans app/AGENTS.md et 7 skills dans app/.agents et app/.claude, commités (recommandation amont : changements visibles en revue) ; plugin symfony/ai-mate-composer-plugin autorisé (relance mate discover après composer require ou update) ; .mcp.json passe par nix develop (Node du flake et non le Node global) avec --isolated (profil en mémoire), navigateur Chrome de la machine (--browser ne propose plus chromium) ; Tailwind limité à assets, templates et src par @source, hors plan (le Markdown de Mate ajoutait 4 utilitaires) ; banc classique par un Caddyfile jetable sans le bloc worker (le Caddyfile du projet n'a pas d'interrupteur). Dette : Symfony 8.2 journalise l'absence de l'extension intl, non ajoutée faute d'échec constaté."
+    },
+    {
+      "date": "2026-11-20",
+      "type": "Implémentation",
+      "description": "Extension intl ajoutée au PHP maison (1c49acf, demande utilisateur : Symfony 8.2 la réclame en dev et en prod), ce qui solde la dette notée à l'entrée précédente. Écart : liée à ICU 79.1 du jeu daté au lieu de l'ICU 73 de nixpkgs (règle utilisateur : dernière version ; même glibc et même GCC) ; 505 tests de l'extension verts, castor qa en CI vert, image vérifiée."
     }
   ]
 }
