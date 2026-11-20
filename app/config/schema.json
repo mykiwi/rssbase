@@ -4021,6 +4021,787 @@
                     "fetch_credentials": "same-origin"
                 }
             },
+            "monolog": {
+                "$ref": "#/$defs/types/object_null",
+                "properties": {
+                    "use_microseconds": {
+                        "$ref": "#/$defs/types/scalar",
+                        "default": true
+                    },
+                    "timezone": {
+                        "$ref": "#/$defs/types/string_null",
+                        "default": null,
+                        "description": "The timezone used for the timestamp of every log record (e.g. \"UTC\" or \"Europe/Paris\"). Defaults to the PHP default timezone."
+                    },
+                    "channels": {
+                        "$ref": "#/$defs/types/array_null",
+                        "items": {
+                            "$ref": "#/$defs/types/scalar"
+                        },
+                        "description": "List of additional channels to create. The \"app\" channel is already created by default. Channels are also automatically created for services using the \"monolog.logger\" DI tag with a custom channel attribute."
+                    },
+                    "handlers": {
+                        "$ref": "#/$defs/types/object_null",
+                        "additionalProperties": {
+                            "$ref": "#/$defs/types/object_null",
+                            "properties": {
+                                "type": {
+                                    "$ref": "#/$defs/types/scalar"
+                                },
+                                "id": {
+                                    "$ref": "#/$defs/types/scalar"
+                                },
+                                "enabled": {
+                                    "$ref": "#/$defs/types/boolean",
+                                    "default": true
+                                },
+                                "priority": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": 0
+                                },
+                                "level": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": "DEBUG"
+                                },
+                                "bubble": {
+                                    "$ref": "#/$defs/types/boolean",
+                                    "default": true
+                                },
+                                "interactive_only": {
+                                    "$ref": "#/$defs/types/boolean",
+                                    "default": false
+                                },
+                                "app_name": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": null
+                                },
+                                "include_stacktraces": {
+                                    "$ref": "#/$defs/types/boolean",
+                                    "default": false
+                                },
+                                "base_path": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": null
+                                },
+                                "process_psr_3_messages": {
+                                    "$ref": "#/$defs/types/variable",
+                                    "default": {
+                                        "enabled": null
+                                    }
+                                },
+                                "path": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": "%kernel.logs_dir%/%kernel.environment%.log"
+                                },
+                                "file_permission": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": null
+                                },
+                                "use_locking": {
+                                    "$ref": "#/$defs/types/boolean",
+                                    "default": false
+                                },
+                                "filename_format": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": "{filename}-{date}"
+                                },
+                                "date_format": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": "Y-m-d"
+                                },
+                                "ident": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": "php"
+                                },
+                                "logopts": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": 1
+                                },
+                                "facility": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": "user"
+                                },
+                                "max_files": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": 0
+                                },
+                                "action_level": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": "WARNING"
+                                },
+                                "activation_strategy": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": null
+                                },
+                                "stop_buffering": {
+                                    "$ref": "#/$defs/types/boolean",
+                                    "default": true
+                                },
+                                "passthru_level": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": null
+                                },
+                                "excluded_http_codes": {
+                                    "$ref": "#/$defs/types/variable",
+                                    "description": "Only for \"fingers_crossed\" handler type",
+                                    "examples": [
+                                        [
+                                            403,
+                                            404,
+                                            {
+                                                "400": [
+                                                    "^/foo",
+                                                    "^/bar"
+                                                ]
+                                            }
+                                        ]
+                                    ]
+                                },
+                                "accepted_levels": {
+                                    "$ref": "#/$defs/types/array_null",
+                                    "items": {
+                                        "$ref": "#/$defs/types/scalar"
+                                    }
+                                },
+                                "min_level": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": "DEBUG"
+                                },
+                                "max_level": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": "EMERGENCY"
+                                },
+                                "buffer_size": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": 0
+                                },
+                                "flush_on_overflow": {
+                                    "$ref": "#/$defs/types/boolean",
+                                    "default": false
+                                },
+                                "handler": {
+                                    "$ref": "#/$defs/types/scalar"
+                                },
+                                "url": {
+                                    "$ref": "#/$defs/types/scalar"
+                                },
+                                "exchange": {
+                                    "$ref": "#/$defs/types/scalar"
+                                },
+                                "exchange_name": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": "log"
+                                },
+                                "channel": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": null
+                                },
+                                "bot_name": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": "Monolog"
+                                },
+                                "use_attachment": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": true
+                                },
+                                "use_short_attachment": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": false
+                                },
+                                "include_extra": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": false
+                                },
+                                "icon_emoji": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": null
+                                },
+                                "webhook_url": {
+                                    "$ref": "#/$defs/types/scalar"
+                                },
+                                "exclude_fields": {
+                                    "$ref": "#/$defs/types/array_null",
+                                    "items": {
+                                        "$ref": "#/$defs/types/scalar"
+                                    }
+                                },
+                                "token": {
+                                    "$ref": "#/$defs/types/scalar"
+                                },
+                                "region": {
+                                    "$ref": "#/$defs/types/scalar"
+                                },
+                                "source": {
+                                    "$ref": "#/$defs/types/scalar"
+                                },
+                                "use_ssl": {
+                                    "$ref": "#/$defs/types/boolean",
+                                    "default": true
+                                },
+                                "user": {
+                                    "$ref": "#/$defs/types/variable"
+                                },
+                                "title": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": null
+                                },
+                                "host": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": null
+                                },
+                                "port": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": 514
+                                },
+                                "rfc": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": 1
+                                },
+                                "config": {
+                                    "$ref": "#/$defs/types/array_null",
+                                    "items": {
+                                        "$ref": "#/$defs/types/scalar"
+                                    }
+                                },
+                                "members": {
+                                    "$ref": "#/$defs/types/array_null",
+                                    "items": {
+                                        "$ref": "#/$defs/types/scalar"
+                                    }
+                                },
+                                "connection_string": {
+                                    "$ref": "#/$defs/types/scalar"
+                                },
+                                "timeout": {
+                                    "$ref": "#/$defs/types/scalar"
+                                },
+                                "time": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": 60
+                                },
+                                "deduplication_level": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": 400
+                                },
+                                "store": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": null
+                                },
+                                "connection_timeout": {
+                                    "$ref": "#/$defs/types/scalar"
+                                },
+                                "persistent": {
+                                    "$ref": "#/$defs/types/boolean"
+                                },
+                                "message_type": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": 0
+                                },
+                                "expand_newlines": {
+                                    "$ref": "#/$defs/types/boolean",
+                                    "default": false
+                                },
+                                "parse_mode": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": null
+                                },
+                                "disable_webpage_preview": {
+                                    "$ref": "#/$defs/types/boolean_null",
+                                    "default": null
+                                },
+                                "disable_notification": {
+                                    "$ref": "#/$defs/types/boolean_null",
+                                    "default": null
+                                },
+                                "split_long_messages": {
+                                    "$ref": "#/$defs/types/boolean",
+                                    "default": false
+                                },
+                                "delay_between_messages": {
+                                    "$ref": "#/$defs/types/boolean",
+                                    "default": false
+                                },
+                                "topic": {
+                                    "$ref": "#/$defs/types/integer_null",
+                                    "default": null
+                                },
+                                "factor": {
+                                    "$ref": "#/$defs/types/integer",
+                                    "minimum": 1,
+                                    "default": 1
+                                },
+                                "tags": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/$defs/types/array_null",
+                                            "items": {
+                                                "$ref": "#/$defs/types/scalar"
+                                            }
+                                        },
+                                        {
+                                            "type": [
+                                                "string"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "console_formatter_options": {
+                                    "$ref": "#/$defs/types/variable",
+                                    "default": []
+                                },
+                                "formatter": {
+                                    "$ref": "#/$defs/types/scalar"
+                                },
+                                "nested": {
+                                    "$ref": "#/$defs/types/boolean",
+                                    "default": false
+                                },
+                                "publisher": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/$defs/types/object_null",
+                                            "properties": {
+                                                "id": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                },
+                                                "hostname": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                },
+                                                "port": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "default": 12201
+                                                },
+                                                "chunk_size": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "default": 1420
+                                                },
+                                                "encoder": {
+                                                    "anyOf": [
+                                                        {
+                                                            "enum": [
+                                                                "json",
+                                                                "compressed_json"
+                                                            ]
+                                                        },
+                                                        {
+                                                            "$ref": "#/$defs/types/param"
+                                                        }
+                                                    ]
+                                                }
+                                            },
+                                            "additionalProperties": false
+                                        },
+                                        {
+                                            "type": [
+                                                "string"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "mongodb": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/$defs/types/object_null",
+                                            "properties": {
+                                                "id": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "description": "ID of a MongoDB\\Client service",
+                                                    "examples": [
+                                                        "doctrine_mongodb.odm.logs_connection"
+                                                    ]
+                                                },
+                                                "uri": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                },
+                                                "username": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                },
+                                                "password": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                },
+                                                "database": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "default": "monolog"
+                                                },
+                                                "collection": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "default": "logs"
+                                                }
+                                            },
+                                            "additionalProperties": false
+                                        },
+                                        {
+                                            "type": [
+                                                "string"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "elasticsearch": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/$defs/types/object_null",
+                                            "properties": {
+                                                "id": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                },
+                                                "hosts": {
+                                                    "$ref": "#/$defs/types/array_null",
+                                                    "items": {
+                                                        "$ref": "#/$defs/types/scalar"
+                                                    }
+                                                },
+                                                "host": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                },
+                                                "port": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "default": 9200
+                                                },
+                                                "transport": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "default": "Http"
+                                                },
+                                                "user": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "default": null
+                                                },
+                                                "password": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "default": null
+                                                }
+                                            },
+                                            "additionalProperties": false
+                                        },
+                                        {
+                                            "type": [
+                                                "string"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "index": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": "monolog"
+                                },
+                                "document_type": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": "logs"
+                                },
+                                "ignore_error": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": false
+                                },
+                                "redis": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/$defs/types/object_null",
+                                            "properties": {
+                                                "id": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                },
+                                                "host": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                },
+                                                "password": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "default": null
+                                                },
+                                                "port": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "default": 6379
+                                                },
+                                                "database": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "default": 0
+                                                },
+                                                "key_name": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "default": "monolog_redis"
+                                                }
+                                            },
+                                            "additionalProperties": false
+                                        },
+                                        {
+                                            "type": [
+                                                "string"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "predis": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/$defs/types/object_null",
+                                            "properties": {
+                                                "id": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                },
+                                                "host": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                }
+                                            },
+                                            "additionalProperties": false
+                                        },
+                                        {
+                                            "type": [
+                                                "string"
+                                            ]
+                                        }
+                                    ],
+                                    "deprecated": true,
+                                    "description": "Deprecated since symfony/monolog-bundle 4.1: The \"predis\" option is deprecated and ignored, use the \"redis\" option to configure the Predis client."
+                                },
+                                "from_email": {
+                                    "$ref": "#/$defs/types/scalar"
+                                },
+                                "to_email": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/$defs/types/array_null",
+                                            "items": {
+                                                "$ref": "#/$defs/types/scalar"
+                                            }
+                                        },
+                                        {
+                                            "type": [
+                                                "string"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "subject": {
+                                    "$ref": "#/$defs/types/scalar"
+                                },
+                                "content_type": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": null
+                                },
+                                "headers": {
+                                    "$ref": "#/$defs/types/array_null",
+                                    "items": {
+                                        "$ref": "#/$defs/types/scalar"
+                                    }
+                                },
+                                "parameters": {
+                                    "$ref": "#/$defs/types/array_null",
+                                    "items": {
+                                        "$ref": "#/$defs/types/scalar"
+                                    }
+                                },
+                                "mailer": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": null
+                                },
+                                "email_prototype": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/$defs/types/object_null",
+                                            "properties": {
+                                                "id": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                },
+                                                "method": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "default": null
+                                                }
+                                            },
+                                            "additionalProperties": false
+                                        },
+                                        {
+                                            "type": [
+                                                "string"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "verbosity_levels": {
+                                    "$ref": "#/$defs/types/object_null",
+                                    "properties": {
+                                        "VERBOSITY_QUIET": {
+                                            "$ref": "#/$defs/types/scalar",
+                                            "default": "ERROR"
+                                        },
+                                        "VERBOSITY_NORMAL": {
+                                            "$ref": "#/$defs/types/scalar",
+                                            "default": "WARNING"
+                                        },
+                                        "VERBOSITY_VERBOSE": {
+                                            "$ref": "#/$defs/types/scalar",
+                                            "default": "NOTICE"
+                                        },
+                                        "VERBOSITY_VERY_VERBOSE": {
+                                            "$ref": "#/$defs/types/scalar",
+                                            "default": "INFO"
+                                        },
+                                        "VERBOSITY_DEBUG": {
+                                            "$ref": "#/$defs/types/scalar",
+                                            "default": "DEBUG"
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                },
+                                "channels": {
+                                    "$ref": "#/$defs/types/variable"
+                                }
+                            },
+                            "patternProperties": {
+                                "^member$": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/$defs/types/scalar"
+                                        },
+                                        {
+                                            "$ref": "#/$defs/types/array_null",
+                                            "items": {
+                                                "$ref": "#/$defs/types/scalar"
+                                            }
+                                        }
+                                    ]
+                                },
+                                "^excluded_http_code$": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/$defs/types/object_null",
+                                            "properties": {
+                                                "code": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                },
+                                                "urls": {
+                                                    "$ref": "#/$defs/types/array_null",
+                                                    "items": {
+                                                        "$ref": "#/$defs/types/scalar"
+                                                    }
+                                                }
+                                            },
+                                            "additionalProperties": false
+                                        },
+                                        {
+                                            "$ref": "#/$defs/types/variable",
+                                            "description": "Only for \"fingers_crossed\" handler type",
+                                            "examples": [
+                                                [
+                                                    403,
+                                                    404,
+                                                    {
+                                                        "400": [
+                                                            "^/foo",
+                                                            "^/bar"
+                                                        ]
+                                                    }
+                                                ]
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "^tag$": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/$defs/types/scalar"
+                                        },
+                                        {
+                                            "anyOf": [
+                                                {
+                                                    "$ref": "#/$defs/types/array_null",
+                                                    "items": {
+                                                        "$ref": "#/$defs/types/scalar"
+                                                    }
+                                                },
+                                                {
+                                                    "type": [
+                                                        "string"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "^accepted_level$": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/$defs/types/scalar"
+                                        },
+                                        {
+                                            "$ref": "#/$defs/types/array_null",
+                                            "items": {
+                                                "$ref": "#/$defs/types/scalar"
+                                            }
+                                        }
+                                    ]
+                                },
+                                "^header$": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/$defs/types/scalar"
+                                        },
+                                        {
+                                            "$ref": "#/$defs/types/array_null",
+                                            "items": {
+                                                "$ref": "#/$defs/types/scalar"
+                                            }
+                                        }
+                                    ]
+                                },
+                                "^parameter$": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/$defs/types/scalar"
+                                        },
+                                        {
+                                            "$ref": "#/$defs/types/array_null",
+                                            "items": {
+                                                "$ref": "#/$defs/types/scalar"
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "examples": [
+                            {
+                                "syslog": {
+                                    "type": "stream",
+                                    "path": "/var/log/symfony.log",
+                                    "level": "ERROR",
+                                    "bubble": "false",
+                                    "formatter": "my_formatter"
+                                },
+                                "main": {
+                                    "type": "fingers_crossed",
+                                    "action_level": "WARNING",
+                                    "buffer_size": 30,
+                                    "handler": "custom"
+                                },
+                                "custom": {
+                                    "type": "service",
+                                    "id": "my_handler"
+                                }
+                            }
+                        ]
+                    }
+                },
+                "patternProperties": {
+                    "^channel$": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/types/scalar"
+                            },
+                            {
+                                "$ref": "#/$defs/types/array_null",
+                                "items": {
+                                    "$ref": "#/$defs/types/scalar"
+                                },
+                                "description": "List of additional channels to create. The \"app\" channel is already created by default. Channels are also automatically created for services using the \"monolog.logger\" DI tag with a custom channel attribute."
+                            }
+                        ]
+                    },
+                    "^handler$": {
+                        "$ref": "#/$defs/types/variable"
+                    }
+                },
+                "additionalProperties": false
+            },
             "playwright": {
                 "$ref": "#/$defs/types/object_null",
                 "properties": {
@@ -4951,6 +5732,9 @@
         "live_component": {
             "$ref": "#/$defs/nodes/live_component"
         },
+        "monolog": {
+            "$ref": "#/$defs/nodes/monolog"
+        },
         "property_access": {
             "$ref": "#/$defs/nodes/property_access"
         },
@@ -5002,6 +5786,9 @@
                 "imports": true,
                 "live_component": {
                     "$ref": "#/$defs/nodes/live_component"
+                },
+                "monolog": {
+                    "$ref": "#/$defs/nodes/monolog"
                 },
                 "parameters": true,
                 "property_access": {
@@ -5065,6 +5852,9 @@
                 "imports": true,
                 "live_component": {
                     "$ref": "#/$defs/nodes/live_component"
+                },
+                "monolog": {
+                    "$ref": "#/$defs/nodes/monolog"
                 },
                 "parameters": true,
                 "playwright": {
@@ -5132,6 +5922,9 @@
                 },
                 "live_component": {
                     "$ref": "#/$defs/nodes/live_component"
+                },
+                "monolog": {
+                    "$ref": "#/$defs/nodes/monolog"
                 },
                 "property_access": {
                     "$ref": "#/$defs/nodes/property_access"
