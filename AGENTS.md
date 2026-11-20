@@ -1,3 +1,27 @@
+# Project
+
+rssbase is an RSS reader built on AT Protocol: login and user data (subscriptions, read state, favorites) live in the user's PDS through an open lexicon,
+so switching readers loses nothing. Personal tool first, social layer later. Vision: [`forge/vision.md`](forge/vision.md).
+
+## Stack
+
+Target stack, not scaffolded yet: PHP 8.6, Symfony 8.2 on FrankenPHP, SQLite, Twig and Live Components with the UX Toolkit Shadcn kit, Docker Compose,
+Nix flake, castor tasks. Details and unverified versions: [`forge/stack.md`](forge/stack.md).
+
+## Domain rules
+
+- No captive data: user data belongs in the PDS or an AT Protocol space. The local database is allowed only as temporary storage with an export and a
+  planned migration.
+- The lexicon is a public, versioned contract. Breaking changes need a new version, never a silent edit.
+- Subscriptions are public by default and can be switched to private per feed. Read state and favorites are private, stored in spaces.
+- Read state is one cursor per feed (date of the last seen article), not a flag per article.
+- Feeds display chronologically. No ranking algorithm.
+
+## Pitfalls
+
+- There is no `composer.json`, castor task, or `Makefile` yet. Do not invent commands; scaffold from `forge/stack.md` and confirm versions when the
+  manifests exist.
+
 # Working together
 
 Complete the requested outcome with the smallest maintainable change. Read the code and docs needed for the task; do not front-load a repository-wide
@@ -66,6 +90,8 @@ investigation for every edit. My explicit instructions take precedence over loca
   This never overrides safety, permissions, or my stated constraints.
 - Preserve ownership and lifecycle invariants when changing resources, sessions, sockets, or windows. Read nearby comments and callers; explain non-obvious
   allocation or cleanup rules briefly. Prefer simple domain types and APIs that prevent invalid states over elaborate abstractions.
+- Comment only what the code cannot say: an external constraint, the reason for a non-obvious choice, or an invariant the types do not express. Do not
+  paraphrase the next line or repeat types in docblocks; rename or extract instead.
 - Remove dead code and obsolete parameters. Do not leave “moved to…” breadcrumbs. Keep responsibilities cohesive without turning one-use helpers into a maze of
   files.
 - Fix small, low-risk papercuts that directly affect the task, and mention them at handoff. Search relevant code or official docs before changing direction; do
