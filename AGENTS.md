@@ -5,12 +5,12 @@ so switching readers loses nothing. Personal tool first, social layer later. Vis
 
 ## Stack
 
-PHP 8.6, Symfony 8.2 on FrankenPHP in worker mode, SQLite through Doctrine, Twig with Twig and Live Components, the UX Toolkit Shadcn kit, Tailwind
-through AssetMapper. Details: [`forge/stack.md`](forge/stack.md).
+PHP 8.6, Symfony 8.2 on FrankenPHP in worker mode, SQLite through Doctrine, Twig, Twig Components and Live Components, the UX Toolkit Shadcn kit,
+Tailwind through AssetMapper. Details: [`forge/stack.md`](forge/stack.md).
 
 - `app/`: the Symfony application. [`app/AGENTS.md`](app/AGENTS.md) gives its Symfony conventions.
-- `flake.nix`: the dev shell, with every tool version pinned through `nixpkgs-multiverse`. `infra/packages/` holds the packages built by the project
-  (PHP, FrankenPHP, Mago, symfony-lsp, the development image), `infra/frankenphp/Caddyfile` the server configuration.
+- `flake.nix`: the dev shell. It pins tool versions through `nixpkgs-multiverse`, except for the packages of `infra/packages/`, which pin their own
+  source or binary (PHP, FrankenPHP, Mago, symfony-lsp, the development image). `infra/frankenphp/Caddyfile` is the server configuration.
 - `castor.php` and `.castor/`: the tasks. They ask `app/Makefile` for generated files (vendor, importmap, stylesheet, Chromium, database), which it
   rebuilds only when a source changed.
 
@@ -19,13 +19,13 @@ through AssetMapper. Details: [`forge/stack.md`](forge/stack.md).
 Run them from the repository root, through the dev shell:
 
 - `nix develop -c castor install`: installs the application.
-- `nix develop -c castor start`: serves it in the foreground on `http://localhost:8000`, or the next free port, and restarts the workers when the code
-  changes. `castor stop` stops it.
+- `nix develop -c castor start`: serves it in the foreground on `http://localhost:8000`, or the next free port, restarts the workers and rebuilds the
+  stylesheet when the code changes. `castor stop` stops it.
 - `nix develop -c castor qa`: formats, lints and analyzes with Mago, checks with symfony-lsp, runs the PHPUnit `default` and `e2e` suites. With `CI=1`,
   it checks the formatting instead of fixing it and runs `composer audit`. `castor list` shows the single tasks (`qa:phpunit`, `qa:e2e`...).
 - `nix develop -c castor docker:up`: serves `app/` mounted in the development image on `http://localhost:8080`, or the next free port.
   `castor docker:down` stops it.
-- `nix develop -c app/vendor/bin/mate tools:list`: lists the diagnostic tools of Mate (profiler, logs, container). Usage:
+- `nix develop -c castor mate tools:list`: lists the diagnostic tools of Mate (profiler, logs, container), from any directory of the repository. Usage:
   [`app/mate/AGENT_INSTRUCTIONS.md`](app/mate/AGENT_INSTRUCTIONS.md).
 - `.mcp.json` declares the Playwright MCP server, to drive a browser.
 

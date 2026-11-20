@@ -3,7 +3,9 @@
   "title": "Amorcer la stack technique avec un hello world",
   "created": "2026-11-20",
   "updated": "2026-11-20",
-  "tags": ["scaffolding"],
+  "tags": [
+    "scaffolding"
+  ],
   "changelog": [
     {
       "date": "2026-11-20",
@@ -39,6 +41,30 @@
       "date": "2026-11-20",
       "type": "Implémentation",
       "description": "Serveur Playwright MCP vérifié par la commande exacte de .mcp.json (demande utilisateur) : 25 outils, navigation vers la page servie par castor start, titre Hello world lu, aucune erreur de console ; ce qui solde le dernier critère de sortie ouvert. Écart : .playwright-mcp/, où le serveur écrit journaux et instantanés, ajouté au .gitignore racine."
+    },
+    {
+      "date": "2026-11-20",
+      "type": "Review",
+      "description": "Review ouverte : corrections requises, 0 bloquant, 1 important ([ROBUSTESSE] make supprime la base de dev sur une migration en échec), 10 mineurs. Double chargement de la page dans le test E2E écarté par l'utilisateur (le plan le prévoyait contre l'état conservé du mode worker)."
+    },
+    {
+      "date": "2026-11-20",
+      "type": "Review",
+      "description": "Prêt à commiter ; 1 important et 9 mineurs corrigés : [ROBUSTESSE] base de dev en .PRECIOUS, [ROBUSTESSE] castor qa formate avant le make partagé, [BUG] hook Mago limité aux chemins de mago.toml, [ROBUSTESSE] castor start refuse un second serveur, [UX] sortie de docker:build visible, [UX] tailwind:build --watch lancé par castor start, [TEST] test de connexion par pragma_database_list, [CONV] ext-intl et ext-pdo_sqlite requis, [DOC] formulations d'AGENTS.md, [DOC] Mate invoqué par castor mate depuis tout dossier. 1 mineur laissé en dette par l'utilisateur : [PLAN] aucune racine de GC pour PHP et FrankenPHP maison."
+    },
+    {
+      "date": "2026-11-20",
+      "type": "Sync",
+      "description": "27 écarts relevés dont 15 réalignés dans le plan, 12/12 critères de sortie et 10/10 étapes cochés, 2 non livrés, 6 dettes ouvertes, stack.md retouché."
+    },
+    {
+      "date": "2026-11-20",
+      "type": "Livraison",
+      "description": "La story livre la stack hello world : Symfony 8.2 sur FrankenPHP natif Nix, qualité, tests, Docker et outillage agent, avec les corrections de review."
     }
-  ]
+  ],
+  "delivery": {
+    "date": "2026-11-20",
+    "release": null
+  }
 }

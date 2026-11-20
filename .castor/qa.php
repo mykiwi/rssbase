@@ -18,12 +18,13 @@ function all(): int
 {
     $inCi = false !== getenv('CI');
 
+    // The formatter writes the files that the other jobs read, the stylesheet included, so it runs
+    // first, alone.
+    $format = format(check: $inCi);
+
     // Everything the jobs below need, built once: their own make calls then find nothing to do, and
     // parallel jobs cannot race on the same recipe.
     \make('stylesheet', 'chromium');
-
-    // The formatter writes the files that the linter and the analyzer read, so it runs first, alone.
-    $format = format(check: $inCi);
 
     $jobs = [
         'lint' => fail_on_exit_code(lint(...)),

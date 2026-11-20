@@ -17,7 +17,7 @@ Monolithe Symfony servi par FrankenPHP en mode worker : un lecteur RSS adossé �
 
 ## Langages & runtimes
 
-- **PHP** `8.6.0` résolu, ZTS, `embed`, extensions limitées à ce que l'application exige (ctype, dom, filter, iconv, intl, mbstring, openssl, pdo, pdo_sqlite, session, simplexml, tokenizer, xmlwriter) — source de 8.6.0 surchargée sur la recette `php86` 8.6.0RC4 tant que l'index multiverse ne connaît pas 8.6.0 (`infra/packages/php.nix`, `flake.nix`). Contrainte applicative `php >=8.6` (`app/composer.json`).
+- **PHP** `8.6.0` résolu, ZTS, `embed`, extensions limitées à ce que l'application exige (ctype, dom, filter, iconv, intl, mbstring, openssl, pdo, pdo_sqlite, session, simplexml, tokenizer, xmlwriter) — source de 8.6.0 surchargée sur la recette `php86` 8.6.0RC4 tant que l'index multiverse ne connaît pas 8.6.0 (`infra/packages/php.nix`, `flake.nix`). Contraintes applicatives `php >=8.6`, `ext-intl` et `ext-pdo_sqlite` (`app/composer.json`).
 - **ICU** `79.1` résolu pour `intl`, au lieu de l'ICU 73 de nixpkgs (`flake.nix`, `infra/packages/php.nix`).
 - **FrankenPHP** `1.13.6` résolu, Caddy 2.11.9, compilé contre le PHP maison, point d'entrée amont (Mercure et Vulcain inclus) (`infra/packages/frankenphp.nix`).
 - **Node** `26.13.1` résolu, outillage seulement (Playwright, `npx`) (`flake.nix`).
@@ -73,8 +73,8 @@ Monolithe Symfony servi par FrankenPHP en mode worker : un lecteur RSS adossé �
 - **Environnement** : Nix, `flake.nix` avec `devShells.default` ; unique entrée `nixpkgs-multiverse`, jeu de paquets daté `2026-11-19` et pins par version (`flake.nix`, `flake.lock`). Flake limité à `x86_64-linux`.
 - **Composer** : `2.11.2` résolu, du PHP maison (`flake.nix`).
 - **Tâches** : castor `1.9.1` résolu (`flake.nix`), point d'entrée `castor.php` et un fichier par espace de noms dans `.castor/` (`app`, `qa`, `docker`) ; castor demande à `app/Makefile` les fichiers générés (vendor, importmap, feuille de style, Chromium, base), reconstruits seulement quand une source change (`castor.php`, `.castor/`, `app/Makefile`).
-- **Commandes QA / build** : `nix develop -c castor install`, `castor start` (port 8000 ou suivant libre), `castor qa`, `castor docker:up` (port 8080 ou suivant libre) (`AGENTS.md`).
-- **Assistants IA** : Mate `v1.0.0-BETA1` (CLI, plus de serveur MCP), extensions Symfony et Monolog, invoqué par `nix develop -c app/vendor/bin/mate` ; skills générés dans `app/.agents/skills/` et `app/.claude/skills/` (`app/composer.lock`, `app/mate/`). Playwright MCP `@playwright/mcp` `0.0.86` par `nix develop -c npx`, profil en mémoire, sorties dans `.playwright-mcp/` ignoré par git (`.mcp.json`, `.gitignore`).
+- **Commandes QA / build** : `nix develop -c castor install`, `castor start` (port 8000 ou suivant libre, feuille de style reconstruite par `tailwind:build --watch`), `castor qa`, `castor docker:up` (port 8080 ou suivant libre) (`AGENTS.md`).
+- **Assistants IA** : Mate `v1.0.0-BETA1` (CLI, plus de serveur MCP), extensions Symfony et Monolog, invoqué par `nix develop -c castor mate` depuis tout dossier du dépôt ; skills générés dans `app/.agents/skills/` et `app/.claude/skills/` (`app/composer.lock`, `app/mate/`). Playwright MCP `@playwright/mcp` `0.0.86` par `nix develop -c npx`, profil en mémoire, sorties dans `.playwright-mcp/` ignoré par git (`.mcp.json`, `.gitignore`).
 - **Services de dev** : aucun service externe ; SQLite est un fichier local.
 
 ## Contraintes & dette de stack connues
@@ -92,3 +92,5 @@ Monolithe Symfony servi par FrankenPHP en mode worker : un lecteur RSS adossé �
 - 2026-11-20 — Création — inventaire d'intention (stack cible, non amorcée)
 - 2026-11-20 — Éditer — toutes couches — intentions remplacées par les preuves fichier après l'amorçage de la story 001 : versions résolues, runtime natif Nix, image limitée au runtime, UX CSS reporté, Doctrine et Monolog, Mate en CLI, Playwright MCP
 - 2026-11-20 — Éditer — outillage — démarrage de Playwright MCP vérifié, dossier de sorties `.playwright-mcp/` ignoré
+- 2026-11-20 — Éditer — outillage — Mate invoqué par `castor mate`, `castor start` reconstruit la feuille de style (correctifs de review)
+- 2026-11-20 — Éditer — langages — `ext-intl` et `ext-pdo_sqlite` requis par `app/composer.json`, sync post-livraison de la story 001-t-stack-hello-world

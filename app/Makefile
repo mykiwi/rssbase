@@ -47,6 +47,8 @@ var/make/chromium: var/make/playwright-php.version
 	touch $@
 
 # SQLite creates the database file on the first connection, so running the migrations creates it.
+# The file holds data: make must not delete it when a migration fails or is interrupted.
+.PRECIOUS: var/data_dev.db
 var/data_dev.db: vendor/composer/installed.json $(wildcard src/Migrations/*.php)
 	bin/console doctrine:migrations:migrate -n --allow-no-migration --all-or-nothing
 	touch $@

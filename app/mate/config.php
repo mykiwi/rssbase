@@ -9,7 +9,7 @@ return static function (ContainerConfigurator $container): void {
     $container->parameters()
         // The command your coding agent must use to run Mate. It is materialized into the
         // generated agent instructions, so a container prefix ends up where the agent reads it.
-        ->set('mate.invocation', 'nix develop -c app/vendor/bin/mate')
+        ->set('mate.invocation', 'nix develop -c castor mate')
 
         // The PHP version this project runs on. Mate refuses to start under a different
         // major.minor, because it would then report on a runtime that is not your application's

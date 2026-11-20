@@ -1,8 +1,10 @@
 <?php
 
+use Castor\Attribute\AsRawTokens;
 use Castor\Attribute\AsTask;
 
 use function Castor\context;
+use function Castor\exit_code;
 use function Castor\guard_min_version;
 use function Castor\import;
 use function Castor\io;
@@ -14,10 +16,15 @@ guard_min_version('1.9.0');
 
 import(__DIR__ . '/.castor');
 
-#[AsTask(description: 'Serves the application in the foreground, in worker mode, restarting the workers when the code changes')]
+#[AsTask(description: 'Serves the application in the foreground, in worker mode, restarting the workers and rebuilding the stylesheet when the code changes')]
 function start(): void
 {
     $c = context();
+
+    // A second server would take over the admin socket, and "castor stop" could no longer reach the first one.
+    if (admin_socket_answers($c['admin_address'])) {
+        throw new \RuntimeException('A server started by "castor start" is already running. Stop it with "castor stop".');
+    }
 
     make('stylesheet', 'database');
 
@@ -25,7 +32,18 @@ function start(): void
     io()->title("Serving the application on http://localhost:{$port}");
 
     run(
-        ['frankenphp', 'run', '--config', $c['caddyfile'], '--adapter', 'caddyfile'],
+        [
+            'bash',
+            '-c',
+            // A background job of a non-interactive shell ignores CTRL+C: the trap stops the watcher
+            // once FrankenPHP exits, through CTRL+C, "castor stop" or a crash.
+            'bin/console tailwind:build --watch & trap "kill $!" EXIT; frankenphp run "$@"',
+            'start',
+            '--config',
+            $c['caddyfile'],
+            '--adapter',
+            'caddyfile',
+        ],
         context: $c
             ->withEnvironment([
                 'SERVER_NAME' => "http://localhost:{$port}",
@@ -68,10 +86,37 @@ function is_free_port(int $port): bool
     return true;
 }
 
+/**
+ * Whether a server listens on the admin socket. A socket file left by a crash refuses the connection.
+ */
+function admin_socket_answers(string $adminAddress): bool
+{
+    $socket = @stream_socket_client('unix://' . substr($adminAddress, \strlen('unix/')));
+
+    if (false === $socket) {
+        return false;
+    }
+
+    fclose($socket);
+
+    return true;
+}
+
 #[AsTask(description: 'Stops the server started by "castor start"')]
 function stop(): void
 {
     run(['frankenphp', 'stop', '--address', context()['admin_address']]);
+}
+
+/**
+ * @param list<string> $rawTokens
+ */
+#[AsTask(description: 'Runs Mate, the diagnostic tools of the application for coding agents')]
+function mate(#[AsRawTokens] array $rawTokens = []): int
+{
+    make('vendor');
+
+    return exit_code(['vendor/bin/mate', ...$rawTokens]);
 }
 
 #[AsTask(

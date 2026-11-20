@@ -34,7 +34,8 @@ modification de fichier en développement.
 Le code Symfony vit entièrement dans `app/`. La page d'accueil est statique : une carte du kit Shadcn du UX Toolkit affichant « Hello world », stylée par
 Tailwind via AssetMapper. Twig Components et Live Components sont installés, sans composant interactif. Doctrine ORM et Migrations sont configurés sur un
 fichier SQLite, sans aucun schéma. Les tâches castor reprennent l'ossature de `jolicode/docker-starter` (point d'entrée mince, un fichier par espace de
-noms dans `.castor/`, mêmes noms de tâches), avec des exécutions directes dans `app/` à la place des `docker compose run`.
+noms dans `.castor/`, mêmes noms de tâches), avec des exécutions directes dans `app/` à la place des `docker compose run`. Les fichiers générés
+(vendor, importmap, feuille de style, Chromium, base) passent par `app/Makefile`, que castor appelle avec `--jobs` pour ne reconstruire que ce qui a changé.
 
 Docker ne sert pas au développement. Le flake produit une image qui ne contient que le runtime (FrankenPHP, PHP 8.6, Caddyfile), et `compose.yaml` y monte
 `./app` déjà installé par castor, pour prouver le runtime conteneurisé.
@@ -54,8 +55,9 @@ Leurs versions sont épinglées dans la configuration du projet, pas dans le fla
   tâches de développement orchestrées par un lanceur unique.
 - **Sélection des versions** : `nixpkgs-multiverse` comme unique entrée du flake. Un jeu de paquets de base daté, et des pins par version pour PHP,
   Mago et Node. `flake.lock` continue de figer l'entrée elle-même.
-- **Paquets maison** : `infra/packages/php.nix` (PHP 8.6 ZTS, `embed`, extensions minimales) et `infra/packages/frankenphp.nix` (FrankenPHP 1.13.6,
-  dérivation reprise de celle de nixpkgs et réduite au nécessaire). PHP est en 8.6.0 finale, jamais en version candidate : tant que l'index multiverse
+- **Paquets maison** : `infra/packages/php.nix` (PHP 8.6 ZTS, `embed`, extensions minimales dont `intl` liée à ICU 79.1, SAPI CGI, FPM et phpdbg
+  retirées) et `infra/packages/frankenphp.nix` (FrankenPHP 1.13.6, dérivation reprise de celle de nixpkgs et réduite au nécessaire). Mago et
+  symfony-lsp sont les binaires officiels, épinglés par URL et hash (`infra/packages/mago.nix`, `infra/packages/symfony-lsp.nix`). PHP est en 8.6.0 finale, jamais en version candidate : tant que l'index multiverse
   ne connaît pas `php86` 8.6.0, `php.nix` surcharge la source de `php86` avec l'archive 8.6.0 officielle. castor vient de `phpPackages.castor` (1.9.1) de la révision sélectionnée, Composer
   de `phpPackages.composer`.
 - **Mode worker** : `FrankenPhpWorkerRunner`, embarqué dans `symfony/runtime` 8.2. Aucun paquet de runtime tiers. Le Caddyfile déclare le worker et la
@@ -68,10 +70,12 @@ Leurs versions sont épinglées dans la configuration du projet, pas dans le fla
   Les dépendances du kit Shadcn (`shadcn`, `tw-animate-css`, et les extensions Twig que ses composants appellent) suivent son guide d'installation.
 - **Mécanisme d'extension** : recettes Flex et configuration des bundles uniquement. Aucune modification de dépendance tierce. Les composants du kit
   sont copiés dans `app/templates/components/` par la commande d'installation du Toolkit, ils deviennent du code du projet.
-- **Qualité** : Mago (format, lint, analyse) fourni par le flake et configuré dans `app/mago.toml`. Il remplace le trio PHP-CS-Fixer, PHPStan et
-  Twig-CS-Fixer des dépôts de référence.
-- **Assistants** : Mate est, dans sa beta 1.0, une CLI (`vendor/bin/mate`) que l'agent appelle directement. `mate init` génère `app/mate/`, et
-  `AGENTS.md` renvoie vers `app/mate/AGENT_INSTRUCTIONS.md`. Playwright MCP (`@playwright/mcp` 0.0.86) est déclaré dans `.mcp.json` à la racine.
+- **Qualité** : Mago 1.60.2 (format, lint, analyse) fourni par le flake et configuré dans `app/mago.toml`. Il remplace le trio PHP-CS-Fixer, PHPStan et
+  Twig-CS-Fixer des dépôts de référence. symfony-lsp 0.24.2 vérifie routes, services et gabarits. Un hook Claude Code passe Mago sur chaque fichier
+  PHP ou Twig édité (`.claude/hooks/mago.sh`).
+- **Assistants** : Mate est, dans sa beta 1.0, une CLI que l'agent appelle par `nix develop -c castor mate`, depuis tout dossier du dépôt. `mate init`
+  génère `app/mate/`, `app/CLAUDE.md` et les skills de `app/.agents/skills/`, et `AGENTS.md` renvoie vers `app/mate/AGENT_INSTRUCTIONS.md`.
+  Playwright MCP (`@playwright/mcp` 0.0.86) est déclaré dans `.mcp.json` à la racine, lancé par `nix develop -c npx` avec un profil en mémoire.
 
 ### Alternatives écartées
 
@@ -89,8 +93,8 @@ Leurs versions sont épinglées dans la configuration du projet, pas dans le fla
 
 ## Modèle de données
 
-Aucun impact modèle. Doctrine est configuré sur `app/var/data_<environnement>.db`, sans entité ni migration. La seule requête exécutée est
-`SELECT sqlite_version()` dans un test, sans table, donc sans plan d'exécution à analyser.
+Aucun impact modèle. Doctrine est configuré sur `app/var/data_<environnement>.db`, sans entité ni migration. Les seules requêtes exécutées sont
+`SELECT sqlite_version()` et une lecture de `pragma_database_list` dans un test, sans table, donc sans plan d'exécution à analyser.
 
 ## Périmètre
 
@@ -102,28 +106,32 @@ Aucun impact modèle. Doctrine est configuré sur `app/var/data_<environnement>.
 | `flake.lock` | Verrou de l'entrée du flake. |
 | `infra/packages/php.nix` | PHP 8.6.0 ZTS avec `embed` et les seules extensions exigées par l'application et ses outils. |
 | `infra/packages/frankenphp.nix` | FrankenPHP 1.13.6 compilé contre le PHP maison. |
-| `infra/packages/image.nix` | Image OCI limitée au runtime : FrankenPHP, PHP, Caddyfile, certificats racine. |
+| `infra/packages/docker-image-dev.nix` | Image OCI `rssbase-dev` limitée au runtime : FrankenPHP, PHP, Caddyfile, certificats racine. |
+| `infra/packages/mago.nix`, `infra/packages/symfony-lsp.nix` | Binaires officiels de Mago et de symfony-lsp. |
 | `infra/frankenphp/Caddyfile` | Serveur HTTP, racine `public/`, worker Symfony, surveillance de fichiers, le tout piloté par variables d'environnement. |
-| `castor.php` | Point d'entrée : version minimale de castor, import de `.castor/`, tâches `start`, `stop`, `app:install`, `app:cache-clear`, `app:db:migrate`. |
+| `castor.php` | Point d'entrée : version minimale de castor, import de `.castor/`, tâches `start`, `stop`, `mate`, `app:install`, `app:cache-clear`, `app:db:migrate`. |
+| `app/Makefile` | Fichiers générés (vendor, importmap, assets des bundles, feuille de style, Chromium, base), reconstruits seulement quand une source change. |
 | `.castor/context.php` | Variables du projet (répertoires, ports, identifiant utilisateur) et contextes `default` et `test`. |
-| `.castor/qa.php` | Espace `qa` : `qa:all`, `qa:format`, `qa:lint`, `qa:analyze`, `qa:phpunit`, `qa:e2e`, `qa:security-audit`, avec codes de sortie agrégés. |
+| `.castor/qa.php` | Espace `qa` : `qa:all` (alias `qa` et `ci`, en parallèle), `qa:format`, `qa:lint`, `qa:analyze`, `qa:symfony-lsp`, `qa:phpunit`, `qa:e2e`, `qa:security-audit`, avec codes de sortie agrégés. |
 | `.castor/docker.php` | Espace `docker` : construire et charger l'image depuis le flake, démarrer et arrêter `compose.yaml`. |
 | `compose.yaml` | Service unique sur l'image de runtime, montage de `./app`, cache hors montage, port publié sur la boucle locale. |
 | `.mcp.json` | Déclaration du serveur Playwright MCP en version épinglée. |
-| `.gitignore` | Artefacts de build Nix et fichiers locaux à la racine. |
+| `.gitignore` | Artefacts de build Nix, stub de castor et sorties de Playwright MCP (`.playwright-mcp/`). |
+| `.claude/settings.json`, `.claude/hooks/mago.sh` | Hook Claude Code qui passe Mago sur les fichiers PHP et Twig édités. |
 | `app/composer.json`, `app/composer.lock`, `app/symfony.lock` | Manifeste applicatif : `php >=8.6`, Symfony `8.2.*`, `minimum-stability: beta` avec `prefer-stable`. |
 | `app/bin/`, `app/public/index.php`, `app/src/Kernel.php`, `app/config/`, `app/.env`, `app/.env.test`, `app/.gitignore` | Squelette Symfony généré par les recettes Flex. |
 | `app/src/Controller/HomeController.php` | Route `/` qui rend la page d'accueil. |
 | `app/templates/base.html.twig`, `app/templates/home/index.html.twig` | Gabarit de base et page « Hello world » utilisant la carte du kit. |
 | `app/templates/components/` | Composant carte du kit Shadcn, copié par le Toolkit. |
 | `app/importmap.php`, `app/assets/app.js`, `app/assets/styles/app.css` | Point d'entrée AssetMapper et feuille Tailwind avec le thème du kit. |
-| `app/config/packages/doctrine.yaml`, `app/config/packages/doctrine_migrations.yaml`, `app/migrations/` | Connexion SQLite et répertoire de migrations, vide. |
+| `app/config/packages/doctrine.yaml`, `app/config/packages/doctrine_migrations.yaml`, `app/src/Migrations/` | Connexion SQLite et répertoire de migrations, vide. |
+| `app/config/packages/monolog.yaml` | Configuration de la recette de MonologBundle. |
 | `app/mago.toml` | Règles de format, de lint et d'analyse, ciblant PHP 8.6. |
 | `app/phpunit.dist.xml`, `app/tests/bootstrap.php` | Deux suites : `default` (fonctionnel et intégration) et `e2e`. |
 | `app/tests/Functional/HomePageTest.php` | Réponse de `/` et d'une URL inconnue. |
 | `app/tests/Integration/DatabaseConnectionTest.php` | Connexion SQLite réelle. |
 | `app/tests/E2E/HomePageBrowserTest.php` | Page d'accueil dans Chromium, servie par FrankenPHP en mode worker. |
-| `app/mate/` | Configuration et instructions générées par `mate init`. |
+| `app/mate/`, `app/CLAUDE.md`, `app/.agents/skills/`, `app/.claude/skills/` | Configuration, instructions et skills générés par `mate init` et `mate discover`. |
 
 ### Fichiers à modifier
 
@@ -150,8 +158,8 @@ Aucun impact modèle. Doctrine est configuré sur `app/var/data_<environnement>.
 
 - **Modules clients impactés** : aucun.
 - **Migration de données** : aucune.
-- **Impacts prod / infra** : aucun en production. En local : ports 8000 (développement), 8001 (suite E2E) et 8080 (Compose), tous liés à la boucle
-  locale. Le démon Docker n'est requis que pour l'étape Compose.
+- **Impacts prod / infra** : aucun en production. En local : ports 8000 (développement) et 8080 (Compose), ou le premier port libre au-delà, tous liés à
+  la boucle locale. Le démon Docker n'est requis que pour l'étape Compose.
 - **Droits d'accès** : inchangé, il n'y a pas d'authentification.
 - **Sécurité** :
   - Le serveur écoute en HTTP sur `localhost` uniquement, y compris le port publié par Compose.
@@ -182,7 +190,7 @@ qui se mesure contre le mode classique sur le même commit.
 | Tests automatisés | 0 | **3 fichiers de test verts, 2 suites** | `castor qa:phpunit` et `castor qa:e2e` |
 | Signalements Mago | n/a | **0** | `castor qa:format`, `castor qa:lint`, `castor qa:analyze` |
 | Avis de sécurité Composer | n/a | **0** | `castor qa:security-audit` |
-| Temps médian de `GET /`, `APP_ENV=prod`, cache chaud, 200 requêtes séquentielles | mode classique, mesuré à l'étape 10 sur le même commit | **mode worker strictement inférieur**, les deux valeurs consignées | boucle `curl -w '%{time_total}'`, worker désactivé puis activé |
+| Temps médian de `GET /`, `APP_ENV=prod`, cache chaud, 200 requêtes séquentielles | mode classique : 11,28 ms puis 11,05 ms (deux passes, commit `46b92d3`) ; worker : 1,95 ms puis 3,77 ms | **mode worker strictement inférieur**, les deux valeurs consignées | boucle `curl -w '%{time_total}'`, worker désactivé puis activé |
 | Page servie par l'image | n/a | **`GET /` répond 200** | `castor docker:up`, puis `curl -i http://localhost:8080/` |
 
 ## Stratégie de test
@@ -190,8 +198,8 @@ qui se mesure contre le mode classique sur le même commit.
 | Code | Type | Ce qu'on vérifie |
 |---|---|---|
 | `app/tests/Functional/HomePageTest.php` | functional | `GET /` répond 200, contient « Hello world » et le balisage de la carte du kit. Une URL inconnue répond 404. |
-| `app/tests/Integration/DatabaseConnectionTest.php` | functional | La connexion Doctrine réelle de l'environnement de test exécute `SELECT sqlite_version()` et renvoie une version. |
-| `app/tests/E2E/HomePageBrowserTest.php` | E2E | Dans Chromium, contre FrankenPHP en mode worker : le titre est visible, la feuille de style est chargée et appliquée à la carte, la console du navigateur ne signale aucune erreur, deux chargements consécutifs réussissent. |
+| `app/tests/Integration/DatabaseConnectionTest.php` | functional | La connexion Doctrine réelle de l'environnement de test ouvre `var/data_test.db`, exécute `SELECT sqlite_version()` et renvoie une version. |
+| `app/tests/E2E/HomePageBrowserTest.php` | E2E | Dans Chromium, requêtes traitées par le noyau de test (playwright-symfony), sans FrankenPHP : le titre est visible, la feuille de style est chargée et appliquée à la carte, la console du navigateur ne signale aucune erreur. |
 
 **Hors scope tests** :
 
@@ -201,25 +209,26 @@ qui se mesure contre le mode classique sur le même commit.
 - Mate et Playwright MCP se vérifient à la main : liste des outils de Mate, navigation vers la page d'accueil par le serveur MCP.
 - Live Components n'a aucun composant à tester.
 - La comparaison worker contre classique est une mesure ponctuelle, pas un test : un seuil de temps dans la suite serait instable.
+- Le mode worker lui-même se vérifie à la main (`castor start`, image) : la suite E2E ne passe pas par FrankenPHP.
 
 ## Ordre d'exécution
 
 Chaque étape donne au moins un commit atomique, en anglais, au format de `AGENTS.md` (emoji, espace, type Conventional Commits).
 
-1. [ ] **Shell Nix et paquets du runtime**
+1. [x] **Shell Nix et paquets du runtime**
    - Objectif : `nix develop` fournit PHP 8.6.0, Composer, castor, FrankenPHP 1.13.6, Mago et Node, avec les versions lisibles dans `flake.nix`.
      Si l'index multiverse connaît `php86` 8.6.0, le pinner par version. Sinon, surcharger la source dans `infra/packages/php.nix`.
    - Fichiers : `flake.nix`, `flake.lock`, `infra/packages/php.nix`, `infra/packages/frankenphp.nix`, `.gitignore`.
    - Vérification : `php -v`, `php -m`, `frankenphp version`, `castor --version`, `mago --version`, `nix flake check`.
    - Commitable seule : oui.
 
-2. [ ] **Squelette Symfony dans `app/`**
+2. [x] **Squelette Symfony dans `app/`**
    - Objectif : une application Symfony 8.2 minimale, sans page, dont la console démarre.
    - Fichiers : `app/composer.json`, `app/composer.lock`, `app/symfony.lock`, squelette généré par Flex.
    - Vérification : `composer validate --strict`, `composer check-platform-reqs`, `bin/console --version`.
    - Commitable seule : oui.
 
-3. [ ] **Tâches castor et FrankenPHP en mode worker**
+3. [x] **Tâches castor et FrankenPHP en mode worker**
    - Objectif : `castor install` installe l'application, `castor start` la sert au premier plan sur `http://localhost:8000` en mode worker, avec
      rechargement sur modification de fichier.
    - Fichiers : `castor.php`, `.castor/context.php`, `infra/frankenphp/Caddyfile`.
@@ -227,48 +236,48 @@ Chaque étape donne au moins un commit atomique, en anglais, au format de `AGENT
      Le journal de FrankenPHP annonce le worker.
    - Commitable seule : oui.
 
-4. [ ] **Outillage QA et page hello world**
+4. [x] **Outillage QA et page hello world**
    - Objectif : la route `/` rend « Hello world » en Twig brut, couverte par un test fonctionnel. Mago et PHPUnit passent par castor.
    - Fichiers : `.castor/qa.php`, `app/mago.toml`, `app/phpunit.dist.xml`, `app/tests/bootstrap.php`, `app/src/Controller/HomeController.php`,
      `app/templates/`, `app/tests/Functional/HomePageTest.php`.
    - Vérification : `castor qa:phpunit`, `castor qa:format`, `castor qa:lint`, `castor qa:analyze`, `castor qa:security-audit`.
    - Commitable seule : oui.
 
-5. [ ] **Chaîne front : Tailwind, Twig Components, Live Components, kit Shadcn**
+5. [x] **Chaîne front : Tailwind, Twig Components, Live Components, kit Shadcn**
    - Objectif : la page affiche « Hello world » dans la carte du kit, stylée par Tailwind. `castor install` construit les assets.
    - Fichiers : `app/importmap.php`, `app/assets/`, `app/templates/components/`, `app/templates/base.html.twig`, `app/templates/home/index.html.twig`,
      configuration des bundles, test fonctionnel complété.
    - Vérification : construction Tailwind sans erreur, feuille de style servie en 200, `castor qa:phpunit` vert.
    - Commitable seule : oui.
 
-6. [ ] **SQLite et Doctrine**
+6. [x] **SQLite et Doctrine**
    - Objectif : connexion Doctrine sur un fichier SQLite par environnement, tâche `app:db:migrate` qui tolère l'absence de migration.
    - Fichiers : `app/config/packages/doctrine.yaml`, `app/config/packages/doctrine_migrations.yaml`, `app/migrations/`, `app/.env`, `app/.env.test`,
      `castor.php`, `app/tests/Integration/DatabaseConnectionTest.php`.
    - Vérification : `castor migrate` sans erreur, `castor qa:phpunit` vert.
    - Commitable seule : oui.
 
-7. [ ] **Test navigateur Playwright**
-   - Objectif : `castor qa:e2e` démarre FrankenPHP sur le port 8001 en environnement de test, lance la suite `e2e`, puis arrête toujours le serveur.
+7. [x] **Test navigateur Playwright**
+   - Objectif : `castor qa:e2e` lance la suite `e2e` dans Chromium, requêtes traitées par le noyau de test, sans serveur à démarrer.
      `castor install` installe Chromium.
    - Fichiers : `app/composer.json`, `app/phpunit.dist.xml`, `app/tests/E2E/HomePageBrowserTest.php`, `.castor/qa.php`, `castor.php`.
-   - Vérification : `castor qa:e2e` vert, aucun processus FrankenPHP restant après un succès comme après un échec. `castor qa` enchaîne tout.
+   - Vérification : `castor qa:e2e` vert. `castor qa` enchaîne tout.
    - Commitable seule : oui.
 
-8. [ ] **Image de runtime et Compose**
+8. [x] **Image de runtime et Compose**
    - Objectif : `castor docker:up` construit l'image depuis le flake, la charge et sert `./app` monté, en mode worker, sur `http://localhost:8080`.
    - Fichiers : `infra/packages/image.nix`, `flake.nix`, `compose.yaml`, `.castor/docker.php`.
    - Vérification : `curl -i http://localhost:8080/` répond 200. Les fichiers créés dans `app/var/` appartiennent à l'utilisateur de l'hôte.
      `castor docker:down` arrête tout.
    - Commitable seule : oui.
 
-9. [ ] **Assistants : Mate et Playwright MCP**
+9. [x] **Assistants : Mate et Playwright MCP**
    - Objectif : Mate initialisé dans `app/`, Playwright MCP déclaré à la racine.
    - Fichiers : `app/composer.json`, `app/mate/`, configuration du bundle de logs, `.mcp.json`.
    - Vérification : `vendor/bin/mate tools:list` liste les outils Symfony et Monolog. Le serveur Playwright MCP démarre et ouvre la page d'accueil.
    - Commitable seule : oui.
 
-10. [ ] **Mesure du mode worker et documentation**
+10. [x] **Mesure du mode worker et documentation**
     - Objectif : consigner le temps médian de `GET /` en mode classique puis en mode worker. Aligner `AGENTS.md`, puis recartographier `forge/stack.md`
       par `/forge:stack`.
     - Fichiers : `AGENTS.md`, `forge/stack.md`.
@@ -277,18 +286,18 @@ Chaque étape donne au moins un commit atomique, en anglais, au format de `AGENT
 
 ## Critères de sortie
 
-- [ ] Depuis un clone propre, `nix develop -c castor install` puis `castor start` : `GET http://localhost:8000/` répond 200 avec « Hello world ».
-- [ ] `php -v` et `frankenphp version` annoncent PHP 8.6.0, `frankenphp version` annonce 1.13.6, `bin/console --version` annonce Symfony 8.2.
-- [ ] FrankenPHP sert l'application en mode worker en développement et dans l'image.
-- [ ] Le temps médian de `GET /` en mode worker est strictement inférieur à celui du mode classique, les deux valeurs sont consignées.
-- [ ] `castor qa` est vert : suites `default` et `e2e`, Mago sans signalement, `composer audit` sans avis.
-- [ ] `composer validate --strict` et `composer check-platform-reqs` passent sans option d'exemption de plateforme.
-- [ ] `nix flake check` passe.
-- [ ] `castor docker:up` sert la page sur `http://localhost:8080/` depuis l'image produite par le flake.
-- [ ] `vendor/bin/mate tools:list` répond et le serveur Playwright MCP déclaré dans `.mcp.json` démarre.
-- [ ] Tout le code Symfony est sous `app/`, les paquets Nix maison sous `infra/packages/`.
-- [ ] Kill switch : sans objet, justifié dans §Rollback et kill switch.
-- [ ] `AGENTS.md` et `forge/stack.md` décrivent l'état livré.
+- [x] Depuis un clone propre, `nix develop -c castor install` puis `castor start` : `GET http://localhost:8000/` répond 200 avec « Hello world ».
+- [x] `php -v` et `frankenphp version` annoncent PHP 8.6.0, `frankenphp version` annonce 1.13.6, `bin/console --version` annonce Symfony 8.2.
+- [x] FrankenPHP sert l'application en mode worker en développement et dans l'image.
+- [x] Le temps médian de `GET /` en mode worker est strictement inférieur à celui du mode classique, les deux valeurs sont consignées.
+- [x] `castor qa` est vert : suites `default` et `e2e`, Mago sans signalement, `composer audit` sans avis.
+- [x] `composer validate --strict` et `composer check-platform-reqs` passent sans option d'exemption de plateforme.
+- [x] `nix flake check` passe.
+- [x] `castor docker:up` sert la page sur `http://localhost:8080/`, ou le premier port libre au-delà, depuis l'image produite par le flake.
+- [x] `nix develop -c castor mate tools:list` répond et le serveur Playwright MCP déclaré dans `.mcp.json` démarre.
+- [x] Tout le code Symfony est sous `app/`, les paquets Nix maison sous `infra/packages/`.
+- [x] Kill switch : sans objet, justifié dans §Rollback et kill switch.
+- [x] `AGENTS.md` et `forge/stack.md` décrivent l'état livré.
 
 ## Risques et mitigations
 
@@ -316,11 +325,11 @@ Chaque étape donne au moins un commit atomique, en anglais, au format de `AGENT
 
 - **Modules Caddy du binaire FrankenPHP** : le point d'entrée standard embarque Mercure et Vulcain. Options : (a) garder le point d'entrée amont,
   (b) écrire un point d'entrée maison sans ces modules. Recommandé : (a), il suit le `go.sum` amont et évite un fichier Go à maintenir. (b) seulement si
-  « juste ce qu'il faut » s'applique aussi aux modules Caddy.
+  « juste ce qu'il faut » s'applique aussi aux modules Caddy. **Tranché : (a)**, Mercure et Vulcain sont dans le binaire.
 - **Mate comme serveur MCP** : la beta 1.0 se présente comme une CLI. Options : (a) s'en tenir à la CLI et à `app/mate/AGENT_INSTRUCTIONS.md`,
-  (b) l'ajouter aussi à `.mcp.json` si un mode serveur existe encore. Recommandé : (a), c'est l'usage documenté par l'amont. À vérifier à l'étape 9.
+  (b) l'ajouter aussi à `.mcp.json` si un mode serveur existe encore. Recommandé : (a), c'est l'usage documenté par l'amont. **Tranché : (a)**, Mate n'a plus de serveur MCP depuis la 0.13.
 - **Bundle de logs** : `symfony/monolog-bundle` est ajouté pour que l'extension Monolog de Mate ait des journaux à lire. Options : (a) le garder avec
-  sa configuration par défaut, (b) le retirer avec l'extension. Recommandé : (a), coût nul et utile dès le premier bug.
+  sa configuration par défaut, (b) le retirer avec l'extension. Recommandé : (a), coût nul et utile dès le premier bug. **Tranché : (a)**.
 - **Passage à Symfony 8.2.0 stable** : options : (a) le faire dans cette story si la version sort avant sa clôture, (b) une story `-t-` dédiée.
   Recommandé : (a), c'est un `composer update` et le retrait d'une ligne.
 - **Cache binaire pour les paquets maison** : options : (a) aucun, (b) un cache distant. Recommandé : (a) tant qu'il n'y a qu'une machine et pas de CI.

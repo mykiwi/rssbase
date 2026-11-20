@@ -16,10 +16,14 @@ function build(): void
     io()->section('Building the development image');
 
     $c = context()->withWorkingDirectory(context()['root_dir']);
-    $stream = capture(['nix', 'build', '.#docker-image-dev', '--no-link', '--print-out-paths'], context: $c);
+    // run() rather than capture(), which hides stderr: a rebuild of PHP and FrankenPHP takes minutes.
+    $stream = trim(
+        run(['nix', 'build', '.#docker-image-dev', '--no-link', '--print-out-paths'], context: $c->withPty(false))->getOutput(),
+    );
 
     // The flake builds a script that streams the image, so that no image archive lands in the Nix store.
-    run("{$stream} | docker load --quiet", context: $c->withQuiet());
+    // The script lists every layer on stderr; docker load still reports a broken stream or a stopped daemon.
+    run("{$stream} 2>/dev/null | docker load --quiet", context: $c);
 }
 
 #[AsTask(description: 'Serves the application, mounted in the development image, in the background, on the first free port from 8080')]

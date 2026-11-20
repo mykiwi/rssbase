@@ -12,10 +12,10 @@ fi
 file=$(jq -r '.tool_input.file_path // empty')
 app="${CLAUDE_PROJECT_DIR:?}/app"
 
+# The [source] paths of app/mago.toml: Mago checks a path given on the command line even outside them.
 case "$file" in
-    "$app"/vendor/* | "$app"/var/*) exit 0 ;;
-    "$app"/*.php | "$app"/bin/console) kind=php ;;
-    "$app"/*.twig) kind=twig ;;
+    "$app"/src/*.php | "$app"/config/*.php | "$app"/public/*.php | "$app"/tests/*.php | "$app"/bin/console) kind=php ;;
+    "$app"/templates/*.twig) kind=twig ;;
     *) exit 0 ;;
 esac
 
