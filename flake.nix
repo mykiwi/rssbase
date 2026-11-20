@@ -19,6 +19,13 @@
       php = import ./infra/packages/php.nix { inherit (pins) php86; };
       frankenphp = pkgs.callPackage ./infra/packages/frankenphp.nix { inherit php; };
       mago = pkgs.callPackage ./infra/packages/mago.nix { };
+
+      shortcuts = pkgs.runCommand "shortcuts" { } ''
+        mkdir -p $out/bin
+        ln -s ${php.packages.castor}/bin/castor $out/bin/cas
+        ln -s ${mago}/bin/mago $out/bin/mag
+        ln -s ${frankenphp}/bin/frankenphp $out/bin/fra
+      '';
     in
     {
       packages.${system} = {
@@ -33,6 +40,7 @@
           frankenphp
           mago
           pins.nodejs_26
+          shortcuts
         ];
       };
 
