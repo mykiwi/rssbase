@@ -1419,6 +1419,244 @@
                     "https_port": 443,
                     "utf8": true
                 }
+            },
+            "twig": {
+                "$ref": "#/$defs/types/object_null",
+                "properties": {
+                    "form_themes": {
+                        "$ref": "#/$defs/types/array_null",
+                        "items": {
+                            "$ref": "#/$defs/types/scalar",
+                            "default": "form_div_layout.html.twig"
+                        },
+                        "default": [
+                            "form_div_layout.html.twig"
+                        ],
+                        "examples": [
+                            [
+                                "@My/form.html.twig"
+                            ]
+                        ]
+                    },
+                    "globals": {
+                        "$ref": "#/$defs/types/object_null",
+                        "additionalProperties": {
+                            "$ref": "#/$defs/types/variable"
+                        },
+                        "examples": [
+                            {
+                                "foo": "@bar",
+                                "pi": 3.14
+                            }
+                        ]
+                    },
+                    "autoescape_service": {
+                        "$ref": "#/$defs/types/scalar",
+                        "default": null
+                    },
+                    "autoescape_service_method": {
+                        "$ref": "#/$defs/types/scalar",
+                        "default": null
+                    },
+                    "cache": {
+                        "$ref": "#/$defs/types/scalar",
+                        "default": true
+                    },
+                    "charset": {
+                        "$ref": "#/$defs/types/scalar",
+                        "default": "%kernel.charset%"
+                    },
+                    "debug": {
+                        "$ref": "#/$defs/types/boolean",
+                        "default": "%kernel.debug%"
+                    },
+                    "strict_variables": {
+                        "$ref": "#/$defs/types/boolean",
+                        "default": "%kernel.debug%"
+                    },
+                    "auto_reload": {
+                        "$ref": "#/$defs/types/scalar"
+                    },
+                    "optimizations": {
+                        "$ref": "#/$defs/types/integer",
+                        "minimum": -1
+                    },
+                    "default_path": {
+                        "$ref": "#/$defs/types/scalar",
+                        "default": "%kernel.project_dir%/templates",
+                        "description": "The default path used to load templates."
+                    },
+                    "file_name_pattern": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/types/array_null",
+                                "items": {
+                                    "$ref": "#/$defs/types/scalar"
+                                }
+                            },
+                            {
+                                "type": [
+                                    "string"
+                                ]
+                            }
+                        ],
+                        "description": "Pattern of file name used for cache warmer and linter.",
+                        "examples": [
+                            "*.twig"
+                        ]
+                    },
+                    "paths": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/types/object_null",
+                                "additionalProperties": {
+                                    "$ref": "#/$defs/types/variable"
+                                }
+                            },
+                            {
+                                "$ref": "#/$defs/types/array_null",
+                                "items": {
+                                    "$ref": "#/$defs/types/variable"
+                                }
+                            }
+                        ]
+                    },
+                    "date": {
+                        "$ref": "#/$defs/types/object_null",
+                        "properties": {
+                            "format": {
+                                "$ref": "#/$defs/types/scalar",
+                                "default": "F j, Y H:i"
+                            },
+                            "interval_format": {
+                                "$ref": "#/$defs/types/scalar",
+                                "default": "%d days"
+                            },
+                            "timezone": {
+                                "$ref": "#/$defs/types/scalar",
+                                "default": null,
+                                "description": "The timezone used when formatting dates, when set to null, the timezone returned by date_default_timezone_get() is used."
+                            }
+                        },
+                        "additionalProperties": false,
+                        "default": {
+                            "format": "F j, Y H:i",
+                            "interval_format": "%d days",
+                            "timezone": null
+                        },
+                        "description": "The default format options used by the date filter."
+                    },
+                    "number_format": {
+                        "$ref": "#/$defs/types/object_null",
+                        "properties": {
+                            "decimals": {
+                                "$ref": "#/$defs/types/integer",
+                                "default": 0
+                            },
+                            "decimal_point": {
+                                "$ref": "#/$defs/types/scalar",
+                                "default": "."
+                            },
+                            "thousands_separator": {
+                                "$ref": "#/$defs/types/scalar",
+                                "default": ","
+                            }
+                        },
+                        "additionalProperties": false,
+                        "default": {
+                            "decimals": 0,
+                            "decimal_point": ".",
+                            "thousands_separator": ","
+                        },
+                        "description": "The default format options for the number_format filter."
+                    },
+                    "mailer": {
+                        "$ref": "#/$defs/types/object_null",
+                        "properties": {
+                            "html_to_text_converter": {
+                                "$ref": "#/$defs/types/scalar",
+                                "default": null,
+                                "description": "A service implementing the \"Symfony\\Component\\Mime\\HtmlToTextConverter\\HtmlToTextConverterInterface\"."
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                },
+                "patternProperties": {
+                    "^form_theme$": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/types/scalar",
+                                "default": "form_div_layout.html.twig"
+                            },
+                            {
+                                "$ref": "#/$defs/types/array_null",
+                                "items": {
+                                    "$ref": "#/$defs/types/scalar",
+                                    "default": "form_div_layout.html.twig"
+                                },
+                                "default": [
+                                    "form_div_layout.html.twig"
+                                ],
+                                "examples": [
+                                    [
+                                        "@My/form.html.twig"
+                                    ]
+                                ]
+                            }
+                        ]
+                    },
+                    "^global$": {
+                        "$ref": "#/$defs/types/variable"
+                    },
+                    "^path$": {
+                        "$ref": "#/$defs/types/variable"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "web_profiler": {
+                "$ref": "#/$defs/types/object_null",
+                "properties": {
+                    "toolbar": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/types/object_null",
+                                "properties": {
+                                    "enabled": {
+                                        "$ref": "#/$defs/types/boolean",
+                                        "default": false
+                                    },
+                                    "ajax_replace": {
+                                        "$ref": "#/$defs/types/boolean",
+                                        "default": false,
+                                        "description": "Replace toolbar on AJAX requests"
+                                    }
+                                },
+                                "additionalProperties": false
+                            },
+                            {
+                                "type": [
+                                    "boolean"
+                                ]
+                            }
+                        ],
+                        "default": {
+                            "enabled": false,
+                            "ajax_replace": false
+                        },
+                        "description": "Profiler toolbar configuration"
+                    },
+                    "intercept_redirects": {
+                        "$ref": "#/$defs/types/boolean",
+                        "default": false
+                    },
+                    "excluded_ajax_paths": {
+                        "$ref": "#/$defs/types/scalar",
+                        "default": "^/((index|app(_[\\w]+)?)\\.php/)?_wdt"
+                    }
+                },
+                "additionalProperties": false
             }
         }
     },
@@ -1432,6 +1670,57 @@
         },
         "router": {
             "$ref": "#/$defs/nodes/router"
+        },
+        "twig": {
+            "$ref": "#/$defs/nodes/twig"
+        },
+        "when@dev": {
+            "$ref": "#/$defs/types/object_null",
+            "properties": {
+                "cache": {
+                    "$ref": "#/$defs/nodes/cache"
+                },
+                "framework": {
+                    "$ref": "#/$defs/nodes/framework"
+                },
+                "imports": true,
+                "parameters": true,
+                "router": {
+                    "$ref": "#/$defs/nodes/router"
+                },
+                "services": true,
+                "twig": {
+                    "$ref": "#/$defs/nodes/twig"
+                },
+                "web_profiler": {
+                    "$ref": "#/$defs/nodes/web_profiler"
+                }
+            },
+            "additionalProperties": false
+        },
+        "when@test": {
+            "$ref": "#/$defs/types/object_null",
+            "properties": {
+                "cache": {
+                    "$ref": "#/$defs/nodes/cache"
+                },
+                "framework": {
+                    "$ref": "#/$defs/nodes/framework"
+                },
+                "imports": true,
+                "parameters": true,
+                "router": {
+                    "$ref": "#/$defs/nodes/router"
+                },
+                "services": true,
+                "twig": {
+                    "$ref": "#/$defs/nodes/twig"
+                },
+                "web_profiler": {
+                    "$ref": "#/$defs/nodes/web_profiler"
+                }
+            },
+            "additionalProperties": false
         }
     },
     "patternProperties": {
@@ -1446,6 +1735,9 @@
                 },
                 "router": {
                     "$ref": "#/$defs/nodes/router"
+                },
+                "twig": {
+                    "$ref": "#/$defs/nodes/twig"
                 }
             }
         }
