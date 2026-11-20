@@ -21,13 +21,14 @@ function start(): void
 
     make('stylesheet', 'database');
 
-    io()->title("Serving the application on http://localhost:{$c['http_port']}");
+    $port = free_port($c['http_port']);
+    io()->title("Serving the application on http://localhost:{$port}");
 
     run(
         ['frankenphp', 'run', '--config', $c['caddyfile'], '--adapter', 'caddyfile'],
         context: $c
             ->withEnvironment([
-                'SERVER_NAME' => "http://localhost:{$c['http_port']}",
+                'SERVER_NAME' => "http://localhost:{$port}",
                 'CADDY_ADMIN' => $c['admin_address'],
                 'FRANKENPHP_WORKER_CONFIG' => 'import watch_code',
             ])
@@ -35,6 +36,36 @@ function start(): void
             // terminal's process group and receives CTRL+C itself.
             ->withPty(false),
     );
+}
+
+/**
+ * The first port, from $preferred on, that nothing holds on the loopback interfaces.
+ */
+function free_port(int $preferred): int
+{
+    for ($port = $preferred; $port < $preferred + 100; ++$port) {
+        if (is_free_port($port)) {
+            return $port;
+        }
+    }
+
+    throw new \RuntimeException(\sprintf('No free port between %d and %d.', $preferred, $port - 1));
+}
+
+function is_free_port(int $port): bool
+{
+    // Binding, unlike connecting, also sees a port held on IPv6 only, where FrankenPHP listens too.
+    foreach (['127.0.0.1', '[::1]'] as $host) {
+        $server = @stream_socket_server("tcp://{$host}:{$port}");
+
+        if (false === $server) {
+            return false;
+        }
+
+        fclose($server);
+    }
+
+    return true;
 }
 
 #[AsTask(description: 'Stops the server started by "castor start"')]
