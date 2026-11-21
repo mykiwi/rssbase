@@ -236,7 +236,7 @@ cloisonnement, c'est une trace d'exploitation lue par `bin/console dbal:run-sql`
    - Vérification : tests fonctionnels du pare-feu, 404 préservée, `loginUser()` donne accès à `/feeds`.
    - Commitable seule : oui.
 
-3. [ ] **Faux réseau AT Protocol et identité**
+3. [x] **Faux réseau AT Protocol et identité**
    - Objectif : une saisie devient une identité vérifiée (DID, handle, PDS), contre le faux réseau.
    - Fichiers : `tests/Fake/*`, `AtProto/Identity/*`, `http_client.yaml`.
    - Vérification : tests unitaires de `Handle` et d'`IdentityResolver`.
