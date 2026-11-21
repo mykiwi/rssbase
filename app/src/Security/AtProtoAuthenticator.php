@@ -9,6 +9,7 @@ use App\AtProto\Identity\Exception\ProviderUnreachable;
 use App\AtProto\OAuth\ClientIdentity;
 use App\AtProto\OAuth\Exception\OAuthError;
 use App\AtProto\OAuth\SignedState;
+use App\Repository\AccountRepository;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -35,6 +36,7 @@ final class AtProtoAuthenticator extends AbstractAuthenticator
         private readonly SignedState $signedState,
         private readonly AuthorizationFlow $flow,
         private readonly UrlGeneratorInterface $urlGenerator,
+        private readonly AccountRepository $accounts,
     ) {}
 
     /**
@@ -90,6 +92,11 @@ final class AtProtoAuthenticator extends AbstractAuthenticator
         TokenInterface $token,
         string $firewallName,
     ): RedirectResponse {
+        $user = $token->getUser();
+        if ($user instanceof AtProtoUser) {
+            $this->accounts->recordLogin($user->did, $user->handle);
+        }
+
         $target = $this->getTargetPath($request->getSession(), $firewallName);
         $this->removeTargetPath($request->getSession(), $firewallName);
 

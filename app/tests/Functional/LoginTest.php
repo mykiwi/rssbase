@@ -6,12 +6,15 @@ namespace App\Tests\Functional;
 
 use App\Security\AtProtoUser;
 use App\Tests\Fake\FakeAtProtoNetwork;
+use Doctrine\DBAL\Connection;
 use PHPUnit\Framework\Attributes\TestWith;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class LoginTest extends WebTestCase
 {
     use SignsInThroughTheFakeProvider;
+
+    private const int CLOCK_TICK = 2;
 
     protected function setUp(): void
     {
@@ -48,6 +51,16 @@ final class LoginTest extends WebTestCase
         self::assertResponseIsSuccessful();
         static::assertSame('http://localhost/feeds', $client->getRequest()->getUri());
         self::assertSelectorTextSame('[data-test="account-handle"]', text: "@{$handle}");
+
+        // The operator finds the handle and the date of the login in the trace.
+        $connection = self::getContainer()->get(Connection::class);
+        static::assertInstanceOf(Connection::class, $connection);
+        $trace = $connection->fetchAssociative('SELECT handle, unixepoch(last_login_at) AS last_login FROM account WHERE did = ?', [
+            $did,
+        ]);
+        static::assertIsArray($trace);
+        static::assertSame($handle, $trace['handle']);
+        static::assertEqualsWithDelta(time(), $trace['last_login'], self::CLOCK_TICK);
     }
 
     public function testAVisitorWhoStartsOnTheFrenchSiteComesBackToIt(): void

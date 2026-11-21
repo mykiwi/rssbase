@@ -254,7 +254,7 @@ cloisonnement, c'est une trace d'exploitation lue par `bin/console dbal:run-sql`
    - Vérification : `LoginTest`.
    - Commitable seule : oui.
 
-6. [ ] **Trace de connexion**
+6. [x] **Trace de connexion**
    - Objectif : chaque connexion réussie écrit ou met à jour la ligne du compte.
    - Fichiers : `Account`, `AccountRepository`, migration générée, appel depuis l'authentificateur.
    - Vérification : `AccountRepositoryTest` ; `EXPLAIN QUERY PLAN` de la requête, sur une table de quelques milliers de lignes, consigné dans le message de commit ; `doctrine:schema:validate`.

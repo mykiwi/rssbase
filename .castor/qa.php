@@ -25,7 +25,7 @@ function all(): int
 
     // Everything the jobs below need, built once: their own make calls then find nothing to do, and
     // parallel jobs cannot race on the same recipe.
-    \make('stylesheet', 'chromium');
+    \make('stylesheet', 'chromium', 'test-database');
 
     $jobs = [
         'lint' => fail_on_exit_code(lint(...)),
@@ -156,8 +156,8 @@ function phpunit(#[AsRawTokens] array $rawTokens = []): int
 {
     io()->section('Running PHPUnit...');
 
-    // The functional tests render pages, which need the stylesheet.
-    \make('stylesheet');
+    // The functional tests render pages, which need the stylesheet, and write to the database.
+    \make('stylesheet', 'test-database');
 
     return exit_code(['bin/phpunit', '--testsuite', 'default', ...$rawTokens]);
 }
@@ -170,7 +170,7 @@ function e2e(#[AsRawTokens] array $rawTokens = []): int
 {
     io()->section('Running the browser tests...');
 
-    \make('stylesheet', 'chromium');
+    \make('stylesheet', 'chromium', 'test-database');
 
     return exit_code(['bin/phpunit', '--testsuite', 'e2e', ...$rawTokens]);
 }
