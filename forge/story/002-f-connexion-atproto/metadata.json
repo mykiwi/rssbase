@@ -19,6 +19,11 @@
       "date": "2026-11-21",
       "type": "Planification",
       "description": "Plan technique rédigé : client OAuth maison (confidentiel et boucle locale) sur Symfony Security, jetons en session PHP, table account. Pitch réaligné : écriture sur tout le compte dans un premier temps, quatre questions tranchées."
+    },
+    {
+      "date": "2026-11-21",
+      "type": "Implémentation",
+      "description": "Plan livré en 10 étapes, CI=1 castor qa vert (82 tests, 3 E2E). Écarts : preuve DPoP par la DpopProofFactory de Symfony Security 8.2 (déjà fournie) ; prototype cookie échoué sur localhost, repli rssbase.localhost ; avatar direct confirmé dans Chromium ; page d'approbation du faux fournisseur servie par une route Playwright (Symfony refuse un pare-feu déclaré en when@test) ; classes en plus (JsonObject, DidDocument, DnsTxtRecords, AuthorizationFlow, DpopKey, LoginFailure, journal sans code d'autorisation) et faux fournisseur découpé, pour les seuils de Mago ; NoPrivateNetworkHttpClient retiré du conteneur de test (il résout le DNS), testé en unitaire ; base de test migrée par une cible du Makefile ; contrôle des traductions limité au domaine messages ; cookie de session de 90 jours renouvelé à chaque rafraîchissement ; liens externes de l'en-tête masqués sur petit écran une fois connecté."
     }
   ]
 }

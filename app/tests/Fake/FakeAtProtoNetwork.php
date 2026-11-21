@@ -172,6 +172,16 @@ final class FakeAtProtoNetwork implements DnsTxtRecords
         ]);
     }
 
+    /**
+     * @return ?string the DID the DNS record of the handle declares
+     */
+    public static function didOf(string $handle): ?string
+    {
+        $record = self::$dns["_atproto.{$handle}"][0] ?? '';
+
+        return str_starts_with($record, 'did=') ? substr($record, offset: 4) : null;
+    }
+
     public function lookup(string $name): array
     {
         return self::$dns[$name] ?? [];

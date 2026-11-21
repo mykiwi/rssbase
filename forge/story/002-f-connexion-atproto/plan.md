@@ -278,7 +278,7 @@ cloisonnement, c'est une trace d'exploitation lue par `bin/console dbal:run-sql`
    - Vérification : tests fonctionnels avec et sans enregistrement de profil.
    - Commitable seule : oui.
 
-10. [ ] **Parcours navigateur, documentation, QA**
+10. [x] **Parcours navigateur, documentation, QA**
     - Objectif : parcours E2E, `AGENTS.md` à jour, contrôle complet.
     - Fichiers : `tests/E2E/LoginBrowserTest.php`, `AGENTS.md`.
     - Vérification : `CI=1 nix develop -c castor qa` vert.
@@ -286,12 +286,12 @@ cloisonnement, c'est une trace d'exploitation lue par `bin/console dbal:run-sql`
 
 ## Critères de sortie
 
-- [ ] `CI=1 nix develop -c castor qa` est vert : Mago, symfony-lsp, `lint:*`, traductions, suites `default` et `e2e`, `composer audit`.
-- [ ] Chaque critère d'acceptation du pitch est couvert par un test fonctionnel ou E2E nommé, hors vérification contre un vrai fournisseur.
+- [x] `CI=1 nix develop -c castor qa` est vert : Mago, symfony-lsp, `lint:*`, traductions, suites `default` et `e2e`, `composer audit`.
+- [x] Chaque critère d'acceptation du pitch est couvert par un test fonctionnel ou E2E nommé, hors vérification contre un vrai fournisseur.
 - [ ] La suite de tests n'émet aucune requête réseau : le client HTTP de test n'a que le faux réseau.
-- [ ] Le faux fournisseur refuse une demande sans PKCE S256, sans preuve DPoP valide ou, en mode confidentiel, sans assertion valide.
-- [ ] `doctrine:schema:validate` est vert et la migration s'applique sur une base vide.
-- [ ] Le plan d'exécution de la requête de trace utilise l'index unique sur `did`, preuve consignée.
+- [x] Le faux fournisseur refuse une demande sans PKCE S256, sans preuve DPoP valide ou, en mode confidentiel, sans assertion valide.
+- [x] `doctrine:schema:validate` est vert et la migration s'applique sur une base vide.
+- [x] Le plan d'exécution de la requête de trace utilise l'index unique sur `did`, preuve consignée.
 - [ ] Aucun jeton, clé privée ou code d'autorisation n'apparaît dans les journaux ni dans une réponse HTTP.
 - [ ] En boucle locale, le départ vers un vrai fournisseur produit une demande PAR acceptée (vérification manuelle, consignée ou signalée non faite).
 
