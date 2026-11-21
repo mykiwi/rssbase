@@ -14,7 +14,10 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 final class AccountRepositoryTest extends KernelTestCase
 {
-    private const string DID = 'did:plc:alice234567abcdefghijklm';
+    /**
+     * An account of this test alone: the browser suite signs in on the same database at the same time.
+     */
+    private const string DID = 'did:plc:tracetest34567abcdefghijk';
     private const int CLOCK_TICK = 1;
 
     private AccountRepository $accounts;
@@ -24,7 +27,7 @@ final class AccountRepositoryTest extends KernelTestCase
     {
         $this->accounts = self::service(AccountRepository::class);
         $this->connection = self::service(Connection::class);
-        $this->connection->executeStatement('DELETE FROM account');
+        $this->connection->executeStatement('DELETE FROM account WHERE did = :did', ['did' => self::DID]);
     }
 
     public function testAFirstLoginRecordsTheHandleAndTheDateOfTheDatabase(): void
@@ -44,11 +47,13 @@ final class AccountRepositoryTest extends KernelTestCase
     public function testALaterLoginMovesTheDateWithoutASecondRow(): void
     {
         $this->accounts->recordLogin(self::did(), Handle::fromString('alice.fake.test'));
-        $this->connection->executeStatement("UPDATE account SET last_login_at = '2026-01-01 00:00:00'");
+        $this->connection->executeStatement("UPDATE account SET last_login_at = '2026-01-01 00:00:00' WHERE did = :did", [
+            'did' => self::DID,
+        ]);
 
         $this->accounts->recordLogin(self::did(), Handle::fromString('alice.fake.test'));
 
-        static::assertSame(1, (int) $this->connection->fetchOne('SELECT COUNT(*) FROM account'));
+        static::assertSame(1, $this->rows());
         static::assertGreaterThan(new \DateTimeImmutable('2026-01-01 00:00:00'), $this->account()->getLastLoginAt());
     }
 
@@ -57,8 +62,13 @@ final class AccountRepositoryTest extends KernelTestCase
         $this->accounts->recordLogin(self::did(), Handle::fromString('alice.fake.test'));
         $this->accounts->recordLogin(self::did(), Handle::fromString('alice.example.org'));
 
-        static::assertSame(1, (int) $this->connection->fetchOne('SELECT COUNT(*) FROM account'));
+        static::assertSame(1, $this->rows());
         static::assertSame('alice.example.org', $this->account()->getHandle()->value);
+    }
+
+    private function rows(): int
+    {
+        return (int) $this->connection->fetchOne('SELECT COUNT(*) FROM account WHERE did = :did', ['did' => self::DID]);
     }
 
     private function account(): Account
