@@ -58,14 +58,19 @@ final readonly class AuthorizationServerLocator
             throw new ProviderUnreachable(\sprintf('The metadata of "%s" names another issuer.', $issuer));
         }
 
-        $authorizationEndpoint = $metadata->string('authorization_endpoint');
-        $parEndpoint = $metadata->string('pushed_authorization_request_endpoint');
-        $tokenEndpoint = $metadata->string('token_endpoint');
-        $followsProfile =
-            $metadata->isTrue('authorization_response_iss_parameter_supported')
-            && \in_array('ES256', $metadata->strings('dpop_signing_alg_values_supported'), strict: true);
+        // Plain http would also escape the time limits of the client, which only cover https URLs.
+        $authorizationEndpoint = self::httpsUrl($metadata->text('authorization_endpoint'));
+        $parEndpoint = self::httpsUrl($metadata->text('pushed_authorization_request_endpoint'));
+        $tokenEndpoint = self::httpsUrl($metadata->text('token_endpoint'));
+        $checks = [
+            $metadata->isTrue('authorization_response_iss_parameter_supported'),
+            \in_array('ES256', $metadata->strings('dpop_signing_alg_values_supported'), strict: true),
+            '' !== $authorizationEndpoint,
+            '' !== $parEndpoint,
+            '' !== $tokenEndpoint,
+        ];
 
-        if (!$followsProfile || null === $authorizationEndpoint || null === $parEndpoint || null === $tokenEndpoint) {
+        if (\in_array(false, $checks, strict: true)) {
             throw new ProviderUnreachable(\sprintf('"%s" does not follow the AT Protocol profile of OAuth.', $issuer));
         }
 
@@ -84,6 +89,14 @@ final readonly class AuthorizationServerLocator
         } catch (ExceptionInterface $exception) {
             throw new ProviderUnreachable(\sprintf('"%s" gave no metadata.', $url), previous: $exception);
         }
+    }
+
+    /**
+     * @return string the URL, or an empty string when it is not an https URL
+     */
+    private static function httpsUrl(string $url): string
+    {
+        return str_starts_with($url, 'https://') ? $url : '';
     }
 
     /**
