@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\AtProto\OAuth;
 
+use App\AtProto\HttpsUrl;
+use App\AtProto\Identity\Did;
 use App\AtProto\Identity\Handle;
 use App\AtProto\Identity\Identity;
+use App\AtProto\Identity\Pds;
 use App\AtProto\OAuth\AuthorizationServerLocator;
 use App\AtProto\OAuth\ClientIdentity;
 use App\AtProto\OAuth\Exception\OAuthError;
 use App\AtProto\OAuth\OAuthClient;
+use App\AtProto\OAuth\State;
 use App\Tests\Fake\FakeAtProtoNetwork;
 use App\Tests\Fake\FakeAuthorizationServer;
 use Jose\Component\KeyManagement\JWKFactory;
@@ -78,17 +82,19 @@ final class FakeAuthorizationServerTest extends TestCase
             $clientIdentity->clientId(),
             JWKFactory::createECKey('P-256')->toPublic()->all(),
         );
-        $server = new AuthorizationServerLocator($this->http)->forPds(FakeAtProtoNetwork::PDS);
+        $server = new AuthorizationServerLocator($this->http)->forPds(Pds::fromString(FakeAtProtoNetwork::PDS));
 
-        $this->expectExceptionObject(new OAuthError('invalid_client', FakeAuthorizationServer::PAR_ENDPOINT));
+        $this->expectExceptionObject(
+            new OAuthError('invalid_client', HttpsUrl::fromString(FakeAuthorizationServer::PAR_ENDPOINT)),
+        );
 
         new OAuthClient($this->http, $clientIdentity)->authorize(
             $server,
-            state: 'state-1',
+            new State('state-1'),
             identity: new Identity(
-                FakeAtProtoNetwork::ALICE_DID,
+                Did::fromString(FakeAtProtoNetwork::ALICE_DID),
                 Handle::fromString(FakeAtProtoNetwork::ALICE),
-                FakeAtProtoNetwork::PDS,
+                Pds::fromString(FakeAtProtoNetwork::PDS),
             ),
         );
     }

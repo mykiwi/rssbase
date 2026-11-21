@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\AtProto\Profile;
 
+use App\AtProto\HttpsUrl;
 use App\AtProto\Identity\Identity;
 use App\AtProto\JsonObject;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -24,14 +25,20 @@ final readonly class AvatarLocator
     ) {}
 
     /**
-     * @return ?string the URL of the image, or null when the account has no profile or no avatar
+     * @return ?HttpsUrl the address of the image, or null when the account has no profile or no avatar
      */
-    public function locate(Identity $identity): ?string
+    public function locate(Identity $identity): ?HttpsUrl
     {
         try {
-            $response = $this->client->request('GET', "{$identity->pds}/xrpc/com.atproto.repo.getRecord", [
-                'query' => ['repo' => $identity->did, 'collection' => 'app.bsky.actor.profile', 'rkey' => 'self'],
-            ]);
+            $response = $this->client->request(
+                'GET',
+                $identity->pds->url('/xrpc/com.atproto.repo.getRecord')->value,
+                ['query' => [
+                    'repo' => $identity->did->value,
+                    'collection' => 'app.bsky.actor.profile',
+                    'rkey' => 'self',
+                ]],
+            );
             $record = 200 === $response->getStatusCode() ? new JsonObject($response->toArray()) : new JsonObject([]);
         } catch (ExceptionInterface) {
             // No avatar is no reason to refuse a login: a neutral image stands for it.
@@ -44,9 +51,9 @@ final readonly class AvatarLocator
             return null;
         }
 
-        return (
-            "{$identity->pds}/xrpc/com.atproto.sync.getBlob?"
-            . http_build_query(['did' => $identity->did, 'cid' => $cid])
-        );
+        return $identity
+            ->pds
+            ->url('/xrpc/com.atproto.sync.getBlob')
+            ->withQuery(http_build_query(['did' => $identity->did->value, 'cid' => $cid]));
     }
 }

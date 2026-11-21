@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Security;
 
+use App\AtProto\HttpsUrl;
+use App\AtProto\Identity\Did;
+use App\AtProto\Identity\Handle;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
@@ -13,13 +16,12 @@ use Symfony\Component\Security\Core\User\UserInterface;
 final readonly class AtProtoUser implements UserInterface
 {
     /**
-     * @param non-empty-string $did
      * @param bool $canWrite whether the provider granted the write permission, or only the identity
      */
     public function __construct(
-        public string $did,
-        public string $handle,
-        public ?string $avatarUrl = null,
+        public Did $did,
+        public Handle $handle,
+        public ?HttpsUrl $avatarUrl = null,
         public bool $canWrite = false,
     ) {}
 
@@ -33,6 +35,6 @@ final readonly class AtProtoUser implements UserInterface
      */
     public function getUserIdentifier(): string
     {
-        return $this->did;
+        return $this->did->value;
     }
 }

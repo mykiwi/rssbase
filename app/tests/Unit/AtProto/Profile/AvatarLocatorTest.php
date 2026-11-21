@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\AtProto\Profile;
 
+use App\AtProto\Identity\Did;
 use App\AtProto\Identity\Handle;
 use App\AtProto\Identity\Identity;
+use App\AtProto\Identity\Pds;
 use App\AtProto\Profile\AvatarLocator;
 use App\Tests\Fake\FakeAtProtoNetwork;
 use PHPUnit\Framework\TestCase;
@@ -26,9 +28,9 @@ final class AvatarLocatorTest extends TestCase
         FakeAtProtoNetwork::reset();
         $this->locator = new AvatarLocator(new MockHttpClient(new FakeAtProtoNetwork()));
         $this->carol = new Identity(
-            'did:plc:carol234567abcdefghijklm',
+            Did::fromString('did:plc:carol234567abcdefghijklm'),
             Handle::fromString('carol.fake.test'),
-            self::PDS,
+            Pds::fromString(self::PDS),
         );
     }
 

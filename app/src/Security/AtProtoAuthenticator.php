@@ -8,7 +8,10 @@ use App\AtProto\Identity\Exception\AccountNotFound;
 use App\AtProto\Identity\Exception\ProviderUnreachable;
 use App\AtProto\OAuth\ClientIdentity;
 use App\AtProto\OAuth\Exception\OAuthError;
+use App\AtProto\OAuth\Issuer;
 use App\AtProto\OAuth\SignedState;
+use App\AtProto\OAuth\Site;
+use App\AtProto\OAuth\State;
 use App\AtProto\Profile\AvatarLocator;
 use App\Repository\AccountRepository;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -49,7 +52,7 @@ final class AtProtoAuthenticator extends AbstractAuthenticator
     {
         return (
             ClientIdentity::CALLBACK_PATH === $request->getPathInfo()
-            && $this->signedState->site($request->query->getString('state')) === $request->getSchemeAndHttpHost()
+            && true === $this->signedState->site(self::state($request))?->equals(Site::ofRequest($request))
         );
     }
 
@@ -60,9 +63,9 @@ final class AtProtoAuthenticator extends AbstractAuthenticator
 
         $answered =
             null !== $pending
-            && hash_equals($pending->state, $request->query->getString('state'))
+            && $pending->state->equals(self::state($request))
             // The issuer bound to the request must be the one answering: another server could forge the answer.
-            && $request->query->getString('iss') === $pending->server->issuer;
+            && true === Issuer::tryFrom($request->query->getString('iss'))?->equals($pending->server->issuer);
 
         if (!$answered) {
             throw LoginFailure::failed();
@@ -82,16 +85,11 @@ final class AtProtoAuthenticator extends AbstractAuthenticator
             throw LoginFailure::failed($exception);
         }
 
-        $canWrite = $this->flow->tokens($request->getSession())?->grantsWrite() ?? false;
+        $canWrite = $this->flow->tokens($request->getSession())?->scope->grantsWrite() ?? false;
         // Read once per login: the avatar lives as long as the session.
-        $user = new AtProtoUser(
-            $identity->did,
-            $identity->handle->value,
-            $this->avatarLocator->locate($identity),
-            $canWrite,
-        );
+        $user = new AtProtoUser($identity->did, $identity->handle, $this->avatarLocator->locate($identity), $canWrite);
 
-        return new SelfValidatingPassport(new UserBadge($identity->did, static fn(): AtProtoUser => $user));
+        return new SelfValidatingPassport(new UserBadge($identity->did->value, static fn(): AtProtoUser => $user));
     }
 
     public function onAuthenticationSuccess(
@@ -109,6 +107,11 @@ final class AtProtoAuthenticator extends AbstractAuthenticator
         $this->removeTargetPath($request->getSession(), $firewallName);
 
         return new RedirectResponse($target ?? $this->urlGenerator->generate('feeds'));
+    }
+
+    private static function state(Request $request): State
+    {
+        return new State($request->query->getString('state'));
     }
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): RedirectResponse

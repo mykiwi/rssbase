@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\AtProto\Identity;
 
+use App\AtProto\Identity\Did;
 use App\AtProto\Identity\DidResolver;
 use App\AtProto\Identity\Exception\AccountNotFound;
 use App\AtProto\Identity\Exception\ProviderUnreachable;
@@ -33,9 +34,9 @@ final class IdentityResolverTest extends TestCase
     {
         $identity = $this->resolver->resolveHandle(Handle::fromInput(FakeAtProtoNetwork::ALICE));
 
-        static::assertSame(FakeAtProtoNetwork::ALICE_DID, $identity->did);
+        static::assertSame(FakeAtProtoNetwork::ALICE_DID, $identity->did->value);
         static::assertSame(FakeAtProtoNetwork::ALICE, $identity->handle->value);
-        static::assertSame(FakeAtProtoNetwork::PDS, $identity->pds);
+        static::assertSame(FakeAtProtoNetwork::PDS, $identity->pds->value);
         static::assertNotContains(
             'GET https://alice.fake.test/.well-known/atproto-did',
             FakeAtProtoNetwork::requests(),
@@ -46,7 +47,7 @@ final class IdentityResolverTest extends TestCase
     {
         $identity = $this->resolver->resolveHandle(Handle::fromInput('bob'));
 
-        static::assertSame(FakeAtProtoNetwork::BOB_DID, $identity->did);
+        static::assertSame(FakeAtProtoNetwork::BOB_DID, $identity->did->value);
         static::assertSame(FakeAtProtoNetwork::BOB, $identity->handle->value);
     }
 
@@ -54,7 +55,7 @@ final class IdentityResolverTest extends TestCase
     {
         $identity = $this->resolver->resolveHandle(Handle::fromInput(FakeAtProtoNetwork::CAROL));
 
-        static::assertSame(FakeAtProtoNetwork::CAROL_DID, $identity->did);
+        static::assertSame(FakeAtProtoNetwork::CAROL_DID, $identity->did->value);
         static::assertContains('GET https://carol.fake.test/.well-known/did.json', FakeAtProtoNetwork::requests());
     }
 
@@ -97,9 +98,12 @@ final class IdentityResolverTest extends TestCase
 
         static::assertSame(
             FakeAtProtoNetwork::ALICE,
-            $this->resolver->resolveDid(FakeAtProtoNetwork::ALICE_DID)->handle->value,
+            $this->resolver->resolveDid(Did::fromString(FakeAtProtoNetwork::ALICE_DID))->handle->value,
         );
-        static::assertSame('handle.invalid', $this->resolver->resolveDid(self::IMPOSTOR_DID)->handle->value);
+        static::assertSame(
+            'handle.invalid',
+            $this->resolver->resolveDid(Did::fromString(self::IMPOSTOR_DID))->handle->value,
+        );
     }
 
     public function testAHandleOnAPrivateAddressIsNeverCalled(): void

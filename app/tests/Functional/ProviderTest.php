@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional;
 
+use App\AtProto\Identity\Did;
+use App\AtProto\Identity\Handle;
 use App\Security\AtProtoUser;
 use App\Tests\Fake\FakeAtProtoNetwork;
 use App\Tests\Fake\FakeAuthorizationServer;
@@ -121,7 +123,12 @@ final class ProviderTest extends WebTestCase
     public function testASignedInUserWhoOpensTheProvidersIsSentToMyFeeds(): void
     {
         $client = static::createClient();
-        $client->loginUser(new AtProtoUser(FakeAtProtoNetwork::ALICE_DID, FakeAtProtoNetwork::ALICE));
+        $client->loginUser(
+            new AtProtoUser(
+                Did::fromString(FakeAtProtoNetwork::ALICE_DID),
+                Handle::fromString(FakeAtProtoNetwork::ALICE),
+            ),
+        );
         $client->request('GET', uri: '/providers');
 
         self::assertResponseRedirects('/feeds');

@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\AtProto\Identity\Did;
+use App\AtProto\Identity\Handle;
+use App\Doctrine\DidType;
+use App\Doctrine\HandleType;
 use App\Repository\AccountRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -24,16 +28,16 @@ class Account
     /**
      * The account stays the same when its handle changes: the DID is its key.
      */
-    #[ORM\Column(length: 2048)]
-    private string $did;
+    #[ORM\Column(type: DidType::NAME, length: 2048)]
+    private Did $did;
 
-    #[ORM\Column(length: 253)]
-    private string $handle;
+    #[ORM\Column(type: HandleType::NAME, length: 253)]
+    private Handle $handle;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $lastLoginAt;
 
-    public function __construct(string $did, string $handle, \DateTimeImmutable $lastLoginAt)
+    public function __construct(Did $did, Handle $handle, \DateTimeImmutable $lastLoginAt)
     {
         $this->did = $did;
         $this->handle = $handle;
@@ -45,12 +49,12 @@ class Account
         return $this->id;
     }
 
-    public function getDid(): string
+    public function getDid(): Did
     {
         return $this->did;
     }
 
-    public function getHandle(): string
+    public function getHandle(): Handle
     {
         return $this->handle;
     }

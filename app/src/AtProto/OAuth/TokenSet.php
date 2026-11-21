@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\AtProto\OAuth;
 
+use App\AtProto\Identity\Did;
 use App\AtProto\Identity\Exception\ProviderUnreachable;
 use App\AtProto\JsonObject;
 
@@ -13,21 +14,15 @@ use App\AtProto\JsonObject;
 final readonly class TokenSet
 {
     /**
-     * Refreshed this long before they expire, so that a token sent to a server does not expire on the way.
-     */
-    private const int LEEWAY = 30;
-
-    /**
-     * @param non-empty-string                                        $did
-     * @param array{access: string, refresh: string, expiresAt: int} $tokens
+     * @param Scope $scope what the provider granted, which may be less than what the client requested
      */
     private function __construct(
-        public string $did,
-        public string $scope,
+        public Did $did,
+        public Scope $scope,
         public AuthorizationServer $server,
         public DpopKey $dpopKey,
         #[\SensitiveParameter]
-        private array $tokens,
+        private TokenPair $tokens,
     ) {}
 
     /**
@@ -37,24 +32,23 @@ final readonly class TokenSet
      */
     public static function fromResponse(JsonObject $response, AuthorizationServer $server, DpopKey $dpopKey): self
     {
-        $did = $response->string('sub') ?? '';
-        $scope = $response->string('scope') ?? '';
-        $tokens = [
-            'access' => $response->string('access_token') ?? '',
-            'refresh' => $response->string('refresh_token') ?? '',
-            'expiresAt' => time() + ($response->int('expires_in') ?? 0),
-        ];
+        $did = Did::tryFrom($response->string('sub') ?? '');
+        $scope = new Scope($response->string('scope') ?? '');
+        $tokens = new TokenPair(
+            $response->string('access_token') ?? '',
+            $response->string('refresh_token') ?? '',
+            time() + ($response->int('expires_in') ?? 0),
+        );
 
         $checks = [
-            str_starts_with($did, 'did:'),
-            // A provider that grants less than "atproto" did not confirm the identity of the account.
-            \in_array('atproto', explode(' ', $scope), strict: true),
+            // A provider that grants less than the identity did not confirm the account.
+            $scope->confirmsIdentity(),
             0 === strcasecmp($response->string('token_type') ?? '', 'DPoP'),
-            '' !== $tokens['access'],
-            '' !== $tokens['refresh'],
+            '' !== $tokens->access,
+            '' !== $tokens->refresh,
         ];
 
-        if (\in_array(false, $checks, strict: true) || '' === $did) {
+        if (null === $did || \in_array(false, $checks, strict: true)) {
             throw new ProviderUnreachable(\sprintf(
                 '"%s" answered tokens that the AT Protocol profile does not allow.',
                 $server->issuer,
@@ -66,32 +60,17 @@ final readonly class TokenSet
 
     public function accessToken(): string
     {
-        return $this->tokens['access'];
+        return $this->tokens->access;
     }
 
     public function refreshToken(): string
     {
-        return $this->tokens['refresh'];
+        return $this->tokens->refresh;
     }
 
     public function isExpired(int $now): bool
     {
-        return $now >= ($this->tokens['expiresAt'] - self::LEEWAY);
-    }
-
-    /**
-     * Whether the provider granted a write permission. A provider that does not know the requested
-     * permissions grants only "atproto": the identity of the account.
-     */
-    public function grantsWrite(): bool
-    {
-        foreach (explode(' ', $this->scope) as $scope) {
-            if (str_starts_with($scope, 'repo:') || 'transition:generic' === $scope) {
-                return true;
-            }
-        }
-
-        return false;
+        return $this->tokens->isExpired($now);
     }
 
     /**
@@ -101,6 +80,6 @@ final readonly class TokenSet
      */
     public function __debugInfo(): array
     {
-        return ['did' => $this->did, 'scope' => $this->scope, 'issuer' => $this->server->issuer];
+        return ['did' => $this->did->value, 'scope' => $this->scope->value, 'issuer' => $this->server->issuer->value];
     }
 }

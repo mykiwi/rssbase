@@ -6,6 +6,8 @@ namespace App\Tests\Unit\AtProto\OAuth;
 
 use App\AtProto\JsonObject;
 use App\AtProto\OAuth\ClientIdentity;
+use App\AtProto\OAuth\FormBody;
+use App\AtProto\OAuth\Issuer;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\KeyManagement\JWKFactory;
 use Jose\Component\Signature\Algorithm\ES256;
@@ -30,7 +32,7 @@ final class ClientIdentityTest extends TestCase
         );
         static::assertSame(
             ['client_id' => $client->clientId()],
-            $client->authenticate([], issuer: 'https://auth.fake.test'),
+            $client->authenticate(FormBody::of(), Issuer::fromString('https://auth.fake.test'))->fields(),
         );
     }
 
@@ -76,8 +78,9 @@ final class ClientIdentityTest extends TestCase
         $key = JWKFactory::createECKey('P-256', ['kid' => 'key-1']);
         $client = self::client(json_encode($key, \JSON_THROW_ON_ERROR), port: 443);
 
-        $body = $client->authenticate(['grant_type' => 'refresh_token'], issuer: 'https://auth.fake.test');
-        $second = $client->authenticate([], issuer: 'https://auth.fake.test');
+        $issuer = Issuer::fromString('https://auth.fake.test');
+        $body = $client->authenticate(FormBody::of(grant_type: 'refresh_token'), $issuer)->fields();
+        $second = $client->authenticate(FormBody::of(), $issuer)->fields();
 
         static::assertSame('refresh_token', $body['grant_type']);
         static::assertSame('https://rssbase.example/oauth-client-metadata.json', $body['client_id']);

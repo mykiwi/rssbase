@@ -31,7 +31,7 @@ final readonly class IdentityResolver
         ));
         $document = $this->didResolver->resolve($did);
 
-        if (null === $document->handle || strtolower($document->handle) !== $handle->value) {
+        if (true !== $document->handle?->equals($handle)) {
             throw new AccountNotFound(\sprintf(
                 'The document of "%s" does not confirm the handle "%s".',
                 $did,
@@ -43,26 +43,25 @@ final readonly class IdentityResolver
     }
 
     /**
-     * @param non-empty-string $did
-     *
      * @throws AccountNotFound
      * @throws ProviderUnreachable
      */
-    public function resolveDid(string $did): Identity
+    public function resolveDid(Did $did): Identity
     {
         $document = $this->didResolver->resolve($did);
 
         return new Identity($did, $this->confirmedHandle($did, $document->handle), $document->pds);
     }
 
-    private function confirmedHandle(string $did, ?string $declared): Handle
+    /**
+     * The handle a document claims counts only when the domain of the handle names the same DID.
+     */
+    private function confirmedHandle(Did $did, ?Handle $declared): Handle
     {
-        try {
-            $handle = Handle::fromString($declared ?? '');
-        } catch (AccountNotFound) {
+        if (null === $declared) {
             return Handle::invalid();
         }
 
-        return $this->handleResolver->resolve($handle) === $did ? $handle : Handle::invalid();
+        return true === $this->handleResolver->resolve($declared)?->equals($did) ? $declared : Handle::invalid();
     }
 }

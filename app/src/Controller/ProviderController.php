@@ -8,6 +8,7 @@ use App\AtProto\Identity\Exception\ProviderUnreachable;
 use App\AtProto\OAuth\AuthorizationServerLocator;
 use App\AtProto\OAuth\Exception\OAuthError;
 use App\AtProto\Provider\ProviderCatalog;
+use App\AtProto\Provider\Region;
 use App\Security\AuthorizationFlow;
 use App\Security\LoginFailure;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -31,10 +32,8 @@ final class ProviderController extends AbstractController
     ) {}
 
     #[Route('/providers', name: 'providers', methods: ['GET'])]
-    public function list(
-        #[MapQueryParameter(filter: \FILTER_VALIDATE_REGEXP, options: ['regexp' => '/^(eu|us)$/'])]
-        ?string $region = null,
-    ): Response {
+    public function list(#[MapQueryParameter] ?Region $region = null): Response
+    {
         if (null !== $this->getUser()) {
             return $this->redirectToRoute('feeds');
         }
@@ -70,13 +69,13 @@ final class ProviderController extends AbstractController
         }
     }
 
-    private function renderList(?string $region, ?string $error): Response
+    private function renderList(?Region $region, ?string $error): Response
     {
         return $this->render(
             'provider/index.html.twig',
             [
                 'providers' => $this->catalog->inRegion($region),
-                'region' => $region,
+                'region' => $region?->value,
                 'directory_url' => $this->directoryUrl,
                 'self_hosting_url' => $this->selfHostingUrl,
                 'error' => $error,

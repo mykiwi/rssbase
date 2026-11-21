@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Unit\AtProto\OAuth;
 
 use App\AtProto\OAuth\SignedState;
+use App\AtProto\OAuth\Site;
+use App\AtProto\OAuth\State;
 use PHPUnit\Framework\TestCase;
 
 final class SignedStateTest extends TestCase
@@ -12,15 +14,16 @@ final class SignedStateTest extends TestCase
     public function testAStateGivesBackTheSiteItWasIssuedFor(): void
     {
         $signedState = new SignedState('secret');
-        $state = $signedState->issue('http://fr.rssbase.localhost:8000');
+        $site = self::site('http://fr.rssbase.localhost:8000');
+        $state = $signedState->issue($site);
 
-        static::assertSame('http://fr.rssbase.localhost:8000', $signedState->site($state));
-        static::assertNotSame($state, $signedState->issue('http://fr.rssbase.localhost:8000'));
+        static::assertSame('http://fr.rssbase.localhost:8000', $signedState->site($state)?->value);
+        static::assertFalse($state->equals($signedState->issue($site)));
     }
 
     public function testAStateIssuedWithAnotherSecretIsRefused(): void
     {
-        $state = new SignedState('another secret')->issue('https://rssbase.example');
+        $state = new SignedState('another secret')->issue(self::site('https://rssbase.example'));
 
         static::assertNull(new SignedState('secret')->site($state));
     }
@@ -28,19 +31,22 @@ final class SignedStateTest extends TestCase
     public function testAStateWhoseSiteWasReplacedIsRefused(): void
     {
         $signedState = new SignedState('secret');
-        [, $signature] = explode('.', $signedState->issue('https://rssbase.example'), limit: 2);
-        [$foreignPayload] = explode('.', $signedState->issue('https://evil.example'), limit: 2);
+        [, $signature] = explode('.', $signedState->issue(self::site('https://rssbase.example'))->value, limit: 2);
+        [$foreignPayload] = explode('.', $signedState->issue(self::site('https://evil.example'))->value, limit: 2);
 
-        static::assertNull($signedState->site("{$foreignPayload}.{$signature}"));
+        static::assertNull($signedState->site(new State("{$foreignPayload}.{$signature}")));
     }
 
     public function testASiteThatIsNotAnOriginIsRefused(): void
     {
         $signedState = new SignedState('secret');
 
-        static::assertNull($signedState->site($signedState->issue(
-            'https://rssbase.example/path?next=https://evil.example',
-        )));
-        static::assertNull($signedState->site('forged'));
+        static::assertNull(Site::tryFrom('https://rssbase.example/path?next=https://evil.example'));
+        static::assertNull($signedState->site(new State('forged')));
+    }
+
+    private static function site(string $value): Site
+    {
+        return Site::tryFrom($value) ?? throw new \InvalidArgumentException("\"{$value}\" is not a site.");
     }
 }

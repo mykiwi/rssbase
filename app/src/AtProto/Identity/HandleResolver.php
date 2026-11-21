@@ -13,8 +13,6 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 final readonly class HandleResolver
 {
-    private const string DID_SYNTAX = '/^did:[a-z]+:[a-zA-Z0-9._:%-]+$/';
-
     public function __construct(
         private DnsTxtRecords $dns,
         #[Autowire(service: 'atproto.client')]
@@ -22,35 +20,29 @@ final readonly class HandleResolver
     ) {}
 
     /**
-     * @return non-empty-string|null the DID the domain of the handle declares, if any
+     * @return ?Did the DID the domain of the handle declares, if any
      */
-    public function resolve(Handle $handle): ?string
+    public function resolve(Handle $handle): ?Did
     {
         return $this->resolveWithDns($handle) ?? $this->resolveWithWellKnown($handle);
     }
 
-    /**
-     * @return non-empty-string|null
-     */
-    private function resolveWithDns(Handle $handle): ?string
+    private function resolveWithDns(Handle $handle): ?Did
     {
         $dids = [];
         foreach ($this->dns->lookup("_atproto.{$handle}") as $record) {
-            $did = str_starts_with($record, 'did=') ? substr($record, offset: 4) : '';
+            $did = Did::tryFrom(str_starts_with($record, 'did=') ? substr($record, offset: 4) : '');
 
-            if (1 === preg_match(self::DID_SYNTAX, $did)) {
+            if (null !== $did) {
                 $dids[] = $did;
             }
         }
 
         // Several DIDs make the handle ambiguous, which the specification treats as no DID.
-        return 1 === \count($dids) && '' !== $dids[0] ? $dids[0] : null;
+        return 1 === \count($dids) ? $dids[0] : null;
     }
 
-    /**
-     * @return non-empty-string|null
-     */
-    private function resolveWithWellKnown(Handle $handle): ?string
+    private function resolveWithWellKnown(Handle $handle): ?Did
     {
         try {
             $response = $this->client->request('GET', "https://{$handle}/.well-known/atproto-did");
@@ -58,12 +50,10 @@ final readonly class HandleResolver
                 return null;
             }
 
-            $did = trim($response->getContent());
+            return Did::tryFrom(trim($response->getContent()));
         } catch (ExceptionInterface) {
             // A domain without a server is a handle that names no account.
             return null;
         }
-
-        return 1 === preg_match(self::DID_SYNTAX, $did) && '' !== $did ? $did : null;
     }
 }

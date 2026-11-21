@@ -61,15 +61,18 @@ final class LoginController extends AbstractController
         }
     }
 
+    /**
+     * @param string $typed what the visitor typed, shown again as it was
+     */
     private function renderForm(
-        string $handle,
+        string $typed,
         ?\Throwable $error,
         int $status = Response::HTTP_UNPROCESSABLE_ENTITY,
     ): Response {
         return $this->render(
             'login/index.html.twig',
             [
-                'handle' => $handle,
+                'handle' => $typed,
                 'error' => match (true) {
                     null === $error => null,
                     $error instanceof LoginFailure => $error->getMessageKey(),

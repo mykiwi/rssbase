@@ -9,12 +9,9 @@ namespace App\AtProto\Identity;
  */
 final readonly class Identity
 {
-    /**
-     * @param non-empty-string $did
-     */
     public function __construct(
-        public string $did,
+        public Did $did,
         public Handle $handle,
-        public string $pds,
+        public Pds $pds,
     ) {}
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration;
 
+use App\AtProto\Identity\Did;
+use App\AtProto\Identity\Handle;
 use App\Entity\Account;
 use App\Repository\AccountRepository;
 use Doctrine\DBAL\Connection;
@@ -27,10 +29,10 @@ final class AccountRepositoryTest extends KernelTestCase
 
     public function testAFirstLoginRecordsTheHandleAndTheDateOfTheDatabase(): void
     {
-        $this->accounts->recordLogin(self::DID, handle: 'alice.fake.test');
+        $this->accounts->recordLogin(self::did(), Handle::fromString('alice.fake.test'));
 
         $account = $this->account();
-        static::assertSame('alice.fake.test', $account->getHandle());
+        static::assertSame('alice.fake.test', $account->getHandle()->value);
         // The clock of SQLite, in UTC: a second may pass between the login and this query.
         static::assertEqualsWithDelta(
             (int) $this->connection->fetchOne("SELECT unixepoch('now')"),
@@ -41,10 +43,10 @@ final class AccountRepositoryTest extends KernelTestCase
 
     public function testALaterLoginMovesTheDateWithoutASecondRow(): void
     {
-        $this->accounts->recordLogin(self::DID, handle: 'alice.fake.test');
+        $this->accounts->recordLogin(self::did(), Handle::fromString('alice.fake.test'));
         $this->connection->executeStatement("UPDATE account SET last_login_at = '2026-01-01 00:00:00'");
 
-        $this->accounts->recordLogin(self::DID, handle: 'alice.fake.test');
+        $this->accounts->recordLogin(self::did(), Handle::fromString('alice.fake.test'));
 
         static::assertSame(1, (int) $this->connection->fetchOne('SELECT COUNT(*) FROM account'));
         static::assertGreaterThan(new \DateTimeImmutable('2026-01-01 00:00:00'), $this->account()->getLastLoginAt());
@@ -52,18 +54,23 @@ final class AccountRepositoryTest extends KernelTestCase
 
     public function testANewHandleOnTheSameDidUpdatesTheRow(): void
     {
-        $this->accounts->recordLogin(self::DID, handle: 'alice.fake.test');
-        $this->accounts->recordLogin(self::DID, handle: 'alice.example.org');
+        $this->accounts->recordLogin(self::did(), Handle::fromString('alice.fake.test'));
+        $this->accounts->recordLogin(self::did(), Handle::fromString('alice.example.org'));
 
         static::assertSame(1, (int) $this->connection->fetchOne('SELECT COUNT(*) FROM account'));
-        static::assertSame('alice.example.org', $this->account()->getHandle());
+        static::assertSame('alice.example.org', $this->account()->getHandle()->value);
     }
 
     private function account(): Account
     {
         self::service(EntityManagerInterface::class)->clear();
 
-        return $this->accounts->findOneBy(['did' => self::DID]) ?? throw new \RuntimeException('No account row.');
+        return $this->accounts->findOneBy(['did' => self::did()]) ?? throw new \RuntimeException('No account row.');
+    }
+
+    private static function did(): Did
+    {
+        return Did::fromString(self::DID);
     }
 
     /**

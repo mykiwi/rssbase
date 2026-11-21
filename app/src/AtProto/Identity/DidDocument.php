@@ -15,16 +15,16 @@ use App\AtProto\JsonObject;
 final readonly class DidDocument
 {
     private function __construct(
-        public ?string $handle,
-        public string $pds,
+        public ?Handle $handle,
+        public Pds $pds,
     ) {}
 
     /**
      * @throws AccountNotFound when the document describes another DID or declares no PDS
      */
-    public static function fromJson(string $did, JsonObject $document): self
+    public static function fromJson(Did $did, JsonObject $document): self
     {
-        if ($document->string('id') !== $did) {
+        if ($document->string('id') !== $did->value) {
             throw new AccountNotFound(\sprintf('The document of "%s" describes another DID.', $did));
         }
 
@@ -34,27 +34,30 @@ final readonly class DidDocument
         );
     }
 
-    private static function declaredHandle(JsonObject $document): ?string
+    /**
+     * @return ?Handle the first handle the document claims, or null when it claims none that is valid
+     */
+    private static function declaredHandle(JsonObject $document): ?Handle
     {
         foreach ($document->strings('alsoKnownAs') as $alias) {
             if (str_starts_with($alias, 'at://')) {
-                return substr($alias, offset: \strlen('at://'));
+                return Handle::tryFrom(substr($alias, offset: \strlen('at://')));
             }
         }
 
         return null;
     }
 
-    private static function declaredPds(string $did, JsonObject $document): ?string
+    private static function declaredPds(Did $did, JsonObject $document): ?Pds
     {
         foreach ($document->objects('service') as $service) {
-            $endpoint = $service->string('serviceEndpoint') ?? '';
             $isPds =
                 \in_array($service->string('id'), ['#atproto_pds', "{$did}#atproto_pds"], strict: true)
                 && 'AtprotoPersonalDataServer' === $service->string('type');
+            $pds = $isPds ? Pds::tryFrom($service->string('serviceEndpoint') ?? '') : null;
 
-            if ($isPds && str_starts_with($endpoint, 'https://')) {
-                return rtrim($endpoint, characters: '/');
+            if (null !== $pds) {
+                return $pds;
             }
         }
 

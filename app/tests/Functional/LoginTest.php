@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional;
 
+use App\AtProto\Identity\Did;
+use App\AtProto\Identity\Handle;
 use App\Security\AtProtoUser;
 use App\Tests\Fake\FakeAtProtoNetwork;
 use Doctrine\DBAL\Connection;
@@ -90,7 +92,12 @@ final class LoginTest extends WebTestCase
     public function testASignedInUserWhoOpensTheHomeOrTheLoginPageIsSentToMyFeeds(): void
     {
         $client = static::createClient();
-        $client->loginUser(new AtProtoUser(FakeAtProtoNetwork::ALICE_DID, FakeAtProtoNetwork::ALICE));
+        $client->loginUser(
+            new AtProtoUser(
+                Did::fromString(FakeAtProtoNetwork::ALICE_DID),
+                Handle::fromString(FakeAtProtoNetwork::ALICE),
+            ),
+        );
 
         foreach (['/', '/login'] as $page) {
             $client->request('GET', $page);
@@ -101,7 +108,12 @@ final class LoginTest extends WebTestCase
     public function testASignedInUserSeesMyFeeds(): void
     {
         $client = static::createClient();
-        $client->loginUser(new AtProtoUser(FakeAtProtoNetwork::ALICE_DID, FakeAtProtoNetwork::ALICE));
+        $client->loginUser(
+            new AtProtoUser(
+                Did::fromString(FakeAtProtoNetwork::ALICE_DID),
+                Handle::fromString(FakeAtProtoNetwork::ALICE),
+            ),
+        );
         $client->request('GET', uri: '/feeds');
 
         self::assertResponseIsSuccessful();

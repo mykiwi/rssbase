@@ -20,34 +20,30 @@ final readonly class SignedState
         private string $secret,
     ) {}
 
-    /**
-     * @param string $site the scheme, host and port of the site, such as "http://fr.localhost:8000"
-     */
-    public function issue(string $site): string
+    public function issue(Site $site): State
     {
         $payload = Base64Url::encode(json_encode(
-            ['site' => $site, 'nonce' => bin2hex(random_bytes(16))],
+            ['site' => $site->value, 'nonce' => bin2hex(random_bytes(16))],
             \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES,
         ));
 
-        return $payload . '.' . $this->sign($payload);
+        return new State($payload . '.' . $this->sign($payload));
     }
 
     /**
-     * @return ?string the site the state was issued for, or null when the state was not issued here
+     * @return ?Site the site the state was issued for, or null when the state was not issued here
      */
-    public function site(string $state): ?string
+    public function site(State $state): ?Site
     {
-        [$payload, $signature] = explode('.', $state, limit: 2) + ['', ''];
+        [$payload, $signature] = explode('.', $state->value, limit: 2) + ['', ''];
 
         if ('' === $payload || !hash_equals($this->sign($payload), $signature)) {
             return null;
         }
 
         $decoded = base64_decode(strtr($payload, from: '-_', to: '+/'), strict: true);
-        $site = JsonObject::fromJson(false === $decoded ? '' : $decoded)->string('site');
 
-        return null !== $site && 1 === preg_match('~^https?://[a-z0-9.\[\]:-]+$~', $site) ? $site : null;
+        return Site::tryFrom(JsonObject::fromJson(false === $decoded ? '' : $decoded)->string('site') ?? '');
     }
 
     private function sign(string $payload): string

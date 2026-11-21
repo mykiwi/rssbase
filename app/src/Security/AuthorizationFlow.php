@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Security;
 
+use App\AtProto\Identity\Did;
 use App\AtProto\Identity\Exception\AccountNotFound;
 use App\AtProto\Identity\Exception\ProviderUnreachable;
 use App\AtProto\Identity\Identity;
@@ -14,6 +15,7 @@ use App\AtProto\OAuth\Exception\OAuthError;
 use App\AtProto\OAuth\OAuthClient;
 use App\AtProto\OAuth\PendingAuthorization;
 use App\AtProto\OAuth\SignedState;
+use App\AtProto\OAuth\Site;
 use App\AtProto\OAuth\TokenSet;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -43,11 +45,11 @@ final readonly class AuthorizationFlow
      */
     public function start(Request $request, AuthorizationServer $server, ?Identity $identity): RedirectResponse
     {
-        $state = $this->signedState->issue($request->getSchemeAndHttpHost());
-        [$pending, $url] = $this->client->authorize($server, $state, $identity);
-        $request->getSession()->set(self::PENDING, $pending);
+        $state = $this->signedState->issue(Site::ofRequest($request));
+        $pushed = $this->client->authorize($server, $state, $identity);
+        $request->getSession()->set(self::PENDING, $pushed->pending);
 
-        return new RedirectResponse($url);
+        return new RedirectResponse($pushed->redirectUrl->value);
     }
 
     /**
@@ -92,14 +94,12 @@ final readonly class AuthorizationFlow
      * The account the server authorized must be the one the visitor asked for. Starting from a provider,
      * the account is new to RssBase: its DID must lead back to the server that issued the tokens.
      *
-     * @param non-empty-string $did
-     *
      * @see https://atproto.com/specs/oauth#identity-authentication
      */
-    private function confirmedIdentity(PendingAuthorization $pending, string $did): Identity
+    private function confirmedIdentity(PendingAuthorization $pending, Did $did): Identity
     {
         if (null !== $pending->identity) {
-            return $pending->identity->did === $did
+            return $pending->identity->did->equals($did)
                 ? $pending->identity
                 : throw new AccountNotFound(\sprintf(
                     'The server authorized "%s" instead of "%s".',
@@ -110,7 +110,7 @@ final readonly class AuthorizationFlow
 
         $identity = $this->identityResolver->resolveDid($did);
 
-        if ($this->serverLocator->issuerOf($identity->pds) !== $pending->server->issuer) {
+        if (!$this->serverLocator->issuerOf($identity->pds)->equals($pending->server->issuer)) {
             throw new AccountNotFound(\sprintf('"%s" is not hosted by "%s".', $did, $pending->server->issuer));
         }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\AtProto\OAuth;
 
+use App\AtProto\HttpsUrl;
 use Jose\Component\Core\JWK;
 use Jose\Component\KeyManagement\JWKFactory;
 use Symfony\Component\Security\Http\OAuth2\Dpop\DpopProofFactory;
@@ -35,9 +36,13 @@ final readonly class DpopKey
     /**
      * Signs a proof for one request: each proof has its own "jti".
      */
-    public function proof(string $method, string $url): string
+    public function proof(string $method, HttpsUrl $url): string
     {
-        return new DpopProofFactory(JWK::createFromJson($this->jwk))->createProof($method, $url, nonce: $this->nonce);
+        return new DpopProofFactory(JWK::createFromJson($this->jwk))->createProof(
+            $method,
+            $url->value,
+            nonce: $this->nonce,
+        );
     }
 
     /**

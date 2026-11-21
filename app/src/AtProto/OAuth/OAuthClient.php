@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\AtProto\OAuth;
 
+use App\AtProto\HttpsUrl;
 use App\AtProto\Identity\Exception\ProviderUnreachable;
 use App\AtProto\Identity\Identity;
 use App\AtProto\JsonObject;
@@ -32,37 +33,35 @@ final readonly class OAuthClient
      * @param ?Identity $identity the account the visitor typed the handle of, or null to let them create
      *                            an account at the provider
      *
-     * @return array{PendingAuthorization, string} the request, and the URL to send the visitor to
-     *
      * @throws OAuthError
      * @throws ProviderUnreachable
      */
-    public function authorize(AuthorizationServer $server, string $state, ?Identity $identity): array
+    public function authorize(AuthorizationServer $server, State $state, ?Identity $identity): PushedAuthorization
     {
         $pending = PendingAuthorization::start($state, $server, $identity);
-        $parameters = [
-            'response_type' => 'code',
-            'code_challenge' => $pending->codeChallenge(),
-            'code_challenge_method' => 'S256',
-            'state' => $state,
-            'redirect_uri' => $this->clientIdentity->redirectUri(),
-            'scope' => $this->clientIdentity->scope,
-        ];
-        $parameters += null === $identity ? ['prompt' => 'create'] : ['login_hint' => $identity->handle->value];
-
-        [$response, $dpopKey] = $this->post(
-            $server,
-            $server->pushedAuthorizationRequestEndpoint,
-            $parameters,
-            $pending->dpopKey,
+        $request = FormBody::of(
+            response_type: 'code',
+            code_challenge: $pending->codeChallenge(),
+            code_challenge_method: 'S256',
+            state: $state->value,
+            redirect_uri: $this->clientIdentity->redirectUri(),
+            scope: $this->clientIdentity->scope->value,
         );
-        $requestUri = $response->string('request_uri') ?? throw new ProviderUnreachable(\sprintf(
+        $request = null === $identity
+            ? $request->with(prompt: 'create')
+            : $request->with(login_hint: $identity->handle->value);
+
+        $response = $this->post($server, $server->pushedAuthorizationRequestEndpoint, $request, $pending->dpopKey);
+        $requestUri = $response->body->string('request_uri') ?? throw new ProviderUnreachable(\sprintf(
             '"%s" gave no request URI.',
             $server->issuer,
         ));
         $query = http_build_query(['client_id' => $this->clientIdentity->clientId(), 'request_uri' => $requestUri]);
 
-        return [$pending->withDpopKey($dpopKey), "{$server->authorizationEndpoint}?{$query}"];
+        return new PushedAuthorization(
+            $pending->withDpopKey($response->dpopKey),
+            $server->authorizationEndpoint->withQuery($query),
+        );
     }
 
     /**
@@ -74,20 +73,15 @@ final readonly class OAuthClient
      */
     public function exchangeCode(PendingAuthorization $pending, #[\SensitiveParameter] string $code): TokenSet
     {
-        $body = [
-            'grant_type' => 'authorization_code',
-            'code' => $code,
-            'redirect_uri' => $this->clientIdentity->redirectUri(),
-            'code_verifier' => $pending->codeVerifier,
-        ];
-        [$response, $dpopKey] = $this->post(
-            $pending->server,
-            $pending->server->tokenEndpoint,
-            $body,
-            $pending->dpopKey,
+        $body = FormBody::of(
+            grant_type: 'authorization_code',
+            code: $code,
+            redirect_uri: $this->clientIdentity->redirectUri(),
+            code_verifier: $pending->codeVerifier,
         );
+        $response = $this->post($pending->server, $pending->server->tokenEndpoint, $body, $pending->dpopKey);
 
-        return TokenSet::fromResponse($response, $pending->server, $dpopKey);
+        return TokenSet::fromResponse($response->body, $pending->server, $response->dpopKey);
     }
 
     /**
@@ -99,11 +93,11 @@ final readonly class OAuthClient
      */
     public function refresh(TokenSet $tokens): TokenSet
     {
-        $body = ['grant_type' => 'refresh_token', 'refresh_token' => $tokens->refreshToken()];
-        [$response, $dpopKey] = $this->post($tokens->server, $tokens->server->tokenEndpoint, $body, $tokens->dpopKey);
-        $refreshed = TokenSet::fromResponse($response, $tokens->server, $dpopKey);
+        $body = FormBody::of(grant_type: 'refresh_token', refresh_token: $tokens->refreshToken());
+        $response = $this->post($tokens->server, $tokens->server->tokenEndpoint, $body, $tokens->dpopKey);
+        $refreshed = TokenSet::fromResponse($response->body, $tokens->server, $response->dpopKey);
 
-        if ($refreshed->did !== $tokens->did) {
+        if (!$refreshed->did->equals($tokens->did)) {
             throw new ProviderUnreachable(\sprintf(
                 '"%s" refreshed the tokens of another account.',
                 $tokens->server->issuer,
@@ -115,37 +109,27 @@ final readonly class OAuthClient
 
     /**
      * Sends a request with a fresh DPoP proof, and sends it once more when the server asks for its nonce.
-     *
-     * @param array<string, string> $body
-     *
-     * @return array{JsonObject, DpopKey} the response, and the key with the last nonce of the server
      */
-    private function post(AuthorizationServer $server, string $url, array $body, DpopKey $dpopKey): array
+    private function post(AuthorizationServer $server, HttpsUrl $url, FormBody $body, DpopKey $dpopKey): DpopResponse
     {
-        [$status, $response, $nonce] = $this->send($server, $url, $body, $dpopKey);
+        $response = $this->send($server, $url, $body, $dpopKey);
 
-        if ('use_dpop_nonce' === $response->string('error') && $nonce !== $dpopKey->nonce) {
-            $dpopKey = $dpopKey->withNonce($nonce);
-            [$status, $response, $nonce] = $this->send($server, $url, $body, $dpopKey);
+        if ($response->asksForNonce() && $response->dpopKey->nonce !== $dpopKey->nonce) {
+            $response = $this->send($server, $url, $body, $response->dpopKey);
         }
 
-        if ($status >= 200 && $status < 300) {
-            return [$response, $dpopKey->withNonce($nonce)];
+        if ($response->isSuccess()) {
+            return $response;
         }
 
-        throw new OAuthError($response->string('error') ?? "HTTP {$status}", $url);
+        throw new OAuthError($response->body->string('error') ?? "HTTP {$response->status}", $url);
     }
 
-    /**
-     * @param array<string, string> $body
-     *
-     * @return array{int, JsonObject, string} the status, the body and the DPoP nonce of the response
-     */
-    private function send(AuthorizationServer $server, string $url, array $body, DpopKey $dpopKey): array
+    private function send(AuthorizationServer $server, HttpsUrl $url, FormBody $body, DpopKey $dpopKey): DpopResponse
     {
         try {
-            $response = $this->client->request('POST', $url, [
-                'body' => $this->clientIdentity->authenticate($body, $server->issuer),
+            $response = $this->client->request('POST', $url->value, [
+                'body' => $this->clientIdentity->authenticate($body, $server->issuer)->fields(),
                 'headers' => ['DPoP' => $dpopKey->proof('POST', $url)],
             ]);
 
@@ -155,7 +139,11 @@ final readonly class OAuthClient
                 $url,
             ));
 
-            return [$response->getStatusCode(), new JsonObject($response->toArray(throw: false)), $nonce];
+            return new DpopResponse(
+                $response->getStatusCode(),
+                new JsonObject($response->toArray(throw: false)),
+                $dpopKey->withNonce($nonce),
+            );
         } catch (ExceptionInterface $exception) {
             throw new ProviderUnreachable(\sprintf('"%s" does not answer.', $url), previous: $exception);
         }

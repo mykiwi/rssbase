@@ -6,6 +6,8 @@ namespace App\Controller;
 
 use App\AtProto\OAuth\ClientIdentity;
 use App\AtProto\OAuth\SignedState;
+use App\AtProto\OAuth\Site;
+use App\AtProto\OAuth\State;
 use App\Security\LoginFailure;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -23,14 +25,16 @@ final class OAuthCallbackController extends AbstractController
     #[Route(ClientIdentity::CALLBACK_PATH, name: 'oauth_callback', methods: ['GET'])]
     public function __invoke(Request $request, SignedState $signedState): RedirectResponse
     {
-        $site = $signedState->site($request->query->getString('state'));
+        $site = $signedState->site(new State($request->query->getString('state')));
 
-        if (null === $site || $site === $request->getSchemeAndHttpHost()) {
+        if (null === $site || $site->equals(Site::ofRequest($request))) {
             $request->getSession()->set(SecurityRequestAttributes::AUTHENTICATION_ERROR, LoginFailure::failed());
 
             return $this->redirectToRoute('login');
         }
 
-        return new RedirectResponse($site . ClientIdentity::CALLBACK_PATH . '?' . (string) $request->getQueryString());
+        return new RedirectResponse($site->url(
+            ClientIdentity::CALLBACK_PATH . '?' . (string) $request->getQueryString(),
+        ));
     }
 }

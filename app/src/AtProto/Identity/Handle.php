@@ -52,10 +52,7 @@ final readonly class Handle implements \Stringable
         return self::fromString($handle);
     }
 
-    /**
-     * @throws AccountNotFound when the value is not a valid handle
-     */
-    public static function fromString(string $value): self
+    public static function tryFrom(string $value): ?self
     {
         $value = strtolower($value);
         $tld = substr($value, (int) strrpos($value, needle: '.') + 1);
@@ -65,10 +62,18 @@ final readonly class Handle implements \Stringable
             || 1 !== preg_match(self::SYNTAX, $value)
             || \in_array($tld, self::DISALLOWED_TLDS, strict: true)
         ) {
-            throw new AccountNotFound(\sprintf('"%s" is not a valid handle.', $value));
+            return null;
         }
 
         return new self($value);
+    }
+
+    /**
+     * @throws AccountNotFound when the value is not a valid handle
+     */
+    public static function fromString(string $value): self
+    {
+        return self::tryFrom($value) ?? throw new AccountNotFound(\sprintf('"%s" is not a valid handle.', $value));
     }
 
     /**
@@ -77,6 +82,11 @@ final readonly class Handle implements \Stringable
     public static function invalid(): self
     {
         return new self('handle.invalid');
+    }
+
+    public function equals(self $other): bool
+    {
+        return $this->value === $other->value;
     }
 
     public function __toString(): string

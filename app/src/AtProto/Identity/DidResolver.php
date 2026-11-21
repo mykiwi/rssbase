@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\AtProto\Identity;
 
+use App\AtProto\HttpsUrl;
 use App\AtProto\Identity\Exception\AccountNotFound;
 use App\AtProto\Identity\Exception\ProviderUnreachable;
 use App\AtProto\JsonObject;
@@ -30,29 +31,31 @@ final readonly class DidResolver
      * @throws AccountNotFound     when the DID has no valid document
      * @throws ProviderUnreachable when the server of the document does not answer
      */
-    public function resolve(string $did): DidDocument
+    public function resolve(Did $did): DidDocument
     {
         return DidDocument::fromJson($did, $this->fetch(self::documentUrl($did)));
     }
 
-    private static function documentUrl(string $did): string
+    private static function documentUrl(Did $did): HttpsUrl
     {
-        if (1 === preg_match('/^did:plc:[a-z2-7]{24}$/', $did)) {
-            return self::PLC_DIRECTORY . '/' . $did;
+        if (1 === preg_match('/^did:plc:[a-z2-7]{24}$/', $did->value)) {
+            return HttpsUrl::fromString(self::PLC_DIRECTORY . '/' . $did->value);
         }
 
         // AT Protocol only allows did:web on a whole hostname, without a path or a port.
-        if (1 === preg_match('/^did:web:[a-z0-9.-]+$/', $did)) {
-            return 'https://' . substr($did, \strlen('did:web:')) . '/.well-known/did.json';
+        if (1 === preg_match('/^did:web:[a-z0-9.-]+$/', $did->value)) {
+            return HttpsUrl::fromString(
+                'https://' . substr($did->value, \strlen('did:web:')) . '/.well-known/did.json',
+            );
         }
 
         throw new AccountNotFound(\sprintf('"%s" is not a supported DID.', $did));
     }
 
-    private function fetch(string $url): JsonObject
+    private function fetch(HttpsUrl $url): JsonObject
     {
         try {
-            $response = $this->client->request('GET', $url);
+            $response = $this->client->request('GET', $url->value);
             $status = $response->getStatusCode();
 
             if (404 === $status || 410 === $status) {

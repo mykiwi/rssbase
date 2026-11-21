@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Tests\Unit\AtProto\OAuth;
 
 use App\AtProto\Identity\Exception\ProviderUnreachable;
+use App\AtProto\Identity\Pds;
 use App\AtProto\OAuth\AuthorizationServerLocator;
+use App\AtProto\OAuth\Issuer;
 use App\Tests\Fake\FakeAtProtoNetwork;
 use App\Tests\Fake\FakeAuthorizationServer;
 use PHPUnit\Framework\TestCase;
@@ -30,7 +32,7 @@ final class AuthorizationServerLocatorTest extends TestCase
 
         $this->expectException(ProviderUnreachable::class);
 
-        $this->locator->forIssuer('https://impostor.fake.test');
+        $this->locator->forIssuer(Issuer::fromString('https://impostor.fake.test'));
     }
 
     public function testAnEndpointOutsideHttpsIsRefused(): void
@@ -42,7 +44,7 @@ final class AuthorizationServerLocatorTest extends TestCase
 
         $this->expectException(ProviderUnreachable::class);
 
-        $this->locator->forIssuer(FakeAuthorizationServer::ISSUER);
+        $this->locator->forIssuer(Issuer::fromString(FakeAuthorizationServer::ISSUER));
     }
 
     public function testAPdsThatNamesSeveralAuthorizationServersIsRefused(): void
@@ -53,6 +55,6 @@ final class AuthorizationServerLocatorTest extends TestCase
 
         $this->expectException(ProviderUnreachable::class);
 
-        $this->locator->forPds(FakeAtProtoNetwork::PDS);
+        $this->locator->forPds(Pds::fromString(FakeAtProtoNetwork::PDS));
     }
 }

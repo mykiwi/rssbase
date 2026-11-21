@@ -16,7 +16,7 @@ final readonly class PendingAuthorization
      *                            from a provider, where they may create the account
      */
     private function __construct(
-        public string $state,
+        public State $state,
         public AuthorizationServer $server,
         public ?Identity $identity,
         #[\SensitiveParameter]
@@ -24,7 +24,7 @@ final readonly class PendingAuthorization
         public DpopKey $dpopKey,
     ) {}
 
-    public static function start(string $state, AuthorizationServer $server, ?Identity $identity): self
+    public static function start(State $state, AuthorizationServer $server, ?Identity $identity): self
     {
         return new self($state, $server, $identity, Base64Url::encode(random_bytes(32)), DpopKey::generate());
     }
@@ -49,6 +49,6 @@ final readonly class PendingAuthorization
      */
     public function __debugInfo(): array
     {
-        return ['issuer' => $this->server->issuer, 'did' => $this->identity?->did];
+        return ['issuer' => $this->server->issuer->value, 'did' => $this->identity?->did->value];
     }
 }

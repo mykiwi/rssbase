@@ -29,6 +29,11 @@ final readonly class ClientIdentity
     private const string ASSERTION_TYPE = 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer';
 
     /**
+     * What the client requests at each login.
+     */
+    public Scope $scope;
+
+    /**
      * @param string $privateJwk the ES256 private key of a confidential client, as a JWK, or nothing
      */
     public function __construct(
@@ -36,11 +41,13 @@ final readonly class ClientIdentity
         #[\SensitiveParameter]
         private string $privateJwk,
         #[Autowire(param: 'app.atproto.scope')]
-        public string $scope,
+        string $scope,
         #[Autowire(param: 'app.name')]
         private string $name,
         private RequestContext $requestContext,
-    ) {}
+    ) {
+        $this->scope = new Scope($scope);
+    }
 
     public function isConfidential(): bool
     {
@@ -56,7 +63,7 @@ final readonly class ClientIdentity
         // The specification requires exactly "http://localhost", with the redirect URI and the scope in its query.
         return 'http://localhost?'
         . http_build_query(
-            ['redirect_uri' => $this->redirectUri(), 'scope' => $this->scope],
+            ['redirect_uri' => $this->redirectUri(), 'scope' => $this->scope->value],
             encoding_type: \PHP_QUERY_RFC3986,
         );
     }
@@ -91,7 +98,7 @@ final readonly class ClientIdentity
             'grant_types' => ['authorization_code', 'refresh_token'],
             'response_types' => ['code'],
             'redirect_uris' => [$this->redirectUri()],
-            'scope' => $this->scope,
+            'scope' => $this->scope->value,
             'token_endpoint_auth_method' => 'private_key_jwt',
             'token_endpoint_auth_signing_alg' => 'ES256',
             'dpop_bound_access_tokens' => true,
@@ -101,34 +108,29 @@ final readonly class ClientIdentity
 
     /**
      * Adds what identifies the client to the body of a request to an authorization server.
-     *
-     * @param array<string, string> $body
-     *
-     * @return array<string, string>
      */
-    public function authenticate(array $body, string $issuer): array
+    public function authenticate(FormBody $body, Issuer $issuer): FormBody
     {
-        $body['client_id'] = $this->clientId();
+        $body = $body->with(client_id: $this->clientId());
 
-        if ($this->isConfidential()) {
-            $body['client_assertion_type'] = self::ASSERTION_TYPE;
-            $body['client_assertion'] = $this->assertion($issuer);
+        if (!$this->isConfidential()) {
+            return $body;
         }
 
-        return $body;
+        return $body->with(client_assertion_type: self::ASSERTION_TYPE, client_assertion: $this->assertion($issuer));
     }
 
     /**
      * @see https://atproto.com/specs/oauth#confidential-client-authentication
      */
-    private function assertion(string $issuer): string
+    private function assertion(Issuer $issuer): string
     {
         $now = time();
         $key = $this->privateKey();
         $claims = [
             'iss' => $this->clientId(),
             'sub' => $this->clientId(),
-            'aud' => $issuer,
+            'aud' => $issuer->value,
             'jti' => bin2hex(random_bytes(16)),
             'iat' => $now,
             'exp' => $now + 60,
