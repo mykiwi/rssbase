@@ -30,6 +30,7 @@ function all(): int
         'lint' => fail_on_exit_code(lint(...)),
         'analyze' => fail_on_exit_code(analyze(...)),
         'symfony_lsp' => fail_on_exit_code(symfony_lsp(...)),
+        'console_lint' => fail_on_exit_code(console_lint(...)),
         'phpunit' => fail_on_exit_code(phpunit(...)),
         'e2e' => fail_on_exit_code(e2e(...)),
     ];
@@ -99,6 +100,23 @@ function symfony_lsp(): int
     \make('vendor');
 
     return exit_code(['symfony-lsp', 'check']);
+}
+
+#[AsTask(description: 'Lints the container, the templates, the YAML files and the translations with the Symfony console')]
+function console_lint(): int
+{
+    io()->section('Linting with the Symfony console...');
+
+    \make('vendor');
+
+    return max(
+        exit_code(['bin/console', 'lint:container']),
+        // Unlike Mago, it compiles the templates with the Twig environment of the application: it
+        // sees an unknown filter, function or component.
+        exit_code(['bin/console', 'lint:twig', 'templates']),
+        exit_code(['bin/console', 'lint:yaml', 'config', 'translations', '--parse-tags']),
+        exit_code(['bin/console', 'lint:translations']),
+    );
 }
 
 /**
