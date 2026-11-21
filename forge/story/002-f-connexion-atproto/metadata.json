@@ -2,7 +2,7 @@
   "version": 3,
   "title": "Se connecter à RssBase avec son compte AT Protocol",
   "created": "2026-11-21",
-  "updated": "2026-11-21",
+  "updated": "2026-11-22",
   "tags": [
     "authentification",
     "at-protocol",
@@ -24,6 +24,21 @@
       "date": "2026-11-21",
       "type": "Implémentation",
       "description": "Plan livré en 10 étapes, CI=1 castor qa vert (89 tests, 3 E2E). Écarts : preuve DPoP par la DpopProofFactory de Symfony Security 8.2 (déjà fournie) ; prototype cookie échoué sur localhost, repli rssbase.localhost ; avatar direct confirmé dans Chromium ; page d'approbation du faux fournisseur servie par une route Playwright (Symfony refuse un pare-feu déclaré en when@test) ; classes en plus (JsonObject, DidDocument, DnsTxtRecords, AuthorizationFlow, DpopKey, LoginFailure, journal sans code d'autorisation) et faux fournisseur découpé, pour les seuils de Mago ; NoPrivateNetworkHttpClient retiré du conteneur de test (il résout le DNS), testé en unitaire ; base de test migrée par une cible du Makefile ; contrôle des traductions limité au domaine messages ; cookie de session de 90 jours renouvelé à chaque rafraîchissement ; liens externes de l'en-tête masqués sur petit écran une fois connecté. Relecture de sécurité : point de terminaison OAuth hors https refusé."
+    },
+    {
+      "date": "2026-11-21",
+      "type": "Implémentation",
+      "description": "Objets valeur à la place des chaînes et des tableaux (demande utilisateur, f52072f) : Did, Pds, Issuer, HttpsUrl, Scope, State, Site, TokenPair, FormBody, PushedAuthorization, DpopResponse, enums Region et ProviderLabel, types DBAL DidType et HandleType sur l'entité Account. Colonnes inchangées, aucune migration."
+    },
+    {
+      "date": "2026-11-22",
+      "type": "Review",
+      "description": "Review ouverte : corrections requises, 0 bloquant, 2 importants ([SECU] retour OAuth renvoyé vers tout hôte signé, [ROBUSTESSE] rafraîchissement de jeton retenté à chaque requête), 6 mineurs."
+    },
+    {
+      "date": "2026-11-22",
+      "type": "Review",
+      "description": "Prêt à commiter ; 2 importants et 6 mineurs corrigés : [SECU] retour OAuth limité aux sites de RssBase, [ROBUSTESSE] rafraîchissement redemandé après une minute et tout refus OAuth met fin à la session, [SECU] ancien identifiant de session refusé après cinq minutes (SessionRenewal), [ROBUSTESSE] réponses bornées à 256 Kio (BoundedHttpClient), [ROBUSTESSE] Pds limité à un hôte, [TEST] DID propre à AccountRepositoryTest, [CONV] Pds::fromString et JsonObject::text retirés, [DOC] entrée des objets valeur. 1 mineur laissé en dette : [ROBUSTESSE] résolution DNS sans délai propre."
     }
   ]
 }
