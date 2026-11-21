@@ -43,14 +43,6 @@ final readonly class JsonObject
         return \is_string($this->data[$key] ?? null) ? $this->data[$key] : null;
     }
 
-    /**
-     * @return string the string, or an empty one when the key holds no string
-     */
-    public function text(string $key): string
-    {
-        return $this->string($key) ?? '';
-    }
-
     public function int(string $key): ?int
     {
         return \is_int($this->data[$key] ?? null) ? $this->data[$key] : null;

@@ -24,7 +24,7 @@ final readonly class FakeClientVerifier
      */
     public function checkClient(JsonObject $body): void
     {
-        $clientId = $body->text('client_id');
+        $clientId = FakeField::text($body, name: 'client_id');
         $valid = str_starts_with($clientId, 'http://localhost?')
             ? self::isLoopbackClient($clientId, $body)
             : $this->isConfidentialClient($clientId, $body);
@@ -38,7 +38,9 @@ final readonly class FakeClientVerifier
     {
         $key = new JsonObject($this->store->clientKeys[$clientId] ?? []);
         $jws = FakeJwt::parse(
-            self::ASSERTION_TYPE === $body->string('client_assertion_type') ? $body->text('client_assertion') : '',
+            self::ASSERTION_TYPE === $body->string('client_assertion_type')
+                ? FakeField::text($body, name: 'client_assertion')
+                : '',
         );
         $claims = null === $jws ? new JsonObject([]) : FakeJwt::claims($jws);
 
@@ -52,7 +54,7 @@ final readonly class FakeClientVerifier
             abs(time() - ($claims->int('iat') ?? 0)) < 60,
         ];
 
-        return !\in_array(false, $checks, strict: true) && $this->store->useJti($claims->text('jti'));
+        return !\in_array(false, $checks, strict: true) && $this->store->useJti(FakeField::text($claims, name: 'jti'));
     }
 
     /**
@@ -64,7 +66,7 @@ final readonly class FakeClientVerifier
         $declared = [];
         parse_str((string) parse_url($clientId, \PHP_URL_QUERY), $declared);
         $declared = new JsonObject($declared);
-        $declaredRedirect = $declared->text('redirect_uri');
+        $declaredRedirect = FakeField::text($declared, name: 'redirect_uri');
         $redirectUri = $body->string('redirect_uri') ?? $declaredRedirect;
 
         $checks = [

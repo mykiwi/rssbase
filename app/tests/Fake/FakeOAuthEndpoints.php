@@ -50,10 +50,10 @@ final readonly class FakeOAuthEndpoints
         $checks = [
             'code' === $body->string('response_type'),
             'S256' === $body->string('code_challenge_method'),
-            43 === \strlen($body->text('code_challenge')),
-            '' !== $body->text('state'),
-            '' !== $body->text('redirect_uri'),
-            \in_array('atproto', explode(' ', $body->text('scope')), strict: true),
+            43 === \strlen(FakeField::text($body, name: 'code_challenge')),
+            '' !== FakeField::text($body, name: 'state'),
+            '' !== FakeField::text($body, name: 'redirect_uri'),
+            \in_array('atproto', explode(' ', FakeField::text($body, name: 'scope')), strict: true),
         ];
 
         if (\in_array(false, $checks, strict: true)) {

@@ -44,17 +44,17 @@ final readonly class FakeTokenGrants
     private function redeemCode(JsonObject $body, string $jkt): array
     {
         $code = new JsonObject(
-            $this->store->takeCode($body->text('code')) ?? throw new FakeOAuthError('invalid_grant'),
+            $this->store->takeCode(FakeField::text($body, name: 'code')) ?? throw new FakeOAuthError('invalid_grant'),
         );
         $checks = [
             hash_equals(
-                $code->text('code_challenge'),
-                Base64Url::encode(hash('sha256', $body->text('code_verifier'), binary: true)),
+                FakeField::text($code, name: 'code_challenge'),
+                Base64Url::encode(hash('sha256', FakeField::text($body, name: 'code_verifier'), binary: true)),
             ),
-            $code->text('redirect_uri') === $body->text('redirect_uri'),
-            $code->text('client_id') === $body->text('client_id'),
+            FakeField::text($code, name: 'redirect_uri') === FakeField::text($body, name: 'redirect_uri'),
+            FakeField::text($code, name: 'client_id') === FakeField::text($body, name: 'client_id'),
             // The tokens are bound to the key that pushed the request.
-            $code->text('jkt') === $jkt,
+            FakeField::text($code, name: 'jkt') === $jkt,
         ];
 
         if (\in_array(false, $checks, strict: true)) {
@@ -62,10 +62,10 @@ final readonly class FakeTokenGrants
         }
 
         return [
-            'did' => $code->text('did'),
-            'scope' => $this->store->grantedScope ?? $code->text('scope'),
+            'did' => FakeField::text($code, name: 'did'),
+            'scope' => $this->store->grantedScope ?? FakeField::text($code, name: 'scope'),
             'jkt' => $jkt,
-            'client_id' => $code->text('client_id'),
+            'client_id' => FakeField::text($code, name: 'client_id'),
         ];
     }
 
@@ -74,11 +74,12 @@ final readonly class FakeTokenGrants
      */
     private function redeemRefreshToken(JsonObject $body, string $jkt): array
     {
-        $grant = $this->store->takeRefreshToken($body->text('refresh_token')) ?? throw new FakeOAuthError(
-            'invalid_grant',
-        );
+        $grant = $this->store->takeRefreshToken(FakeField::text(
+            $body,
+            name: 'refresh_token',
+        )) ?? throw new FakeOAuthError('invalid_grant');
 
-        if ($grant['jkt'] !== $jkt || $grant['client_id'] !== $body->text('client_id')) {
+        if ($grant['jkt'] !== $jkt || $grant['client_id'] !== FakeField::text($body, name: 'client_id')) {
             throw new FakeOAuthError('invalid_grant');
         }
 

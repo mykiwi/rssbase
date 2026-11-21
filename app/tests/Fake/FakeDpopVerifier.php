@@ -41,7 +41,7 @@ final readonly class FakeDpopVerifier
         }
 
         $key = new JWK($publicKey->all());
-        if (!FakeJwt::verify($jws, $key) || !$this->store->useJti($claims->text('jti'))) {
+        if (!FakeJwt::verify($jws, $key) || !$this->store->useJti(FakeField::text($claims, name: 'jti'))) {
             throw new FakeOAuthError('invalid_dpop_proof');
         }
 
