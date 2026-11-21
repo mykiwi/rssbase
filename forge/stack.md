@@ -1,4 +1,4 @@
-# Stack technique — rssbase
+# Stack technique — RssBase
 
 > Dernière mise à jour : 2026-11-20 — cartographie factuelle de la stack, amorcée par la story `001-t-stack-hello-world`. Chaque entrée est prouvée par un fichier du dépôt (source entre parenthèses) ou marquée _non renseigné_. Contrainte déclarée et version résolue sont distinguées : « contrainte » vient d'un manifeste, « résolu » d'un lockfile ou d'une dérivation Nix.
 

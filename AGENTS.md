@@ -1,7 +1,7 @@
 # Project
 
-rssbase is an RSS reader built on AT Protocol: login and user data (subscriptions, read state, favorites) live in the user's PDS through an open lexicon,
-so switching readers loses nothing. Personal tool first, social layer later. Vision: [`forge/vision.md`](forge/vision.md).
+RssBase is an RSS reader built on AT Protocol: login and user data (subscriptions, read state, favorites) live in the user's PDS through an open lexicon,
+so switching readers loses nothing. Open to any AT Protocol account, social layer later. Vision: [`forge/vision.md`](forge/vision.md).
 
 ## Stack
 

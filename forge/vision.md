@@ -1,8 +1,8 @@
-# Vision — rssbase
+# Vision — RssBase
 
-> Pitch en une phrase : rssbase est un lecteur RSS pour son auteur d'abord, qui résout la captivité des données de lecture en stockant abonnements, état de lecture et favoris dans le PDS AT Protocol de l'utilisateur, via un lexicon ouvert.
+> Pitch en une phrase : RssBase est un lecteur RSS ouvert à tout compte AT Protocol, qui résout la captivité des données de lecture en stockant abonnements, état de lecture et favoris dans le PDS AT Protocol de l'utilisateur, via un lexicon ouvert.
 
-_Document vivant — enrichi au fil du cycle de vie, refondu lors d'un pivot stratégique. Date de dernière mise à jour : 2026-11-20._
+_Document vivant — enrichi au fil du cycle de vie, refondu lors d'un pivot stratégique. Date de dernière mise à jour : 2026-11-21._
 
 ## Changelog
 
@@ -10,6 +10,8 @@ _Document vivant — enrichi au fil du cycle de vie, refondu lors d'un pivot str
 |------|--------|-----|-------|
 | 2026-11-20 | Création | — | Vision initiale |
 | 2026-11-20 | Éditer | Hypothèses | H4 : état de lecture = date du dernier article vu par flux, pas un marqueur par article |
+| 2026-11-21 | Éditer | Métriques | North Star réduite à une condition : abonnements et favoris sont dans le PDS via AT Protocol, l'état de lecture n'y est pas obligatoire. Les conditions d'usage (30 jours) et de second client sont retirées |
+| 2026-11-21 | Éditer | Audience | Plus de limite à un utilisateur en V1 : tout titulaire d'un compte AT Protocol peut utiliser RssBase. Seuils et horizons réalignés |
 
 ## Le problème
 
@@ -23,17 +25,17 @@ Les abonnements, l'état lu/non-lu et les favoris d'un lecteur RSS vivent dans l
 
 ### Utilisateur principal
 
-- **Persona** : l'auteur du projet. Il a un compte AT Protocol (Bluesky), lit ses flux tous les jours et utilise aujourd'hui FreshRSS ou Miniflux.
-- **Volume cible** : 1 utilisateur en V1.
-- **Ce qui le bloque aujourd'hui** : ses données de lecture ne sont pas portables.
+- **Persona** : toute personne qui a un compte AT Protocol (Bluesky ou un autre fournisseur) et lit des flux RSS tous les jours, aujourd'hui dans FreshRSS, Miniflux ou un service hébergé. L'auteur du projet est le premier d'entre eux.
+- **Volume cible** : non défini. Aucune limite au nombre d'utilisateurs.
+- **Ce qui la bloque aujourd'hui** : ses données de lecture ne sont pas portables.
 
 ### Utilisateurs secondaires
 
-Aucun en V1. L'ouverture à d'autres utilisateurs n'intervient qu'après validation de la North Star V1 (voir Horizons).
+Les personnes sans compte AT Protocol : elles en créent un chez un fournisseur avant d'entrer.
 
 ### Hors cible explicite
 
-Tout utilisateur autre que l'auteur, tant que la North Star V1 n'est pas atteinte.
+Qui veut se connecter autrement que par AT Protocol : RssBase n'a pas de compte maison.
 
 ## La proposition de valeur
 
@@ -43,7 +45,7 @@ Changer de lecteur sans rien perdre : abonnements, état de lecture et favoris r
 
 ### Pourquoi nous, plutôt qu'eux
 
-FreshRSS, Miniflux et Feedly stockent la donnée chez eux. rssbase la stocke chez l'utilisateur.
+FreshRSS, Miniflux et Feedly stockent la donnée chez eux. RssBase la stocke chez l'utilisateur.
 
 ### Unfair advantage
 
@@ -53,22 +55,19 @@ Un lexicon AT Protocol ouvert et documenté pour les données d'un lecteur RSS. 
 
 ### North Star
 
-Les deux conditions ensemble :
-
-1. **Usage** : 30 jours d'affilée à lire ses flux uniquement dans rssbase, avec l'ancien lecteur (FreshRSS ou Miniflux) arrêté.
-2. **Portabilité** : un second client, même un simple script, relit abonnements et état de lecture depuis le PDS sans passer par rssbase.
+Les abonnements et les favoris de l'utilisateur sont dans son PDS, écrits par RssBase via AT Protocol. Aucun ne vit seulement dans la base de RssBase. L'état de lecture peut y être aussi, sans que ce soit obligatoire.
 
 ### Métriques secondaires
 
-- **Acquisition** : sans objet en V1 (utilisateur unique).
-- **Activation** : import complet de l'OPML existant et première session de lecture dans rssbase.
-- **Rétention** : nombre de jours consécutifs de lecture dans rssbase.
+- **Acquisition** : nombre de comptes AT Protocol qui se sont connectés au moins une fois.
+- **Activation** : import complet de l'OPML existant et première session de lecture dans RssBase.
+- **Rétention** : nombre de jours consécutifs de lecture dans RssBase.
 - **Monétisation** : sans objet.
 
 ### Seuils
 
-- À 6 mois : North Star V1 atteinte (usage et portabilité).
-- À 1 an : ouverture à d'autres utilisateurs entamée.
+- À 6 mois : North Star atteinte pour les abonnements et les favoris.
+- À 1 an : preuve d'interop par un second client.
 - À 3 ans : non défini.
 
 ### Signal d'arrêt
@@ -105,11 +104,11 @@ L'ancien lecteur est rouvert pour lire au quotidien.
 
 ### 3-6 mois
 
-V1 personnelle qui remplace FreshRSS ou Miniflux au quotidien. Lexicon publié et abonnements publics dans le PDS.
+V1 ouverte à tout compte AT Protocol, qui remplace FreshRSS ou Miniflux au quotidien. Lexicon publié et abonnements publics dans le PDS.
 
 ### 1 an
 
-Preuve d'interop par un second client, puis ouverture à d'autres utilisateurs une fois la North Star V1 validée.
+Preuve d'interop par un second client.
 
 ### 3 ans
 

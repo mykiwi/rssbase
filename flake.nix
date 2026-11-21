@@ -1,5 +1,5 @@
 {
-  description = "rssbase, an RSS reader built on AT Protocol";
+  description = "RssBase, an RSS reader built on AT Protocol";
 
   inputs.multiverse.url = "github:fzakaria/nixpkgs-multiverse";
 
