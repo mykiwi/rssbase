@@ -27,6 +27,16 @@ final readonly class Site implements \Stringable
     }
 
     /**
+     * Whether the site is on the machine of the visitor: "localhost" or one of its subdomains.
+     */
+    public function isLocal(): bool
+    {
+        $host = (string) parse_url($this->value, \PHP_URL_HOST);
+
+        return 'localhost' === $host || str_ends_with($host, '.localhost');
+    }
+
+    /**
      * @param string $path a path on the site, with its leading slash and its query if any
      */
     public function url(string $path): string
