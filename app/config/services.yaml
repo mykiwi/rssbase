@@ -34,8 +34,13 @@ services:
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 
-    # A handle, a did:web or a DID document must not make the application call its own network.
+    # The client of App\AtProto\: a handle, a did:web or a DID document must not make the application
+    # call its own network, nor read an answer without end.
     atproto.client:
+        class: App\AtProto\BoundedHttpClient
+        arguments: ['@atproto.public_network_client']
+
+    atproto.public_network_client:
         class: Symfony\Component\HttpClient\NoPrivateNetworkHttpClient
         arguments: ['@atproto.http_client']
 
@@ -58,5 +63,5 @@ when@test:
 
         # NoPrivateNetworkHttpClient resolves each host through DNS before sending anything: the tests
         # call the fake network directly.
-        atproto.client: '@atproto.http_client'
+        atproto.public_network_client: '@atproto.http_client'
         App\AtProto\Identity\DnsTxtRecords: '@App\Tests\Fake\FakeAtProtoNetwork'
