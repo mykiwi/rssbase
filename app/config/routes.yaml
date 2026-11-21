@@ -9,13 +9,8 @@
 
 controllers:
     resource: routing.controllers
-
-# Declared here because the #[Route] attribute takes a single host, not one per language.
-# The language is in the subdomain: fr.example.org is the French site of example.org.
-home:
-    path: /
-    controller: App\Controller\HomeController
-    methods: [GET]
+    # The language is in the subdomain: fr.example.org is the French site of example.org.
+    # Symfony registers each route of a controller once per language, on the host of the language.
     host:
         fr: 'fr.{domain}'
         en: '{domain}'

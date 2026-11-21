@@ -14,7 +14,7 @@ paths:
 - Use the `{app_name}` placeholder, a global translation parameter, not the name of the application.
 - Use the typographic apostrophe (`’`) in the text of a message: the ASCII one can start a quoted
   section in ICU.
-- A new language also needs its host in the `home` route of `app/config/routes.yaml` (and in the
-  requirement that excludes language subdomains), its locale in `enabled_locales`
+- A new language also needs its host in the `host` map of `app/config/routes.yaml` (and its
+  subdomain in the requirement that excludes language subdomains), its locale in `enabled_locales`
   (`app/config/packages/framework.yaml`), and its entry in the `languages` map of
   `app/templates/home/index.html.twig`.
