@@ -248,7 +248,7 @@ cloisonnement, c'est une trace d'exploitation lue par `bin/console dbal:run-sql`
    - Vérification : tests unitaires OAuth, `ClientMetadataTest`. Vérifier à l'installation que `web-token/jwt-library` signe en ES256 sans `gmp` ni `bcmath`.
    - Commitable seule : oui.
 
-5. [ ] **Connexion par handle**
+5. [x] **Connexion par handle**
    - Objectif : parcours complet par handle, échecs avec message et handle conservé, page demandée retrouvée, déconnexion, redirections d'un utilisateur connecté.
    - Fichiers : `LoginController` (POST), `OAuthCallbackController`, `SignedState`, `AtProtoAuthenticator`, `HomeController`, gabarits, traductions.
    - Vérification : `LoginTest`.

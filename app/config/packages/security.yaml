@@ -12,6 +12,8 @@ security:
             lazy: true
             provider: session
             entry_point: App\Security\LoginEntryPoint
+            custom_authenticators:
+                - App\Security\AtProtoAuthenticator
             logout:
                 path: /logout
                 enable_csrf: true

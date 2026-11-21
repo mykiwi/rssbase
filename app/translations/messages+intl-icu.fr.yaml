@@ -21,8 +21,15 @@ login.handle.label: Handle
 login.handle.placeholder: vous.bsky.social
 login.submit: Continuer
 login.no_password: '{app_name} ne demande jamais votre mot de passe : vous l’approuvez sur le site de votre fournisseur.'
+login.error.account_not_found: Aucun compte n’a ce handle. Vérifiez son orthographe, puis réessayez.
+login.error.provider_unreachable: Votre fournisseur est injoignable pour le moment. Réessayez dans un instant.
+login.error.denied: 'Vous n’avez pas approuvé {app_name} chez votre fournisseur : vous n’êtes pas connecté.'
+login.error.failed: La connexion n’a pas abouti. Réessayez.
+login.error.session_ended: Votre fournisseur a mis fin à votre session. Reconnectez-vous pour continuer.
 
 feeds.page_title: 'Mes flux : {app_name}'
 feeds.title: Mes flux
 feeds.empty.title: Vous ne suivez encore aucun flux
 feeds.empty.text: Les flux que vous suivez s’afficheront ici.
+
+account.logout: Se déconnecter

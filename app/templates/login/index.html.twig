@@ -8,7 +8,7 @@
     <h1 class="text-3xl font-semibold tracking-tight">{{ 'login.title'|trans }}</h1>
     <p class="mt-3 text-(--px-text-2)">{{ 'login.intro'|trans }}</p>
 
-    <form method="post" action="{{ path('login') }}" class="mt-8 flex flex-col" novalidate>
+    <form method="post" action="{{ path('login_start') }}" class="mt-8 flex flex-col" novalidate>
         <label for="handle" class="text-sm font-medium">{{ 'login.handle.label'|trans }}</label>
         <input
             type="text"

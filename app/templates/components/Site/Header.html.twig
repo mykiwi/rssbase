@@ -7,8 +7,9 @@
     en: {name: 'English', english: 'English', flag: '🌐'},
     fr: {name: 'Français', english: 'French', flag: '🇫🇷'},
 } %}
-{# A language link opens the same page on the site of the other language. #}
-{% set route = app.request.attributes.get('_canonical_route') ?? 'home' %}
+{# A language link opens the same page on the site of the other language: the route without its locale suffix.
+   A page answered to a form opens the home page, as the route of the form takes no GET. #}
+{% set route = app.request.method == 'GET' ? (app.request.attributes.get('_route') ?? 'home')|split('.')|first : 'home' %}
 {% set route_params = app.request.attributes.get('_route_params') ?? {} %}
 {# No changelog file or release yet: the commit history is the changelog. #}
 {% set links = [
@@ -71,7 +72,8 @@
             </div>
         </div>
         {% for link in links %}
-            <a href="{{ link.url }}" class="group relative flex size-11 items-center justify-center text-(--px-text-2) transition-colors hover:text-(--px-brand) {{ focus }}">
+            {# Signed in, a narrow screen keeps its room for the account. #}
+            <a href="{{ link.url }}" class="group relative {{ app.user ? 'hidden sm:flex' : 'flex' }} size-11 items-center justify-center text-(--px-text-2) transition-colors hover:text-(--px-brand) {{ focus }}">
                 <svg viewBox="0 0 24 24" class="size-5 {{ link.outlined ? 'fill-none stroke-current stroke-2' : 'fill-current' }}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{{ link.icon|raw }}</svg>
                 {# The name of the link, shown under the icon on hover and on keyboard focus. The last one hangs from the right edge to stay on screen. #}
                 <span class="pointer-events-none absolute top-full mt-1 translate-y-1 border border-(--px-line) bg-(--px-surface) px-2.5 py-1.5 text-xs whitespace-nowrap text-(--px-text) opacity-0 transition duration-150 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 {{ loop.last ? 'right-1' : 'left-1/2 -translate-x-1/2' }}">
@@ -79,5 +81,14 @@
                 </span>
             </a>
         {% endfor %}
+        {% if app.user %}
+            <div data-test="account" class="ml-2 flex items-center gap-2 border-l border-(--px-line) pl-3">
+                <span data-test="account-handle" class="max-w-40 truncate text-sm" title="@{{ app.user.handle }}">@{{ app.user.handle }}</span>
+                <form method="post" action="{{ logout_path() }}">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}" data-controller="csrf-protection">
+                    <button type="submit" class="h-11 px-3 text-sm text-(--px-text-2) transition-colors hover:text-(--px-brand) {{ focus }}">{{ 'account.logout'|trans }}</button>
+                </form>
+            </div>
+        {% endif %}
     </nav>
 </header>
