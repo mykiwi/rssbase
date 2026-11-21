@@ -21,7 +21,7 @@ Run them from the repository root, through the dev shell:
 - `nix develop -c castor install`: installs the application.
 - `nix develop -c castor start`: serves it in the foreground on `http://localhost:8000`, or the next free port. When the code changes, it restarts the workers,
   rebuilds the stylesheet and reloads the browser. `castor stop` stops it.
-- `nix develop -c castor qa`: formats, lints and analyzes with Mago, checks with symfony-lsp and the `bin/console lint:*` commands, runs the PHPUnit `default` and `e2e` suites. With `CI=1`,
+- `nix develop -c castor qa`: formats, lints and analyzes with Mago, checks with symfony-lsp and the `bin/console lint:*` commands, checks the translations, runs the PHPUnit `default` and `e2e` suites. With `CI=1`,
   it checks the formatting instead of fixing it and runs `composer audit`. `castor list` shows the single tasks (`qa:phpunit`, `qa:e2e`...).
 - `nix develop -c castor docker:up`: serves `app/` mounted in the development image on `http://localhost:8080`, or the next free port. When the code
   changes, it restarts the workers and reloads the browser, but only `castor start` rebuilds the stylesheet. `castor docker:down` stops it.

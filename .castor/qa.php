@@ -6,6 +6,7 @@ use Castor\Attribute\AsOption;
 use Castor\Attribute\AsRawTokens;
 use Castor\Attribute\AsTask;
 
+use function Castor\capture;
 use function Castor\exit_code;
 use function Castor\io;
 use function Castor\parallel;
@@ -31,6 +32,7 @@ function all(): int
         'analyze' => fail_on_exit_code(analyze(...)),
         'symfony_lsp' => fail_on_exit_code(symfony_lsp(...)),
         'console_lint' => fail_on_exit_code(console_lint(...)),
+        'translations' => fail_on_exit_code(translations(...)),
         'phpunit' => fail_on_exit_code(phpunit(...)),
         'e2e' => fail_on_exit_code(e2e(...)),
     ];
@@ -102,7 +104,7 @@ function symfony_lsp(): int
     return exit_code(['symfony-lsp', 'check']);
 }
 
-#[AsTask(description: 'Lints the container, the templates, the YAML files and the translations with the Symfony console')]
+#[AsTask(description: 'Lints the container, the templates and the YAML files with the Symfony console')]
 function console_lint(): int
 {
     io()->section('Linting with the Symfony console...');
@@ -115,8 +117,34 @@ function console_lint(): int
         // sees an unknown filter, function or component.
         exit_code(['bin/console', 'lint:twig', 'templates']),
         exit_code(['bin/console', 'lint:yaml', 'config', 'translations', '--parse-tags']),
-        exit_code(['bin/console', 'lint:translations']),
     );
+}
+
+#[AsTask(description: 'Checks the ICU syntax of the translations, and that no message is missing or unused in a language')]
+function translations(): int
+{
+    io()->section('Checking the translations...');
+
+    \make('vendor');
+
+    $exitCode = exit_code(['bin/console', 'lint:translations']);
+
+    /** @var list<string> $locales */
+    $locales = json_decode(
+        capture(['bin/console', 'debug:container', '--parameter', 'kernel.enabled_locales', '--format', 'json']),
+        associative: true,
+        flags: \JSON_THROW_ON_ERROR,
+    )['kernel.enabled_locales'];
+
+    foreach ($locales as $locale) {
+        // One run per state: without an option, the command also fails on a message identical to
+        // its fallback, like a word that both languages share.
+        foreach (['--only-missing', '--only-unused'] as $state) {
+            $exitCode = max($exitCode, exit_code(['bin/console', 'debug:translation', $locale, $state]));
+        }
+    }
+
+    return $exitCode;
 }
 
 /**
