@@ -10,6 +10,7 @@ use App\AtProto\OAuth\OAuthClient;
 use App\Security\AtProtoUser;
 use App\Security\AuthorizationFlow;
 use App\Security\LoginFailure;
+use App\Security\SessionRenewal;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -36,6 +37,7 @@ final readonly class TokenRefreshListener
         private Security $security,
         private AuthorizationFlow $flow,
         private OAuthClient $client,
+        private SessionRenewal $renewal,
         private UrlGeneratorInterface $urlGenerator,
     ) {}
 
@@ -52,12 +54,18 @@ final readonly class TokenRefreshListener
         $session = $event->getRequest()->getSession();
         $now = time();
 
+        if ($this->renewal->isRefused($session, $now)) {
+            $this->endSession($event);
+
+            return;
+        }
+
         if (!$this->isDue($session, $now)) {
             return;
         }
 
         try {
-            $this->refresh($session);
+            $this->refresh($session, $now);
         } catch (OAuthError) {
             // The provider refuses the refresh token, or no longer knows the client: asking again
             // gives the same answer.
@@ -70,14 +78,18 @@ final readonly class TokenRefreshListener
 
     private function isDue(SessionInterface $session, int $now): bool
     {
-        return true === $this->flow->tokens($session)?->isExpired($now) && $this->flow->mayRefresh($session, $now);
+        return (
+            true === $this->flow->tokens($session)?->isExpired($now)
+            && !$this->renewal->isSuperseded($session)
+            && $this->flow->mayRefresh($session, $now)
+        );
     }
 
     /**
      * @throws OAuthError
      * @throws ProviderUnreachable
      */
-    private function refresh(SessionInterface $session): void
+    private function refresh(SessionInterface $session, int $now): void
     {
         $tokens = $this->flow->tokens($session);
 
@@ -87,7 +99,7 @@ final readonly class TokenRefreshListener
 
         $this->flow->saveTokens($session, $this->client->refresh($tokens));
         // A new id renews the expiry of the session cookie: an active session does not expire.
-        $session->migrate();
+        $this->renewal->renew($session, $now);
     }
 
     private function endSession(RequestEvent $event): void
