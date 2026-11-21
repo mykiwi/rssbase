@@ -13,6 +13,7 @@ use App\Security\LoginFailure;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Http\SecurityRequestAttributes;
@@ -26,6 +27,11 @@ use Symfony\Component\Security\Http\SecurityRequestAttributes;
  */
 final readonly class TokenRefreshListener
 {
+    /**
+     * How long the requests of a user do not wait again for a provider that did not answer.
+     */
+    private const int RETRY_DELAY = 60;
+
     public function __construct(
         private Security $security,
         private AuthorizationFlow $flow,
@@ -44,24 +50,44 @@ final readonly class TokenRefreshListener
         }
 
         $session = $event->getRequest()->getSession();
-        $tokens = $this->flow->tokens($session);
+        $now = time();
 
-        if (null === $tokens || !$tokens->isExpired(time())) {
+        if (!$this->isDue($session, $now)) {
             return;
         }
 
         try {
-            $this->flow->saveTokens($session, $this->client->refresh($tokens));
-            // A new id renews the expiry of the session cookie: an active session does not expire.
-            $session->migrate();
-        } catch (OAuthError $error) {
-            if ('invalid_grant' === $error->error) {
-                $this->endSession($event);
-            }
+            $this->refresh($session);
+        } catch (OAuthError) {
+            // The provider refuses the refresh token, or no longer knows the client: asking again
+            // gives the same answer.
+            $this->endSession($event);
         } catch (ProviderUnreachable) {
-            // The provider is down, not the access: the user stays signed in, and the next request tries again.
+            // The provider is down, not the access: the user stays signed in.
+            $this->flow->postponeRefresh($session, new \DateTimeImmutable('@' . ($now + self::RETRY_DELAY)));
+        }
+    }
+
+    private function isDue(SessionInterface $session, int $now): bool
+    {
+        return true === $this->flow->tokens($session)?->isExpired($now) && $this->flow->mayRefresh($session, $now);
+    }
+
+    /**
+     * @throws OAuthError
+     * @throws ProviderUnreachable
+     */
+    private function refresh(SessionInterface $session): void
+    {
+        $tokens = $this->flow->tokens($session);
+
+        if (null === $tokens) {
             return;
         }
+
+        $this->flow->saveTokens($session, $this->client->refresh($tokens));
+        // A new id renews the expiry of the session cookie: an active session does not expire.
+        $session->migrate();
     }
 
     private function endSession(RequestEvent $event): void

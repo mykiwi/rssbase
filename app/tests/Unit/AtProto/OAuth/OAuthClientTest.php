@@ -6,6 +6,7 @@ namespace App\Tests\Unit\AtProto\OAuth;
 
 use App\AtProto\HttpsUrl;
 use App\AtProto\Identity\Did;
+use App\AtProto\Identity\Exception\ProviderUnreachable;
 use App\AtProto\Identity\Handle;
 use App\AtProto\Identity\Identity;
 use App\AtProto\OAuth\AuthorizationServer;
@@ -21,6 +22,7 @@ use App\Tests\Fake\FakeAuthorizationServer;
 use Jose\Component\KeyManagement\JWKFactory;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Component\Routing\RequestContext;
 
 final class OAuthClientTest extends TestCase
@@ -117,6 +119,21 @@ final class OAuthClientTest extends TestCase
         );
 
         $this->client(privateJwk: '')->refresh($tokens);
+    }
+
+    public function testAServerErrorIsNotARefusal(): void
+    {
+        $tokens = $this->signIn();
+        $context = new RequestContext(host: 'rssbase.example');
+        $failing = new MockHttpClient(new MockResponse('{"error":"server_error"}', [
+            'http_code' => 503,
+            'response_headers' => ['content-type' => 'application/json', 'dpop-nonce' => 'nonce-1'],
+        ]));
+
+        // The refresh token is not spent: the session may refresh once the provider answers again.
+        $this->expectException(ProviderUnreachable::class);
+
+        new OAuthClient($failing, new ClientIdentity('', 'atproto repo:*', 'RssBase', $context))->refresh($tokens);
     }
 
     private function signIn(): TokenSet

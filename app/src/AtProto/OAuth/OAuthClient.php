@@ -88,8 +88,8 @@ final readonly class OAuthClient
      * Refresh tokens are single-use: the caller must keep the new set, and only one refresh may run at a
      * time for a session.
      *
-     * @throws OAuthError          "invalid_grant" when the provider ended the access
-     * @throws ProviderUnreachable
+     * @throws OAuthError          when the provider refuses the refresh token: the access ended
+     * @throws ProviderUnreachable when the provider does not answer: the same tokens may refresh later
      */
     public function refresh(TokenSet $tokens): TokenSet
     {
@@ -122,7 +122,15 @@ final readonly class OAuthClient
             return $response;
         }
 
-        throw new OAuthError($response->body->string('error') ?? "HTTP {$response->status}", $url);
+        $error = $response->body->string('error');
+
+        // Only a refusal names an OAuth error. A server error, or a nonce the server asks for twice,
+        // says nothing of the request: the same request may succeed later.
+        if (null === $error || $response->status >= 500 || $response->asksForNonce()) {
+            throw new ProviderUnreachable(\sprintf('"%s" answered %d.', $url, $response->status));
+        }
+
+        throw new OAuthError($error, $url);
     }
 
     private function send(AuthorizationServer $server, HttpsUrl $url, FormBody $body, DpopKey $dpopKey): DpopResponse
