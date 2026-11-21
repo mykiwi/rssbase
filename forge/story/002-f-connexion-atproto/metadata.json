@@ -1,0 +1,24 @@
+{
+  "version": 3,
+  "title": "Se connecter à RssBase avec son compte AT Protocol",
+  "created": "2026-11-21",
+  "updated": "2026-11-21",
+  "tags": [
+    "authentification",
+    "at-protocol",
+    "mvp"
+  ],
+  "backlog": "connexion-atproto",
+  "changelog": [
+    {
+      "date": "2026-11-21",
+      "type": "Création",
+      "description": "Pitch rédigé : connexion par handle, session tant que le fournisseur l'autorise, espace réservé « Mes flux », choix d'un fournisseur pour qui n'a pas de compte, trace de connexion."
+    },
+    {
+      "date": "2026-11-21",
+      "type": "Planification",
+      "description": "Plan technique rédigé : client OAuth maison (confidentiel et boucle locale) sur Symfony Security, jetons en session PHP, table account. Pitch réaligné : écriture sur tout le compte dans un premier temps, quatre questions tranchées."
+    }
+  ]
+}
