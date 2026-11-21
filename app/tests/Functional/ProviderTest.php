@@ -44,7 +44,11 @@ final class ProviderTest extends WebTestCase
             $client
                 ->getCrawler()
                 ->filter('[data-test="providers"] button > span:first-child')
-                ->each(static fn($node): string => (string) preg_replace('/\s+/', replacement: ' ', subject: trim($node->text()))),
+                ->each(static fn($node): string => (string) preg_replace(
+                    '/\s+/',
+                    replacement: ' ',
+                    subject: trim($node->text()),
+                )),
         );
     }
 

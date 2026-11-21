@@ -9,6 +9,7 @@ use App\AtProto\Identity\Exception\ProviderUnreachable;
 use App\AtProto\OAuth\ClientIdentity;
 use App\AtProto\OAuth\Exception\OAuthError;
 use App\AtProto\OAuth\SignedState;
+use App\AtProto\Profile\AvatarLocator;
 use App\Repository\AccountRepository;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -37,6 +38,7 @@ final class AtProtoAuthenticator extends AbstractAuthenticator
         private readonly AuthorizationFlow $flow,
         private readonly UrlGeneratorInterface $urlGenerator,
         private readonly AccountRepository $accounts,
+        private readonly AvatarLocator $avatarLocator,
     ) {}
 
     /**
@@ -81,7 +83,13 @@ final class AtProtoAuthenticator extends AbstractAuthenticator
         }
 
         $canWrite = $this->flow->tokens($request->getSession())?->grantsWrite() ?? false;
-        $user = new AtProtoUser($identity->did, $identity->handle->value, canWrite: $canWrite);
+        // Read once per login: the avatar lives as long as the session.
+        $user = new AtProtoUser(
+            $identity->did,
+            $identity->handle->value,
+            $this->avatarLocator->locate($identity),
+            $canWrite,
+        );
 
         return new SelfValidatingPassport(new UserBadge($identity->did, static fn(): AtProtoUser => $user));
     }

@@ -83,6 +83,12 @@
         {% endfor %}
         {% if app.user %}
             <div data-test="account" class="ml-2 flex items-center gap-2 border-l border-(--px-line) pl-3">
+                {# The handle next to it names the account: the image is decorative. #}
+                {% if app.user.avatarUrl %}
+                    <img src="{{ app.user.avatarUrl }}" alt="" width="32" height="32" referrerpolicy="no-referrer" data-test="account-avatar" class="size-8 shrink-0 rounded-full bg-(--px-surface) object-cover">
+                {% else %}
+                    <svg viewBox="0 0 32 32" data-test="account-avatar-neutral" class="size-8 shrink-0 rounded-full bg-(--px-surface) fill-(--px-text-2)" aria-hidden="true"><circle cx="16" cy="12.5" r="5.5"/><path d="M6 27.5c1.6-5 5.5-7.5 10-7.5s8.4 2.5 10 7.5a14 14 0 0 1-20 0Z"/></svg>
+                {% endif %}
                 <span data-test="account-handle" class="max-w-40 truncate text-sm" title="@{{ app.user.handle }}">@{{ app.user.handle }}</span>
                 <form method="post" action="{{ logout_path() }}">
                     <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}" data-controller="csrf-protection">

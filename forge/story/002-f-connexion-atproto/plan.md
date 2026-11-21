@@ -266,13 +266,13 @@ cloisonnement, c'est une trace d'exploitation lue par `bin/console dbal:run-sql`
    - Vérification : `SessionTest`. Commencer par le prototype de la première question ouverte, dans Chromium.
    - Commitable seule : oui.
 
-8. [x] **Choix d’un fournisseur**
+8. [x] **Choix d'un fournisseur**
    - Objectif : écran des fournisseurs avec filtre et liens ; départ direct et retour connecté.
    - Fichiers : `Provider`, `ProviderCatalog`, `ProviderController`, gabarit, `services.yaml`, traductions.
    - Vérification : `ProviderTest`.
    - Commitable seule : oui.
 
-9. [ ] **Compte affiché**
+9. [x] **Compte affiché**
    - Objectif : avatar ou image neutre et handle dans l'en-tête des pages réservées.
    - Fichiers : `AvatarLocator`, `Site/Header.html.twig`, authentificateur.
    - Vérification : tests fonctionnels avec et sans enregistrement de profil.

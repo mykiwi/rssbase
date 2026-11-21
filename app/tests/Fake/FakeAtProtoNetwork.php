@@ -20,7 +20,9 @@ final class FakeAtProtoNetwork implements DnsTxtRecords
     public const string ALICE = 'alice.fake.test';
     public const string ALICE_DID = 'did:plc:alice234567abcdefghijklm';
 
-    /** Resolved through the well-known file of its domain. */
+    public const string ALICE_AVATAR_CID = 'bafkreialiceavatar234567abcdefghijklmnopqrstuvwxyz2345';
+
+    /** Resolved through the well-known file of its domain, without a profile. */
     public const string BOB = 'bob.bsky.social';
     public const string BOB_DID = 'did:plc:bob234567abcdefghijklmno';
 
@@ -58,6 +60,22 @@ final class FakeAtProtoNetwork implements DnsTxtRecords
         );
 
         self::addAccount(self::ALICE, self::ALICE_DID);
+        self::publish(self::PDS
+        . '/xrpc/com.atproto.repo.getRecord?repo='
+        . self::ALICE_DID
+        . '&collection=app.bsky.actor.profile&rkey=self', [
+            'uri' => 'at://' . self::ALICE_DID . '/app.bsky.actor.profile/self',
+            'value' => [
+                '$type' => 'app.bsky.actor.profile',
+                'displayName' => 'Alice',
+                'avatar' => [
+                    '$type' => 'blob',
+                    'ref' => ['$link' => self::ALICE_AVATAR_CID],
+                    'mimeType' => 'image/png',
+                    'size' => 68,
+                ],
+            ],
+        ]);
         self::addAccount(self::BOB, self::BOB_DID, resolution: 'well-known');
         self::addAccount(self::CAROL, self::CAROL_DID);
     }
@@ -104,7 +122,7 @@ final class FakeAtProtoNetwork implements DnsTxtRecords
         string $contentType = 'application/json',
         array $headers = [],
     ): void {
-        self::$documents[$url] = [
+        self::$documents[rawurldecode($url)] = [
             'status' => $status,
             'body' => \is_array($body) ? json_encode($body, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES) : $body,
             'headers' => ['content-type' => $contentType, ...$headers],
@@ -139,7 +157,8 @@ final class FakeAtProtoNetwork implements DnsTxtRecords
             return FakeAuthorizationServer::handle($url, $options);
         }
 
-        $document = self::$documents[$url] ?? null;
+        // Clients differ in what they encode in a query string.
+        $document = self::$documents[rawurldecode($url)] ?? null;
         if (null !== $document) {
             return new MockResponse($document['body'], [
                 'http_code' => $document['status'],
