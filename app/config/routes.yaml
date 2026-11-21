@@ -9,3 +9,19 @@
 
 controllers:
     resource: routing.controllers
+
+# Declared here because the #[Route] attribute takes a single host, not one per language.
+# The language is in the subdomain: fr.example.org is the French site of example.org.
+home:
+    path: /
+    controller: App\Controller\HomeController
+    methods: [GET]
+    host:
+        fr: 'fr.{domain}'
+        en: '{domain}'
+    requirements:
+        # Any domain that is not itself a language subdomain.
+        domain: '(?!fr\.).+'
+    defaults:
+        # Only for a URL generated outside of a request: LocaleDomainListener sets the real domain.
+        domain: localhost

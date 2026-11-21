@@ -1,13 +1,147 @@
 {% extends 'base.html.twig' %}
 
+{% block title %}{{ 'home.page_title'|trans }}{% endblock %}
+
+{% block stylesheets %}
+    {# Temporary: the page should serve this font itself, through AssetMapper. #}
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link rel="stylesheet" href="https://fonts.bunny.net/css?family=jetbrains-mono:400,500,600&display=swap">
+    <style>
+        body {
+            --px-field: #0e0e14;
+            --px-panel: #1a1b26;
+            --px-surface: #24283b;
+            --px-line: #414868;
+            --px-text: #c0caf5;
+            --px-text-2: #a9b1d6;
+            --px-brand: #ff9e64;
+            --px-brand-high: #ffc9a6;
+            --px-brand-ink: #0c0e10;
+
+            /* The tones of the pixel field, darkest first. */
+            --pixel-dim: #45301f;
+            --pixel-mid: #a8683f;
+            --pixel-lit: var(--px-brand);
+            --pixel-high: var(--px-brand-high);
+            --pixel-crest: #ffe6d5;
+
+            /* The page fills the window exactly, next to anything else the body holds, such as the
+               space that the debug toolbar reserves in development. */
+            display: flex;
+            flex-direction: column;
+            min-height: 100svh;
+
+            color-scheme: dark;
+            background: var(--px-field);
+            color: var(--px-text);
+            font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+        }
+
+        ::selection {
+            background: #292e42;
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
-    <main class="flex min-h-svh items-center justify-center p-6">
-        <twig:Card class="w-full max-w-sm">
-            <twig:Card:Header>
-                <twig:Card:Title>
-                    <h1>Hello world</h1>
-                </twig:Card:Title>
-            </twig:Card:Header>
-        </twig:Card>
-    </main>
+    {% set focus = 'outline-offset-2 outline-(--px-brand) focus-visible:outline-2' %}
+    {% set source_url = 'https://github.com/mykiwi/rssbase' %}
+    {# Placeholder until the project has a Bluesky account to link. #}
+    {% set bluesky_url = 'https://bsky.app' %}
+    {# The languages of the menu, by locale. "english" lets a search in English find them. #}
+    {% set languages = {
+        en: {name: 'English', english: 'English', flag: '🌐'},
+        fr: {name: 'Français', english: 'French', flag: '🇫🇷'},
+    } %}
+    {# No changelog file or release yet: the commit history is the changelog. #}
+    {% set links = [
+        {
+            label: 'nav.changelog'|trans,
+            url: source_url ~ '/commits/main',
+            outlined: true,
+            icon: '<path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/>'
+        },
+        {
+            label: 'nav.source'|trans,
+            url: source_url,
+            outlined: false,
+            icon: '<path d="M23.546 10.93L13.067.452c-.604-.603-1.582-.603-2.188 0L8.708 2.627l2.76 2.76c.645-.215 1.379-.07 1.889.441.516.515.658 1.258.438 1.9l2.658 2.66c.645-.223 1.387-.078 1.9.435.721.72.721 1.884 0 2.604-.719.719-1.881.719-2.6 0-.539-.541-.674-1.337-.404-1.996L12.86 8.955v6.525c.176.086.342.203.488.348.713.721.713 1.883 0 2.6-.719.721-1.889.721-2.609 0-.719-.719-.719-1.879 0-2.598.182-.18.387-.316.605-.406V8.835c-.217-.091-.424-.222-.6-.401-.545-.545-.676-1.342-.396-2.009L7.636 3.7.45 10.881c-.6.605-.6 1.584 0 2.189l10.48 10.477c.604.604 1.582.604 2.186 0l10.43-10.43c.605-.603.605-1.582 0-2.187"/>'
+        },
+        {
+            label: 'nav.social'|trans,
+            url: bluesky_url,
+            outlined: false,
+            icon: '<path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.136-.02.275-.039.415-.056-.138.022-.276.04-.415.056-3.912.58-7.387 2.005-2.83 7.078 5.013 5.19 6.87-1.113 7.823-4.308.953 3.195 2.05 9.271 7.733 4.308 4.267-4.308 1.172-6.498-2.74-7.078a8.741 8.741 0 0 1-.415-.056c.14.017.279.036.415.056 2.67.297 5.568-.628 6.383-3.364.246-.828.624-5.79.624-6.478 0-.69-.139-1.861-.902-2.206-.659-.298-1.664-.62-4.3 1.24C16.046 4.748 13.087 8.687 12 10.8Z"/>'
+        },
+    ] %}
+
+    <div
+        class="relative isolate flex flex-1 flex-col overflow-hidden"
+        data-controller="pixel-field"
+        data-action="pointermove->pixel-field#point pointerleave->pixel-field#release pointerdown->pixel-field#ripple"
+    >
+        <canvas data-pixel-field-target="canvas" class="pointer-events-none absolute inset-0 -z-10 size-full opacity-70" aria-hidden="true"></canvas>
+
+        <header class="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
+            <a href="{{ path('home') }}" data-pixel-field-target="calm" class="inline-flex h-11 items-center font-semibold {{ focus }}"><span class="text-(--px-brand)">Rss</span>Base</a>
+            <nav aria-label="{{ 'nav.elsewhere'|trans }}" data-pixel-field-target="calm" class="relative -mr-3 flex items-center">
+                <div data-controller="language-menu">
+                    <button type="button" data-language-menu-target="button" data-action="language-menu#toggle" aria-expanded="false" aria-controls="language-menu" class="group relative flex size-11 items-center justify-center text-(--px-text-2) transition-colors hover:text-(--px-brand) aria-expanded:bg-(--px-surface) aria-expanded:text-(--px-text) {{ focus }}">
+                        <svg viewBox="0 0 24 24" class="size-5 fill-none stroke-current stroke-2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                        <span class="pointer-events-none absolute top-full left-1/2 mt-1 -translate-x-1/2 translate-y-1 border border-(--px-line) bg-(--px-surface) px-2.5 py-1.5 text-xs whitespace-nowrap text-(--px-text) opacity-0 transition duration-150 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 group-aria-expanded:invisible">
+                            {{ 'nav.language'|trans }}
+                        </span>
+                    </button>
+                    {# Positioned from the navigation, not from the button: the panel lines up with the right edge of the icons. #}
+                    <div id="language-menu" data-language-menu-target="panel" hidden class="absolute top-full right-3 z-10 mt-1 w-72 max-w-[calc(100vw-2rem)] border border-(--px-line) bg-(--px-panel) pb-2 text-left">
+                        <label class="flex items-center gap-3 border-b border-(--px-line) px-4 text-(--px-text-2) focus-within:border-(--px-brand)">
+                            <svg viewBox="0 0 24 24" class="size-4 shrink-0 fill-none stroke-current stroke-2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                            <input type="search" data-language-menu-target="search" data-action="input->language-menu#filter keydown.enter->language-menu#choose" aria-label="{{ 'nav.language_search'|trans }}" placeholder="{{ 'nav.language_search'|trans }}" autocomplete="off" class="h-12 w-full bg-transparent text-sm text-(--px-text) outline-none placeholder:text-(--px-text-2)">
+                        </label>
+
+                        <p class="px-4 pt-3 pb-1.5 text-xs text-(--px-text-2)">{{ 'nav.language_current'|trans }}</p>
+                        <a href="{{ path('home') }}" lang="{{ app.locale }}" aria-current="true" class="flex h-11 items-center gap-3 bg-(--px-surface) px-4 text-sm text-(--px-brand) {{ focus }}">
+                            <span aria-hidden="true">{{ languages[app.locale].flag }}</span>
+                            {{ languages[app.locale].name }}
+                        </a>
+
+                        <p class="px-4 pt-3 pb-1.5 text-xs text-(--px-text-2)">{{ 'nav.language_others'|trans }}</p>
+                        <ul>
+                            {% for locale, language in languages|filter((language, locale) => locale != app.locale) %}
+                                <li data-language-menu-target="item" data-search="{{ language.name }} {{ language.english }} {{ locale }}">
+                                    <a href="{{ path('home', {_locale: locale}) }}" lang="{{ locale }}" hreflang="{{ locale }}" class="flex h-11 items-center gap-3 px-4 text-sm transition-colors hover:bg-(--px-surface) {{ focus }}">
+                                        <span aria-hidden="true">{{ language.flag }}</span>
+                                        {{ language.name }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        <p data-language-menu-target="empty" hidden class="px-4 py-3 text-sm text-(--px-text-2)">{{ 'nav.language_none'|trans }}</p>
+                    </div>
+                </div>
+                {% for link in links %}
+                    <a href="{{ link.url }}" class="group relative flex size-11 items-center justify-center text-(--px-text-2) transition-colors hover:text-(--px-brand) {{ focus }}">
+                        <svg viewBox="0 0 24 24" class="size-5 {{ link.outlined ? 'fill-none stroke-current stroke-2' : 'fill-current' }}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{{ link.icon|raw }}</svg>
+                        {# The name of the link, shown under the icon on hover and on keyboard focus. The last one hangs from the right edge to stay on screen. #}
+                        <span class="pointer-events-none absolute top-full mt-1 translate-y-1 border border-(--px-line) bg-(--px-surface) px-2.5 py-1.5 text-xs whitespace-nowrap text-(--px-text) opacity-0 transition duration-150 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 {{ loop.last ? 'right-1' : 'left-1/2 -translate-x-1/2' }}">
+                            {{ link.label }}
+                        </span>
+                    </a>
+                {% endfor %}
+            </nav>
+        </header>
+
+        <main class="flex flex-1 flex-col items-center justify-center px-4 pt-8 pb-24 text-center sm:px-6">
+            <div data-pixel-field-target="calm" class="flex flex-col items-center">
+                <h1 class="max-w-5xl text-4xl leading-[1.1] font-semibold tracking-tighter text-balance sm:text-6xl lg:text-7xl">
+                    {{ 'home.title.reader'|trans }}
+                    <span class="text-(--px-brand) sm:block">{{ 'home.title.internet'|trans }}</span>
+                    <span class="sm:block">{{ 'home.title.protocol'|trans }}</span>
+                </h1>
+
+                {# No sign-in yet: starting means running the source. #}
+                <a href="{{ source_url }}" data-action="pointerenter->pixel-field#emit focus->pixel-field#emit" class="mt-12 inline-flex h-12 items-center bg-(--px-brand) px-8 font-medium text-(--px-brand-ink) transition-colors hover:bg-(--px-brand-high) active:scale-[0.96] {{ focus }}">{{ 'home.start'|trans }}</a>
+            </div>
+        </main>
+    </div>
 {% endblock %}

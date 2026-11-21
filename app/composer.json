@@ -22,6 +22,7 @@
         "symfony/monolog-bundle": "^4.1",
         "symfony/runtime": "8.2.*",
         "symfony/stimulus-bundle": "^3.7",
+        "symfony/translation": "8.2.*",
         "symfony/twig-bundle": "8.2.*",
         "symfony/ux-live-component": "^3.7",
         "symfony/ux-twig-component": "^3.7",

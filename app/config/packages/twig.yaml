@@ -1,6 +1,8 @@
 # yaml-language-server: $schema=../schema.json
 twig:
     file_name_pattern: '*.twig'
+    globals:
+        app_name: '%app.name%'
 
 when@test:
     twig:

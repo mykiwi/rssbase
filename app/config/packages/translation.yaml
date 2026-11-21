@@ -1,0 +1,7 @@
+# yaml-language-server: $schema=../schema.json
+translation:
+    # Available in every message as {app_name}.
+    globals:
+        '{app_name}': '%app.name%'
+    default_path: '%kernel.project_dir%/translations'
+    providers:

@@ -46,7 +46,8 @@ function start(): void
         ],
         context: $c
             ->withEnvironment([
-                'SERVER_NAME' => "http://localhost:{$port}",
+                // The subdomains are the other languages: fr.localhost is the French site.
+                'SERVER_NAME' => "http://localhost:{$port}, http://*.localhost:{$port}",
                 'CADDY_ADMIN' => $c['admin_address'],
                 'CADDY_SITE_CONFIG' => 'import hot_reload_hub',
                 'FRANKENPHP_SITE_CONFIG' => 'import hot_reload',

@@ -2,3 +2,4 @@
 /result-*
 /.castor.stub.php
 /.playwright-mcp/
+/compose.override.yaml

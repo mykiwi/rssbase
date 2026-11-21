@@ -16,6 +16,7 @@
 	watch ./config/**/*.{yaml,yml}
 	watch ./config/bundles.php
 	watch ./templates/**/*.twig
+	watch ./translations/**/*.yaml
 	watch ./.env*
 	watch ./vendor/composer/installed.json
 }

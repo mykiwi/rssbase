@@ -170,6 +170,34 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         marshaller?: scalar|Param|null, // The marshaller service to use for this pool.
  *     }>,
  * }
+ * @psalm-type TranslationConfig = bool|array{
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
+ *     fallbacks?: Param|string|list<scalar|Param|null>,
+ *     logging?: bool|Param, // Default: false
+ *     formatter?: scalar|Param|null, // Default: "translator.formatter.default"
+ *     cache_dir?: scalar|Param|null, // Default: "%kernel.cache_dir%/translations"
+ *     default_path?: scalar|Param|null, // The default path used to load translations. // Default: "%kernel.project_dir%/translations"
+ *     paths?: list<scalar|Param|null>,
+ *     pseudo_localization?: bool|array{
+ *         enabled?: bool|Param, // Resolved at compile time // Default: false
+ *         accents?: bool|Param, // Default: true
+ *         expansion_factor?: float|Param, // Default: 1.0
+ *         brackets?: bool|Param, // Default: true
+ *         parse_html?: bool|Param, // Default: false
+ *         localizable_html_attributes?: list<scalar|Param|null>,
+ *     },
+ *     providers?: array<string, array{ // Default: []
+ *         dsn?: scalar|Param|null,
+ *         domains?: array<string, scalar|Param|null>,
+ *         locales?: list<scalar|Param|null>,
+ *     }>,
+ *     globals?: array<string, Param|string|array{ // Default: []
+ *         value?: mixed,
+ *         message?: string|Param,
+ *         parameters?: array<string, scalar|Param|null>,
+ *         domain?: string|Param,
+ *     }>,
+ * }
  * @psalm-type TypeInfoConfig = bool|array{
  *     enabled?: bool|Param, // Resolved at compile time // Default: true
  *     aliases?: array<string, scalar|Param|null>,
@@ -401,7 +429,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     router?: RouterConfig,
  *     assets?: mixed,
  *     asset_mapper?: AssetMapperConfig,
- *     translator?: mixed,
+ *     translator?: TranslationConfig,
  *     validation?: mixed,
  *     serializer?: mixed,
  *     property_access?: PropertyAccessConfig,
@@ -1146,6 +1174,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     services?: ServicesConfig,
  *     router?: RouterConfig,
  *     cache?: CacheConfig,
+ *     translation?: TranslationConfig,
  *     type_info?: TypeInfoConfig,
  *     property_access?: PropertyAccessConfig,
  *     property_info?: PropertyInfoConfig,
@@ -1167,6 +1196,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         services?: ServicesConfig,
  *         router?: RouterConfig,
  *         cache?: CacheConfig,
+ *         translation?: TranslationConfig,
  *         type_info?: TypeInfoConfig,
  *         property_access?: PropertyAccessConfig,
  *         property_info?: PropertyInfoConfig,
@@ -1191,6 +1221,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         services?: ServicesConfig,
  *         router?: RouterConfig,
  *         cache?: CacheConfig,
+ *         translation?: TranslationConfig,
  *         type_info?: TypeInfoConfig,
  *         property_access?: PropertyAccessConfig,
  *         property_info?: PropertyInfoConfig,
@@ -1213,6 +1244,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         services?: ServicesConfig,
  *         router?: RouterConfig,
  *         cache?: CacheConfig,
+ *         translation?: TranslationConfig,
  *         type_info?: TypeInfoConfig,
  *         property_access?: PropertyAccessConfig,
  *         property_info?: PropertyInfoConfig,

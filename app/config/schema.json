@@ -2814,7 +2814,7 @@
                         "$ref": "#/$defs/nodes/asset_mapper"
                     },
                     "translator": {
-                        "$ref": "#/$defs/types/variable"
+                        "$ref": "#/$defs/nodes/translation"
                     },
                     "validation": {
                         "$ref": "#/$defs/types/variable"
@@ -5278,6 +5278,281 @@
                 },
                 "additionalProperties": false
             },
+            "translation": {
+                "anyOf": [
+                    {
+                        "$ref": "#/$defs/types/object_null",
+                        "properties": {
+                            "enabled": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": true
+                            },
+                            "fallbacks": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/$defs/types/array_null",
+                                        "items": {
+                                            "$ref": "#/$defs/types/scalar"
+                                        }
+                                    },
+                                    {
+                                        "type": [
+                                            "string"
+                                        ]
+                                    }
+                                ],
+                                "description": "Defaults to the value of \"default_locale\"."
+                            },
+                            "logging": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": false
+                            },
+                            "formatter": {
+                                "$ref": "#/$defs/types/scalar",
+                                "default": "translator.formatter.default"
+                            },
+                            "cache_dir": {
+                                "$ref": "#/$defs/types/scalar",
+                                "default": "%kernel.cache_dir%/translations"
+                            },
+                            "default_path": {
+                                "$ref": "#/$defs/types/scalar",
+                                "default": "%kernel.project_dir%/translations",
+                                "description": "The default path used to load translations."
+                            },
+                            "paths": {
+                                "$ref": "#/$defs/types/array_null",
+                                "items": {
+                                    "$ref": "#/$defs/types/scalar"
+                                }
+                            },
+                            "pseudo_localization": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/$defs/types/object_null",
+                                        "properties": {
+                                            "enabled": {
+                                                "$ref": "#/$defs/types/boolean",
+                                                "default": false
+                                            },
+                                            "accents": {
+                                                "$ref": "#/$defs/types/boolean",
+                                                "default": true
+                                            },
+                                            "expansion_factor": {
+                                                "$ref": "#/$defs/types/number",
+                                                "minimum": 1,
+                                                "default": 1
+                                            },
+                                            "brackets": {
+                                                "$ref": "#/$defs/types/boolean",
+                                                "default": true
+                                            },
+                                            "parse_html": {
+                                                "$ref": "#/$defs/types/boolean",
+                                                "default": false
+                                            },
+                                            "localizable_html_attributes": {
+                                                "$ref": "#/$defs/types/array_null",
+                                                "items": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                }
+                                            }
+                                        },
+                                        "patternProperties": {
+                                            "^localizable_html_attribute$": {
+                                                "anyOf": [
+                                                    {
+                                                        "$ref": "#/$defs/types/scalar"
+                                                    },
+                                                    {
+                                                        "$ref": "#/$defs/types/array_null",
+                                                        "items": {
+                                                            "$ref": "#/$defs/types/scalar"
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    },
+                                    {
+                                        "type": [
+                                            "boolean"
+                                        ]
+                                    }
+                                ],
+                                "default": {
+                                    "enabled": false,
+                                    "accents": true,
+                                    "expansion_factor": 1,
+                                    "brackets": true,
+                                    "parse_html": false,
+                                    "localizable_html_attributes": []
+                                }
+                            },
+                            "providers": {
+                                "$ref": "#/$defs/types/object_null",
+                                "additionalProperties": {
+                                    "$ref": "#/$defs/types/object_null",
+                                    "properties": {
+                                        "dsn": {
+                                            "$ref": "#/$defs/types/scalar"
+                                        },
+                                        "domains": {
+                                            "$ref": "#/$defs/types/object_null",
+                                            "additionalProperties": {
+                                                "$ref": "#/$defs/types/scalar"
+                                            }
+                                        },
+                                        "locales": {
+                                            "$ref": "#/$defs/types/array_null",
+                                            "items": {
+                                                "$ref": "#/$defs/types/scalar"
+                                            },
+                                            "description": "If not set, all locales listed under framework.enabled_locales are used."
+                                        }
+                                    },
+                                    "patternProperties": {
+                                        "^domain$": {
+                                            "$ref": "#/$defs/types/variable"
+                                        },
+                                        "^locale$": {
+                                            "anyOf": [
+                                                {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                },
+                                                {
+                                                    "$ref": "#/$defs/types/array_null",
+                                                    "items": {
+                                                        "$ref": "#/$defs/types/scalar"
+                                                    },
+                                                    "description": "If not set, all locales listed under framework.enabled_locales are used."
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                },
+                                "description": "Translation providers you can read/write your translations from."
+                            },
+                            "globals": {
+                                "$ref": "#/$defs/types/object_null",
+                                "additionalProperties": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/$defs/types/object_null",
+                                            "properties": {
+                                                "value": {
+                                                    "$ref": "#/$defs/types/variable"
+                                                },
+                                                "message": {
+                                                    "$ref": "#/$defs/types/string_null"
+                                                },
+                                                "parameters": {
+                                                    "$ref": "#/$defs/types/object_null",
+                                                    "additionalProperties": {
+                                                        "$ref": "#/$defs/types/scalar"
+                                                    }
+                                                },
+                                                "domain": {
+                                                    "$ref": "#/$defs/types/string_null"
+                                                }
+                                            },
+                                            "patternProperties": {
+                                                "^parameter$": {
+                                                    "$ref": "#/$defs/types/variable"
+                                                }
+                                            },
+                                            "additionalProperties": false
+                                        },
+                                        {
+                                            "type": [
+                                                "string"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "description": "Global parameters.",
+                                "examples": [
+                                    {
+                                        "app_version": 3.14
+                                    }
+                                ]
+                            }
+                        },
+                        "patternProperties": {
+                            "^fallback$": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/$defs/types/scalar"
+                                    },
+                                    {
+                                        "anyOf": [
+                                            {
+                                                "$ref": "#/$defs/types/array_null",
+                                                "items": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                }
+                                            },
+                                            {
+                                                "type": [
+                                                    "string"
+                                                ]
+                                            }
+                                        ],
+                                        "description": "Defaults to the value of \"default_locale\"."
+                                    }
+                                ]
+                            },
+                            "^path$": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/$defs/types/scalar"
+                                    },
+                                    {
+                                        "$ref": "#/$defs/types/array_null",
+                                        "items": {
+                                            "$ref": "#/$defs/types/scalar"
+                                        }
+                                    }
+                                ]
+                            },
+                            "^provider$": {
+                                "$ref": "#/$defs/types/variable"
+                            },
+                            "^global$": {
+                                "$ref": "#/$defs/types/variable"
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    {
+                        "type": [
+                            "boolean"
+                        ]
+                    }
+                ],
+                "default": {
+                    "enabled": true,
+                    "fallbacks": [],
+                    "logging": false,
+                    "formatter": "translator.formatter.default",
+                    "cache_dir": "%kernel.cache_dir%/translations",
+                    "default_path": "%kernel.project_dir%/translations",
+                    "paths": [],
+                    "pseudo_localization": {
+                        "enabled": false,
+                        "accents": true,
+                        "expansion_factor": 1,
+                        "brackets": true,
+                        "parse_html": false,
+                        "localizable_html_attributes": []
+                    },
+                    "providers": [],
+                    "globals": []
+                }
+            },
             "twig": {
                 "$ref": "#/$defs/types/object_null",
                 "properties": {
@@ -5753,6 +6028,9 @@
         "tales_from_a_dev_twig_extra_tailwind": {
             "$ref": "#/$defs/nodes/tales_from_a_dev_twig_extra_tailwind"
         },
+        "translation": {
+            "$ref": "#/$defs/nodes/translation"
+        },
         "twig": {
             "$ref": "#/$defs/nodes/twig"
         },
@@ -5809,6 +6087,9 @@
                 },
                 "tales_from_a_dev_twig_extra_tailwind": {
                     "$ref": "#/$defs/nodes/tales_from_a_dev_twig_extra_tailwind"
+                },
+                "translation": {
+                    "$ref": "#/$defs/nodes/translation"
                 },
                 "twig": {
                     "$ref": "#/$defs/nodes/twig"
@@ -5879,6 +6160,9 @@
                 "tales_from_a_dev_twig_extra_tailwind": {
                     "$ref": "#/$defs/nodes/tales_from_a_dev_twig_extra_tailwind"
                 },
+                "translation": {
+                    "$ref": "#/$defs/nodes/translation"
+                },
                 "twig": {
                     "$ref": "#/$defs/nodes/twig"
                 },
@@ -5943,6 +6227,9 @@
                 },
                 "tales_from_a_dev_twig_extra_tailwind": {
                     "$ref": "#/$defs/nodes/tales_from_a_dev_twig_extra_tailwind"
+                },
+                "translation": {
+                    "$ref": "#/$defs/nodes/translation"
                 },
                 "twig": {
                     "$ref": "#/$defs/nodes/twig"
