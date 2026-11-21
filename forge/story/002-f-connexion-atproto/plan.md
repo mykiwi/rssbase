@@ -260,7 +260,7 @@ cloisonnement, c'est une trace d'exploitation lue par `bin/console dbal:run-sql`
    - Vérification : `AccountRepositoryTest` ; `EXPLAIN QUERY PLAN` de la requête, sur une table de quelques milliers de lignes, consigné dans le message de commit ; `doctrine:schema:validate`.
    - Commitable seule : oui.
 
-7. [ ] **Durée et portée de la session**
+7. [x] **Durée et portée de la session**
    - Objectif : session longue sur fichiers, cookie valable sur les deux langues, rafraîchissement des jetons, fin de session expliquée, compte sans écriture.
    - Fichiers : `framework.yaml`, `LocaleDomainListener`, `TokenRefreshListener`, `castor.php`, `.castor/docker.php`.
    - Vérification : `SessionTest`. Commencer par le prototype de la première question ouverte, dans Chromium.

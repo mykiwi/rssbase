@@ -29,7 +29,7 @@ function start(): void
     make('stylesheet', 'database');
 
     $port = free_port($c['http_port']);
-    io()->title("Serving the application on http://localhost:{$port}");
+    io()->title("Serving the application on http://rssbase.localhost:{$port}");
 
     run(
         [
@@ -46,8 +46,16 @@ function start(): void
         ],
         context: $c
             ->withEnvironment([
-                // The subdomains are the other languages: fr.localhost is the French site.
-                'SERVER_NAME' => "http://localhost:{$port}, http://*.localhost:{$port}",
+                // The subdomains are the other languages: fr.localhost is the French site. Browsers
+                // refuse a cookie for "localhost" itself, so a session serves both languages only on
+                // rssbase.localhost and fr.rssbase.localhost. 127.0.0.1 receives the OAuth callback
+                // of the loopback client, which the specification forbids on localhost.
+                'SERVER_NAME' => implode(', ', [
+                    "http://localhost:{$port}",
+                    "http://*.localhost:{$port}",
+                    "http://*.rssbase.localhost:{$port}",
+                    "http://127.0.0.1:{$port}",
+                ]),
                 'CADDY_ADMIN' => $c['admin_address'],
                 'CADDY_SITE_CONFIG' => 'import hot_reload_hub',
                 'FRANKENPHP_SITE_CONFIG' => 'import hot_reload',
