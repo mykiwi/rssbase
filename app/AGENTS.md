@@ -37,7 +37,8 @@ Messenger, Scheduler, RateLimiter, Workflow... Usually there is one, and
   the Symfony CLI: `symfony console ...`, `symfony php bin/phpunit`. The CLI
   exposes the env vars of the running containers, and `bin/console` alone
   doesn't see them. `symfony serve -d` starts a web server.
-- There's no need to clear the cache in dev: the kernel rebuilds what changed.
+- There's no need to clear the cache in dev after a code change: the kernel
+  rebuilds what changed. After a change in `config/`, clear it.
 - When something fails, read `var/log/dev.log` and the profiler (`/_profiler`
   lists the last requests) before changing code.
 - Makers (`bin/console make:*`) ask for missing arguments, and a
