@@ -17,9 +17,38 @@ final readonly class JsonObject
         private array $data,
     ) {}
 
+    /**
+     * @return self an empty object when the JSON is not an object
+     */
+    public static function fromJson(string $json): self
+    {
+        return self::fromValue(json_decode($json, associative: true));
+    }
+
+    private static function fromValue(mixed $value): self
+    {
+        return new self(\is_array($value) ? $value : []);
+    }
+
+    /**
+     * @return array<array-key, mixed>
+     */
+    public function all(): array
+    {
+        return $this->data;
+    }
+
     public function string(string $key): ?string
     {
         return \is_string($this->data[$key] ?? null) ? $this->data[$key] : null;
+    }
+
+    /**
+     * @return string the string, or an empty one when the key holds no string
+     */
+    public function text(string $key): string
+    {
+        return $this->string($key) ?? '';
     }
 
     public function int(string $key): ?int

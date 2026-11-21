@@ -242,7 +242,7 @@ cloisonnement, c'est une trace d'exploitation lue par `bin/console dbal:run-sql`
    - Vérification : tests unitaires de `Handle` et d'`IdentityResolver`.
    - Commitable seule : oui.
 
-4. [ ] **Client OAuth**
+4. [x] **Client OAuth**
    - Objectif : PAR, autorisation, échange et rafraîchissement, dans les deux modes, avec DPoP et reprise sur nonce.
    - Fichiers : `AtProto/OAuth/*`, `ClientMetadataController`, `GenerateClientKeyCommand`, `.env`.
    - Vérification : tests unitaires OAuth, `ClientMetadataTest`. Vérifier à l'installation que `web-token/jwt-library` signe en ES256 sans `gmp` ni `bcmath`.

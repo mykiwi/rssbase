@@ -46,6 +46,16 @@ final class FakeAtProtoNetwork implements DnsTxtRecords
         self::$documents = [];
         self::$unreachableHosts = [];
         self::$requests = [];
+        FakeAuthorizationServer::reset();
+
+        self::publish(self::PDS . '/.well-known/oauth-protected-resource', [
+            'resource' => self::PDS,
+            'authorization_servers' => [FakeAuthorizationServer::ISSUER],
+        ]);
+        self::publish(
+            FakeAuthorizationServer::ISSUER . '/.well-known/oauth-authorization-server',
+            FakeAuthorizationServer::metadata(),
+        );
 
         self::addAccount(self::ALICE, self::ALICE_DID);
         self::addAccount(self::BOB, self::BOB_DID, resolution: 'well-known');
@@ -123,6 +133,10 @@ final class FakeAtProtoNetwork implements DnsTxtRecords
 
         if (\in_array(parse_url($url, \PHP_URL_HOST), self::$unreachableHosts, strict: true)) {
             return new MockResponse(info: ['error' => 'Connection refused.']);
+        }
+
+        if ('POST' === $method && str_starts_with($url, FakeAuthorizationServer::ISSUER . '/')) {
+            return FakeAuthorizationServer::handle($url, $options);
         }
 
         $document = self::$documents[$url] ?? null;
