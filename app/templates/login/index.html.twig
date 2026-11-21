@@ -33,4 +33,9 @@
     </form>
 
     <p class="mt-6 text-sm text-(--px-text-2)">{{ 'login.no_password'|trans }}</p>
+
+    <p class="mt-8 text-sm text-(--px-text-2)">
+        {{ 'login.no_account'|trans }}
+        <a href="{{ path('providers') }}" class="inline-flex min-h-11 items-center text-(--px-brand) underline-offset-4 hover:underline {{ focus }}">{{ 'login.choose_provider'|trans }}</a>
+    </p>
 {% endblock %}

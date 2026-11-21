@@ -27,13 +27,23 @@ final readonly class AuthorizationServerLocator
      */
     public function forPds(string $pds): AuthorizationServer
     {
+        return $this->forIssuer($this->issuerOf($pds));
+    }
+
+    /**
+     * @return string the issuer of the authorization server that the PDS names
+     *
+     * @throws ProviderUnreachable
+     */
+    public function issuerOf(string $pds): string
+    {
         $servers = $this->fetch("{$pds}/.well-known/oauth-protected-resource")->strings('authorization_servers');
 
         if (1 !== \count($servers) || !self::isOrigin($servers[0])) {
             throw new ProviderUnreachable(\sprintf('"%s" does not name one authorization server.', $pds));
         }
 
-        return $this->forIssuer($servers[0]);
+        return $servers[0];
     }
 
     /**

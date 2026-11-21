@@ -266,7 +266,7 @@ cloisonnement, c'est une trace d'exploitation lue par `bin/console dbal:run-sql`
    - Vérification : `SessionTest`. Commencer par le prototype de la première question ouverte, dans Chromium.
    - Commitable seule : oui.
 
-8. [ ] **Choix d'un fournisseur**
+8. [x] **Choix d’un fournisseur**
    - Objectif : écran des fournisseurs avec filtre et liens ; départ direct et retour connecté.
    - Fichiers : `Provider`, `ProviderCatalog`, `ProviderController`, gabarit, `services.yaml`, traductions.
    - Vérification : `ProviderTest`.

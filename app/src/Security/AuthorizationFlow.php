@@ -110,7 +110,7 @@ final readonly class AuthorizationFlow
 
         $identity = $this->identityResolver->resolveDid($did);
 
-        if ($this->serverLocator->forPds($identity->pds)->issuer !== $pending->server->issuer) {
+        if ($this->serverLocator->issuerOf($identity->pds) !== $pending->server->issuer) {
             throw new AccountNotFound(\sprintf('"%s" is not hosted by "%s".', $did, $pending->server->issuer));
         }
 

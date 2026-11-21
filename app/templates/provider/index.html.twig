@@ -1,0 +1,72 @@
+{% extends 'site.html.twig' %}
+
+{% block title %}{{ 'providers.page_title'|trans }}{% endblock %}
+
+{% block main %}
+    {% set focus = 'outline-offset-2 outline-(--px-brand) focus-visible:outline-2' %}
+    {# One literal key per provider and region, so that the translation check sees them. #}
+    {% set descriptions = {
+        eurosky: 'providers.description.eurosky'|trans,
+        bluesky: 'providers.description.bluesky'|trans,
+        blacksky: 'providers.description.blacksky'|trans,
+        npmx: 'providers.description.npmx'|trans,
+    } %}
+    {% set labels = {recommended: 'providers.label.recommended'|trans, popular: 'providers.label.popular'|trans} %}
+    {% set regions = {eu: 'providers.region.eu'|trans, us: 'providers.region.us'|trans} %}
+    {% set filters = [
+        {region: null, label: 'providers.filter.all'|trans},
+        {region: 'eu', label: 'providers.filter.eu'|trans},
+        {region: 'us', label: 'providers.filter.us'|trans},
+    ] %}
+
+    <h1 class="text-3xl font-semibold tracking-tight">{{ 'providers.title'|trans }}</h1>
+    <p class="mt-3 text-(--px-text-2)">{{ 'providers.intro'|trans }}</p>
+
+    {% if error %}
+        <p role="alert" class="mt-6 border border-(--px-error) px-4 py-3 text-sm text-(--px-error)">{{ error|trans }}</p>
+    {% endif %}
+
+    <nav aria-label="{{ 'providers.filter.label'|trans }}" class="mt-8 flex border border-(--px-line) p-1" data-test="provider-filter">
+        {% for filter in filters %}
+            <a
+                href="{{ path('providers', filter.region ? {region: filter.region} : {}) }}"
+                {% if filter.region == region %}aria-current="page"{% endif %}
+                class="flex h-11 flex-1 items-center justify-center text-sm text-(--px-text-2) transition-colors hover:text-(--px-text) aria-[current=page]:bg-(--px-surface) aria-[current=page]:text-(--px-brand) {{ focus }}"
+            >{{ filter.label }}</a>
+        {% endfor %}
+    </nav>
+
+    <ul class="mt-6 flex flex-col gap-3" data-test="providers">
+        {% for provider in providers %}
+            <li>
+                <form method="post" action="{{ path('provider_start', {id: provider.id}) }}">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('provider') }}" data-controller="csrf-protection">
+                    <button
+                        type="submit"
+                        data-test="provider-{{ provider.id }}"
+                        class="flex w-full flex-col gap-1 border border-(--px-line) bg-(--px-panel) px-5 py-4 text-left transition-colors hover:border-(--px-brand) {{ focus }}"
+                    >
+                        <span class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                            <span class="font-medium" data-test="provider-name">{{ provider.name }}</span>
+                            {% if provider.label %}
+                                <span class="bg-(--px-surface) px-2 py-0.5 text-xs text-(--px-brand)" data-test="provider-label">{{ labels[provider.label] }}</span>
+                            {% endif %}
+                            <span class="ml-auto text-xs text-(--px-text-2)" data-test="provider-region">{{ regions[provider.region] }}</span>
+                        </span>
+                        <span class="text-sm text-(--px-text-2)">{{ descriptions[provider.id] }}</span>
+                    </button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+        <a href="{{ directory_url }}" class="flex h-11 flex-1 items-center justify-center border border-(--px-line) text-sm transition-colors hover:border-(--px-brand) {{ focus }}">{{ 'providers.link.directory'|trans }}</a>
+        <a href="{{ self_hosting_url }}" class="flex h-11 flex-1 items-center justify-center border border-(--px-line) text-sm transition-colors hover:border-(--px-brand) {{ focus }}">{{ 'providers.link.self_hosting'|trans }}</a>
+    </div>
+
+    <p class="mt-8 text-sm text-(--px-text-2)">
+        {{ 'providers.have_account'|trans }}
+        <a href="{{ path('login') }}" class="inline-flex min-h-11 items-center text-(--px-brand) underline-offset-4 hover:underline {{ focus }}">{{ 'providers.sign_in'|trans }}</a>
+    </p>
+{% endblock %}
