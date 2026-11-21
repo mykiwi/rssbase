@@ -9,6 +9,11 @@ services:
     # Docker's default bridge: a single service needs no network of its own, whose subnet the Docker
     # daemon may have no address pool left to allocate.
     network_mode: bridge
+    # The snippets of the Caddyfile: restart the workers and refresh the browser when the code changes.
+    environment:
+      CADDY_SITE_CONFIG: import hot_reload_hub
+      FRANKENPHP_SITE_CONFIG: import hot_reload
+      FRANKENPHP_WORKER_CONFIG: import watch_code
     volumes:
       - ./app:/app
     ports:

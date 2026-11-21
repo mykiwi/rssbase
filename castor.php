@@ -48,6 +48,8 @@ function start(): void
             ->withEnvironment([
                 'SERVER_NAME' => "http://localhost:{$port}",
                 'CADDY_ADMIN' => $c['admin_address'],
+                'CADDY_SITE_CONFIG' => 'import hot_reload_hub',
+                'FRANKENPHP_SITE_CONFIG' => 'import hot_reload',
                 'FRANKENPHP_WORKER_CONFIG' => 'import watch_code',
             ])
             // Castor forwards no signal without pcntl: without a PTY, FrankenPHP stays in the
