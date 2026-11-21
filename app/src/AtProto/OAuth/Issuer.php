@@ -20,14 +20,7 @@ final readonly class Issuer implements \Stringable
 
     public static function tryFrom(string $value): ?self
     {
-        $parts = parse_url($value);
-        $isOrigin =
-            \is_array($parts)
-            && 'https' === ($parts['scheme'] ?? null)
-            && '' !== ($parts['host'] ?? '')
-            && [] === array_diff_key($parts, array_flip(['scheme', 'host', 'port']));
-
-        return $isOrigin ? new self($value) : null;
+        return true === HttpsUrl::tryFrom($value)?->isOrigin() ? new self($value) : null;
     }
 
     public static function fromString(string $value): self

@@ -7,7 +7,6 @@ namespace App\Tests\Unit\AtProto\Profile;
 use App\AtProto\Identity\Did;
 use App\AtProto\Identity\Handle;
 use App\AtProto\Identity\Identity;
-use App\AtProto\Identity\Pds;
 use App\AtProto\Profile\AvatarLocator;
 use App\Tests\Fake\FakeAtProtoNetwork;
 use PHPUnit\Framework\TestCase;
@@ -30,7 +29,7 @@ final class AvatarLocatorTest extends TestCase
         $this->carol = new Identity(
             Did::fromString('did:plc:carol234567abcdefghijklm'),
             Handle::fromString('carol.fake.test'),
-            Pds::fromString(self::PDS),
+            FakeAtProtoNetwork::pds(),
         );
     }
 

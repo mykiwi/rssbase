@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Unit\AtProto\OAuth;
 
 use App\AtProto\Identity\Exception\ProviderUnreachable;
-use App\AtProto\Identity\Pds;
 use App\AtProto\OAuth\AuthorizationServerLocator;
 use App\AtProto\OAuth\Issuer;
 use App\Tests\Fake\FakeAtProtoNetwork;
@@ -55,6 +54,6 @@ final class AuthorizationServerLocatorTest extends TestCase
 
         $this->expectException(ProviderUnreachable::class);
 
-        $this->locator->forPds(Pds::fromString(FakeAtProtoNetwork::PDS));
+        $this->locator->forPds(FakeAtProtoNetwork::pds());
     }
 }

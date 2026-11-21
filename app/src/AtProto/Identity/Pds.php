@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\AtProto\Identity;
 
 use App\AtProto\HttpsUrl;
-use App\AtProto\Identity\Exception\AccountNotFound;
 
 /**
- * The server that hosts the data of an account, named by its https address without a trailing slash.
+ * The server that hosts the data of an account, named by its https address: a host alone, as the
+ * specification requires, without a trailing slash.
  *
  * @see https://atproto.com/specs/did#did-documents
  */
@@ -22,15 +22,7 @@ final readonly class Pds implements \Stringable
     {
         $url = HttpsUrl::tryFrom(rtrim($endpoint, characters: '/'));
 
-        return null === $url ? null : new self($url->value);
-    }
-
-    /**
-     * @throws AccountNotFound when the value is not the https address of a server
-     */
-    public static function fromString(string $endpoint): self
-    {
-        return self::tryFrom($endpoint) ?? throw new AccountNotFound(\sprintf('"%s" is not a PDS.', $endpoint));
+        return true === $url?->isOrigin() ? new self($url->value) : null;
     }
 
     /**

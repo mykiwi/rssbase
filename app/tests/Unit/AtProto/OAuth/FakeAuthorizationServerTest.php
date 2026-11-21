@@ -8,7 +8,6 @@ use App\AtProto\HttpsUrl;
 use App\AtProto\Identity\Did;
 use App\AtProto\Identity\Handle;
 use App\AtProto\Identity\Identity;
-use App\AtProto\Identity\Pds;
 use App\AtProto\OAuth\AuthorizationServerLocator;
 use App\AtProto\OAuth\ClientIdentity;
 use App\AtProto\OAuth\Exception\OAuthError;
@@ -82,7 +81,7 @@ final class FakeAuthorizationServerTest extends TestCase
             $clientIdentity->clientId(),
             JWKFactory::createECKey('P-256')->toPublic()->all(),
         );
-        $server = new AuthorizationServerLocator($this->http)->forPds(Pds::fromString(FakeAtProtoNetwork::PDS));
+        $server = new AuthorizationServerLocator($this->http)->forPds(FakeAtProtoNetwork::pds());
 
         $this->expectExceptionObject(
             new OAuthError('invalid_client', HttpsUrl::fromString(FakeAuthorizationServer::PAR_ENDPOINT)),
@@ -94,7 +93,7 @@ final class FakeAuthorizationServerTest extends TestCase
             identity: new Identity(
                 Did::fromString(FakeAtProtoNetwork::ALICE_DID),
                 Handle::fromString(FakeAtProtoNetwork::ALICE),
-                Pds::fromString(FakeAtProtoNetwork::PDS),
+                FakeAtProtoNetwork::pds(),
             ),
         );
     }

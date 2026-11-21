@@ -8,7 +8,6 @@ use App\AtProto\HttpsUrl;
 use App\AtProto\Identity\Did;
 use App\AtProto\Identity\Handle;
 use App\AtProto\Identity\Identity;
-use App\AtProto\Identity\Pds;
 use App\AtProto\OAuth\AuthorizationServer;
 use App\AtProto\OAuth\AuthorizationServerLocator;
 use App\AtProto\OAuth\ClientIdentity;
@@ -34,11 +33,11 @@ final class OAuthClientTest extends TestCase
     {
         FakeAtProtoNetwork::reset();
         $this->http = new MockHttpClient(new FakeAtProtoNetwork());
-        $this->server = new AuthorizationServerLocator($this->http)->forPds(Pds::fromString(FakeAtProtoNetwork::PDS));
+        $this->server = new AuthorizationServerLocator($this->http)->forPds(FakeAtProtoNetwork::pds());
         $this->alice = new Identity(
             Did::fromString(FakeAtProtoNetwork::ALICE_DID),
             Handle::fromString(FakeAtProtoNetwork::ALICE),
-            Pds::fromString(FakeAtProtoNetwork::PDS),
+            FakeAtProtoNetwork::pds(),
         );
     }
 

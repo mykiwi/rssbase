@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Fake;
 
 use App\AtProto\Identity\DnsTxtRecords;
+use App\AtProto\Identity\Pds;
 use Symfony\Component\HttpClient\Response\MockResponse;
 
 /**
@@ -127,6 +128,11 @@ final class FakeAtProtoNetwork implements DnsTxtRecords
             'body' => \is_array($body) ? json_encode($body, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES) : $body,
             'headers' => ['content-type' => $contentType, ...$headers],
         ];
+    }
+
+    public static function pds(): Pds
+    {
+        return Pds::tryFrom(self::PDS) ?? throw new \LogicException('The PDS of the fake network is not a PDS.');
     }
 
     public static function makeUnreachable(string $host): void
