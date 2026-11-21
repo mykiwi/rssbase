@@ -61,8 +61,8 @@
     </ul>
 
     <div class="mt-6 flex flex-col gap-3 sm:flex-row">
-        <a href="{{ directory_url }}" class="flex h-11 flex-1 items-center justify-center border border-(--px-line) text-sm transition-colors hover:border-(--px-brand) {{ focus }}">{{ 'providers.link.directory'|trans }}</a>
-        <a href="{{ self_hosting_url }}" class="flex h-11 flex-1 items-center justify-center border border-(--px-line) text-sm transition-colors hover:border-(--px-brand) {{ focus }}">{{ 'providers.link.self_hosting'|trans }}</a>
+        <a href="{{ directory_url }}" class="flex h-11 items-center justify-center gap-2 border border-(--px-line) text-sm sm:flex-1 transition-colors hover:border-(--px-brand) {{ focus }}">{{ 'providers.link.directory'|trans }}<span aria-hidden="true">↗</span></a>
+        <a href="{{ self_hosting_url }}" class="flex h-11 items-center justify-center gap-2 border border-(--px-line) text-sm sm:flex-1 transition-colors hover:border-(--px-brand) {{ focus }}">{{ 'providers.link.self_hosting'|trans }}<span aria-hidden="true">↗</span></a>
     </div>
 
     <p class="mt-8 text-sm text-(--px-text-2)">

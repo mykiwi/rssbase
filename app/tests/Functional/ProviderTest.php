@@ -77,8 +77,8 @@ final class ProviderTest extends WebTestCase
         $client->request('GET', uri: '/providers');
 
         self::assertSelectorExists('a[href="https://atmosphereaccount.com/hosts"]');
-        self::assertSelectorTextSame('a[href="https://atmosphereaccount.com/hosts"]', text: 'Browse all providers');
-        self::assertSelectorTextSame('a[href="https://atproto.com/guides/self-hosting"]', text: 'Host your own');
+        self::assertSelectorTextContains('a[href="https://atmosphereaccount.com/hosts"]', text: 'Browse all providers');
+        self::assertSelectorTextContains('a[href="https://atproto.com/guides/self-hosting"]', text: 'Host your own');
 
         $client->clickLink('Sign in');
         self::assertSelectorExists('input[name="handle"]');
