@@ -13,3 +13,16 @@ nav.language_none: No language found
 nav.changelog: Changelog
 nav.source: Source code
 nav.social: Social media
+
+login.page_title: 'Sign in: {app_name}'
+login.title: Sign in
+login.intro: Use your AT Protocol account, from Bluesky or another provider.
+login.handle.label: Handle
+login.handle.placeholder: you.bsky.social
+login.submit: Continue
+login.no_password: '{app_name} never asks for your password: you approve it on the site of your provider.'
+
+feeds.page_title: 'My feeds: {app_name}'
+feeds.title: My feeds
+feeds.empty.title: You don’t follow any feed yet
+feeds.empty.text: The feeds you follow will show here.

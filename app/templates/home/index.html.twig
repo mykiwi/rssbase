@@ -4,7 +4,6 @@
 
 {% block page %}
     {% set focus = 'outline-offset-2 outline-(--px-brand) focus-visible:outline-2' %}
-    {% set source_url = 'https://github.com/mykiwi/rssbase' %}
 
     <div
         class="relative isolate flex flex-1 flex-col overflow-hidden"
@@ -23,8 +22,7 @@
                     <span class="sm:block">{{ 'home.title.protocol'|trans }}</span>
                 </h1>
 
-                {# No sign-in yet: starting means running the source. #}
-                <a href="{{ source_url }}" data-action="pointerenter->pixel-field#emit focus->pixel-field#emit" class="mt-12 inline-flex h-12 items-center bg-(--px-brand) px-8 font-medium text-(--px-brand-ink) transition-colors hover:bg-(--px-brand-high) active:scale-[0.96] {{ focus }}">{{ 'home.start'|trans }}</a>
+                <a href="{{ path('login') }}" data-action="pointerenter->pixel-field#emit focus->pixel-field#emit" class="mt-12 inline-flex h-12 items-center bg-(--px-brand) px-8 font-medium text-(--px-brand-ink) transition-colors hover:bg-(--px-brand-high) active:scale-[0.96] {{ focus }}">{{ 'home.start'|trans }}</a>
             </div>
         </main>
     </div>

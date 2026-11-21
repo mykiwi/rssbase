@@ -224,13 +224,13 @@ cloisonnement, c'est une trace d'exploitation lue par `bin/console dbal:run-sql`
 
 ## Ordre d'exécution
 
-1. [ ] **Mise en page partagée**
+1. [x] **Mise en page partagée**
    - Objectif : l'accueil étend une mise en page commune qui porte l'en-tête et les couleurs, sans changement visible.
    - Fichiers : `templates/site.html.twig`, `templates/components/Site/Header.html.twig`, `templates/home/index.html.twig`.
    - Vérification : `castor qa:phpunit` et `castor qa:e2e` verts sans modifier les tests de l'accueil.
    - Commitable seule : oui.
 
-2. [ ] **Pare-feu et espace réservé**
+2. [x] **Pare-feu et espace réservé**
    - Objectif : `/feeds` existe, vide, et renvoie un visiteur vers `/login` ; « Commencer » mène à `/login`.
    - Fichiers : dépendances, `security.yaml`, `AtProtoUser`, `SessionUserProvider`, `FeedsController`, `LoginController` (GET), gabarits, traductions.
    - Vérification : tests fonctionnels du pare-feu, 404 préservée, `loginUser()` donne accès à `/feeds`.

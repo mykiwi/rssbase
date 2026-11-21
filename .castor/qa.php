@@ -138,9 +138,10 @@ function translations(): int
 
     foreach ($locales as $locale) {
         // One run per state: without an option, the command also fails on a message identical to
-        // its fallback, like a word that both languages share.
+        // its fallback, like a word that both languages share. Only the messages of the application:
+        // the security domain of Symfony holds messages that the application never shows.
         foreach (['--only-missing', '--only-unused'] as $state) {
-            $exitCode = max($exitCode, exit_code(['bin/console', 'debug:translation', $locale, $state]));
+            $exitCode = max($exitCode, exit_code(['bin/console', 'debug:translation', $locale, $state, '--domain', 'messages']));
         }
     }
 

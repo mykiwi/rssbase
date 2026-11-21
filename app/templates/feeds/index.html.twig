@@ -1,0 +1,12 @@
+{% extends 'site.html.twig' %}
+
+{% block title %}{{ 'feeds.page_title'|trans }}{% endblock %}
+
+{% block main %}
+    <h1 class="text-3xl font-semibold tracking-tight">{{ 'feeds.title'|trans }}</h1>
+
+    <section class="mt-8 border border-(--px-line) bg-(--px-panel) px-6 py-10 text-center" data-test="feeds-empty">
+        <h2 class="font-medium">{{ 'feeds.empty.title'|trans }}</h2>
+        <p class="mt-2 text-sm text-(--px-text-2)">{{ 'feeds.empty.text'|trans }}</p>
+    </section>
+{% endblock %}

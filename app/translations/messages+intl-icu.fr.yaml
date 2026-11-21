@@ -13,3 +13,16 @@ nav.language_none: Aucune langue trouvée
 nav.changelog: Journal des modifications
 nav.source: Code source
 nav.social: Réseaux sociaux
+
+login.page_title: 'Se connecter : {app_name}'
+login.title: Se connecter
+login.intro: Utilisez votre compte AT Protocol, chez Bluesky ou un autre fournisseur.
+login.handle.label: Handle
+login.handle.placeholder: vous.bsky.social
+login.submit: Continuer
+login.no_password: '{app_name} ne demande jamais votre mot de passe : vous l’approuvez sur le site de votre fournisseur.'
+
+feeds.page_title: 'Mes flux : {app_name}'
+feeds.title: Mes flux
+feeds.empty.title: Vous ne suivez encore aucun flux
+feeds.empty.text: Les flux que vous suivez s’afficheront ici.
