@@ -10,8 +10,11 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 use Symfony\Contracts\HttpClient\ResponseStreamInterface;
 
 /**
- * Stops reading an answer that is larger than any document of the network: the addresses come from what
- * visitors type, and the client limits the time of a request, not its size.
+ * Limits what a request to the network may cost: its time, its redirections and the size of its answer.
+ * The addresses come from what visitors type.
+ *
+ * The limits are set on each request, not in the configuration of the client: NoPrivateNetworkHttpClient
+ * replaces the configured options with its own defaults, and follows redirections itself.
  */
 final readonly class BoundedHttpClient implements HttpClientInterface
 {
@@ -20,6 +23,12 @@ final readonly class BoundedHttpClient implements HttpClientInterface
      */
     private const int MAX_BYTES = 256 * 1024;
 
+    /**
+     * Seconds without receiving anything, then seconds for the whole request.
+     */
+    private const float IDLE_TIMEOUT = 5.0;
+    private const float MAX_DURATION = 10.0;
+
     public function __construct(
         private HttpClientInterface $client,
     ) {}
@@ -27,6 +36,10 @@ final readonly class BoundedHttpClient implements HttpClientInterface
     #[\Override]
     public function request(string $method, string $url, array $options = []): ResponseInterface
     {
+        // The documents of the network are read where they are: a server that redirects is not answering.
+        $options['max_redirects'] = 0;
+        $options['timeout'] = self::IDLE_TIMEOUT;
+        $options['max_duration'] = self::MAX_DURATION;
         $options['on_progress'] = static function (int $downloaded, int $expected): void {
             if (max($downloaded, $expected) > self::MAX_BYTES) {
                 throw new TransportException(\sprintf('The answer is larger than %d bytes.', self::MAX_BYTES));
