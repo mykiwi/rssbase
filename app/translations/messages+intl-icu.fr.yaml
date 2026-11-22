@@ -13,3 +13,45 @@ nav.language_none: Aucune langue trouvée
 nav.changelog: Journal des modifications
 nav.source: Code source
 nav.social: Réseaux sociaux
+
+login.page_title: 'Se connecter : {app_name}'
+login.title: Se connecter
+login.intro: Utilisez votre compte AT Protocol, chez Bluesky ou un autre fournisseur.
+login.handle.label: Handle
+login.handle.placeholder: vous.bsky.social
+login.submit: Continuer
+login.no_password: '{app_name} ne demande jamais votre mot de passe : vous l’approuvez sur le site de votre fournisseur.'
+login.error.account_not_found: Aucun compte n’a ce handle. Vérifiez son orthographe, puis réessayez.
+login.error.provider_unreachable: Votre fournisseur est injoignable pour le moment. Réessayez dans un instant.
+login.error.denied: 'Vous n’avez pas approuvé {app_name} chez votre fournisseur : vous n’êtes pas connecté.'
+login.error.failed: La connexion n’a pas abouti. Réessayez.
+login.error.session_ended: Votre fournisseur a mis fin à votre session. Reconnectez-vous pour continuer.
+login.no_account: Pas encore de compte ?
+login.choose_provider: Choisir un fournisseur
+
+providers.page_title: 'Choisir un fournisseur : {app_name}'
+providers.title: Choisir un fournisseur
+providers.intro: Votre fournisseur héberge votre compte et ses données. Vous pourrez en changer plus tard sans rien perdre.
+providers.filter.label: Lieu d’hébergement
+providers.filter.all: Tous
+providers.filter.eu: UE
+providers.filter.us: US
+providers.region.eu: Hébergé dans l’UE
+providers.region.us: Hébergé aux États-Unis
+providers.label.recommended: Recommandé
+providers.label.popular: Le plus populaire
+providers.description.eurosky: 'Un portail européen vers AT Protocol : un compte pour des dizaines d’applications, géré depuis les Pays-Bas.'
+providers.description.bluesky: Le fournisseur de l’application Bluesky, où vivent la plupart des comptes.
+providers.description.blacksky: Un fournisseur construit pour les communautés qui veulent gouverner leurs propres espaces.
+providers.description.npmx: Le fournisseur de la communauté npmx, hébergé en Allemagne.
+providers.link.directory: Voir tous les fournisseurs
+providers.link.self_hosting: Héberger le sien
+providers.have_account: Déjà un compte ?
+providers.sign_in: Se connecter
+
+feeds.page_title: 'Mes flux : {app_name}'
+feeds.title: Mes flux
+feeds.empty.title: Vous ne suivez encore aucun flux
+feeds.empty.text: Les flux que vous suivez s’afficheront ici.
+
+account.logout: Se déconnecter

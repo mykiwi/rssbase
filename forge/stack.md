@@ -1,6 +1,6 @@
 # Stack technique — RssBase
 
-> Dernière mise à jour : 2026-11-20 — cartographie factuelle de la stack, amorcée par la story `001-t-stack-hello-world`. Chaque entrée est prouvée par un fichier du dépôt (source entre parenthèses) ou marquée _non renseigné_. Contrainte déclarée et version résolue sont distinguées : « contrainte » vient d'un manifeste, « résolu » d'un lockfile ou d'une dérivation Nix.
+> Dernière mise à jour : 2026-11-22 — cartographie factuelle de la stack, amorcée par la story `001-t-stack-hello-world`. Chaque entrée est prouvée par un fichier du dépôt (source entre parenthèses) ou marquée _non renseigné_. Contrainte déclarée et version résolue sont distinguées : « contrainte » vient d'un manifeste, « résolu » d'un lockfile ou d'une dérivation Nix.
 
 ## Vue d'ensemble
 
@@ -26,9 +26,10 @@ Monolithe Symfony servi par FrankenPHP en mode worker : un lecteur RSS adossé �
 
 - **Framework** : Symfony, contrainte `8.2.*` avec `minimum-stability: beta` et `prefer-stable`, résolu `v8.2.0-BETA2` (`app/composer.json`, `app/composer.lock`).
 - **Runtime** : `symfony/runtime` `v8.2.0-BETA2`, `FrankenPhpWorkerRunner` embarqué, aucun runtime tiers (`app/composer.lock`, `infra/frankenphp/Caddyfile`).
-- **ORM / données** : Doctrine ORM `3.8.0`, DoctrineBundle `3.4.2`, DoctrineMigrationsBundle `4.0.1` résolus ; migrations dans `app/src/Migrations/`, aucune entité ni migration (`app/composer.lock`, `app/config/packages/doctrine*.yaml`).
+- **ORM / données** : Doctrine ORM `3.8.0`, DoctrineBundle `3.4.2`, DoctrineMigrationsBundle `4.0.1` résolus ; migrations dans `app/src/Migrations/` ; une entité (`Account`, trace des connexions) et sa migration, types DBAL `did` et `handle` (`app/composer.lock`, `app/config/packages/doctrine*.yaml`, `app/src/Entity/Account.php`, `app/src/Doctrine/`).
 - **Logs** : MonologBundle `v4.1.0` résolu, configuration de la recette (`app/composer.lock`, `app/config/packages/monolog.yaml`).
-- **Libs structurantes** : client AT Protocol (OAuth, records, spaces) — _non renseigné_, à trancher avec la première story fonctionnelle.
+- **Sécurité** : SecurityBundle `v8.2.0-BETA2` (pare-feu en refus par défaut, authentificateur sur mesure), `symfony/security-csrf` `v8.2.0-BETA1` (jetons sans état) résolus (`app/composer.lock`, `app/config/packages/security.yaml`, `app/config/packages/csrf_protection.yaml`).
+- **Client AT Protocol** : maison, dans `app/src/AtProto/` (résolution d'identité, OAuth avec PAR, PKCE et DPoP, client confidentiel ou en boucle locale) ; aucun SDK AT Protocol. S'appuie sur `symfony/http-client` `v8.2.0-BETA2` (client scopé derrière `NoPrivateNetworkHttpClient`), la `DpopProofFactory` de `symfony/security-http` et `web-token/jwt-library` `4.2.7` (assertion du client, clés JWK), résolus (`app/composer.lock`, `app/config/services.yaml`, `app/config/packages/http_client.yaml`). Records et spaces : _non renseigné_, aucune écriture dans le PDS.
 
 ## Frontend
 
@@ -42,7 +43,8 @@ Monolithe Symfony servi par FrankenPHP en mode worker : un lecteur RSS adossé �
 ## Données & stockage
 
 - **Base de données** : SQLite, un fichier par environnement, `app/var/data_<environnement>.db` (`app/.env`, `DATABASE_URL`). Hébergera aussi le stockage local temporaire des données privées tant que les spaces AT Protocol ne sont pas utilisables (plan B acté dans l'atelier de vision).
-- **Données utilisateur portables** : PDS AT Protocol de l'utilisateur (records publics, spaces pour le privé) — service externe, _source : atelier de vision_, non intégré.
+- **Données utilisateur portables** : PDS AT Protocol de l'utilisateur (records publics, spaces pour le privé) — service externe, _source : atelier de vision_ ; lu pour l'identité et le profil, aucune écriture.
+- **Sessions** : sessions PHP natives sur fichiers, `app/var/sessions/<environnement>`, 90 jours sans visite ; elles portent les jetons OAuth et la clé DPoP (`app/config/packages/framework.yaml`, `AGENTS.md`). La déconnexion d'une session et de ses copies est mémorisée dans `cache.app` (`app/src/Security/SessionRenewal.php`).
 
 ## Ops / Infrastructure
 
@@ -51,7 +53,7 @@ Monolithe Symfony servi par FrankenPHP en mode worker : un lecteur RSS adossé �
 - **Serveur HTTP** : Caddyfile partagé par le shell de dev et l'image, piloté par variables d'environnement ; HTTP seulement, écoute sur la boucle locale (`infra/frankenphp/Caddyfile`).
 - **Hébergement de production** : _non renseigné_ (aucun hébergement défini).
 - **CDN / reverse proxy** : _non renseigné_
-- **Gestion des secrets** : `app/.env` sans secret, secrets en `app/.env.local` non versionné (`app/.env`, `app/.gitignore`) ; production _non renseigné_.
+- **Gestion des secrets** : `app/.env` sans secret, secrets en `app/.env.local` non versionné (`app/.env`, `app/.gitignore`) ; clé privée du client OAuth confidentiel `ATPROTO_CLIENT_PRIVATE_JWK`, vide par défaut, à placer dans le coffre de Symfony (`app/.env`, `AGENTS.md`) ; production _non renseigné_.
 - **Environnements** : `dev`, `test` et `prod` Symfony en local (`app/.env`, `app/.env.dev`, `app/.env.test`) ; aucun environnement distant.
 
 ## DevOps / CI-CD
@@ -73,7 +75,7 @@ Monolithe Symfony servi par FrankenPHP en mode worker : un lecteur RSS adossé �
 - **Environnement** : Nix, `flake.nix` avec `devShells.default` ; unique entrée `nixpkgs-multiverse`, jeu de paquets daté `2026-11-19` et pins par version (`flake.nix`, `flake.lock`). Flake limité à `x86_64-linux`.
 - **Composer** : `2.11.2` résolu, du PHP maison (`flake.nix`).
 - **Tâches** : castor `1.9.1` résolu (`flake.nix`), point d'entrée `castor.php` et un fichier par espace de noms dans `.castor/` (`app`, `qa`, `docker`) ; castor demande à `app/Makefile` les fichiers générés (vendor, importmap, feuille de style, Chromium, base), reconstruits seulement quand une source change (`castor.php`, `.castor/`, `app/Makefile`).
-- **Commandes QA / build** : `nix develop -c castor install`, `castor start` (port 8000 ou suivant libre, feuille de style reconstruite par `tailwind:build --watch`), `castor qa`, `castor docker:up` (port 8080 ou suivant libre) (`AGENTS.md`).
+- **Commandes QA / build** : `nix develop -c castor install`, `castor start` (port 8000 ou suivant libre, feuille de style reconstruite par `tailwind:build --watch`), `castor qa`, `castor docker:up` (port 8080 ou suivant libre) (`AGENTS.md`). Le serveur répond aussi sur `*.rssbase.localhost` (session commune aux deux langues, refusée par les navigateurs sur `localhost`) et `127.0.0.1` (retour OAuth en boucle locale) (`castor.php`, `infra/packages/docker-image-dev.nix`). `castor qa` construit la base de test par la cible `test-database` d'`app/Makefile` et limite le contrôle des traductions au domaine `messages` (`.castor/qa.php`).
 - **Assistants IA** : Mate `v1.0.0-BETA1` (CLI, plus de serveur MCP), extensions Symfony et Monolog, invoqué par `nix develop -c castor mate` depuis tout dossier du dépôt ; skills générés dans `app/.agents/skills/` et `app/.claude/skills/` (`app/composer.lock`, `app/mate/`). Playwright MCP `@playwright/mcp` `0.0.86` par `nix develop -c npx`, profil en mémoire, sorties dans `.playwright-mcp/` ignoré par git (`.mcp.json`, `.gitignore`).
 - **Services de dev** : aucun service externe ; SQLite est un fichier local.
 
@@ -94,3 +96,4 @@ Monolithe Symfony servi par FrankenPHP en mode worker : un lecteur RSS adossé �
 - 2026-11-20 — Éditer — outillage — démarrage de Playwright MCP vérifié, dossier de sorties `.playwright-mcp/` ignoré
 - 2026-11-20 — Éditer — outillage — Mate invoqué par `castor mate`, `castor start` reconstruit la feuille de style (correctifs de review)
 - 2026-11-20 — Éditer — langages — `ext-intl` et `ext-pdo_sqlite` requis par `app/composer.json`, sync post-livraison de la story 001-t-stack-hello-world
+- 2026-11-22 — Enrichir — backend, données, ops, outillage — SecurityBundle, client AT Protocol maison sur HttpClient et `web-token/jwt-library`, première entité, sessions sur fichiers, clé du client OAuth, noms d'hôte `rssbase.localhost` et `127.0.0.1`, sync post-livraison de la story 002-f-connexion-atproto

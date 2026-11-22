@@ -25,7 +25,7 @@ function all(): int
 
     // Everything the jobs below need, built once: their own make calls then find nothing to do, and
     // parallel jobs cannot race on the same recipe.
-    \make('stylesheet', 'chromium');
+    \make('stylesheet', 'chromium', 'test-database');
 
     $jobs = [
         'lint' => fail_on_exit_code(lint(...)),
@@ -138,9 +138,10 @@ function translations(): int
 
     foreach ($locales as $locale) {
         // One run per state: without an option, the command also fails on a message identical to
-        // its fallback, like a word that both languages share.
+        // its fallback, like a word that both languages share. Only the messages of the application:
+        // the security domain of Symfony holds messages that the application never shows.
         foreach (['--only-missing', '--only-unused'] as $state) {
-            $exitCode = max($exitCode, exit_code(['bin/console', 'debug:translation', $locale, $state]));
+            $exitCode = max($exitCode, exit_code(['bin/console', 'debug:translation', $locale, $state, '--domain', 'messages']));
         }
     }
 
@@ -155,8 +156,8 @@ function phpunit(#[AsRawTokens] array $rawTokens = []): int
 {
     io()->section('Running PHPUnit...');
 
-    // The functional tests render pages, which need the stylesheet.
-    \make('stylesheet');
+    // The functional tests render pages, which need the stylesheet, and write to the database.
+    \make('stylesheet', 'test-database');
 
     return exit_code(['bin/phpunit', '--testsuite', 'default', ...$rawTokens]);
 }
@@ -169,7 +170,7 @@ function e2e(#[AsRawTokens] array $rawTokens = []): int
 {
     io()->section('Running the browser tests...');
 
-    \make('stylesheet', 'chromium');
+    \make('stylesheet', 'chromium', 'test-database');
 
     return exit_code(['bin/phpunit', '--testsuite', 'e2e', ...$rawTokens]);
 }

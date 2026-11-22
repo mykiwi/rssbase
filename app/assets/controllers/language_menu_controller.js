@@ -44,7 +44,11 @@ export default class extends Controller {
         this.buttonTarget.setAttribute('aria-expanded', 'true');
         this.searchTarget.value = '';
         this.filter();
-        this.searchTarget.focus();
+        // On a touch screen, focus would raise the keyboard over a short list, and Safari on iOS zooms the page
+        // into a field it focuses. The visitor taps the field to search.
+        if (!window.matchMedia('(pointer: coarse)').matches) {
+            this.searchTarget.focus();
+        }
         document.addEventListener('pointerdown', this.closeOnOutsidePress);
         document.addEventListener('keydown', this.closeOnEscape);
     }

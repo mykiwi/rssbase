@@ -1,0 +1,41 @@
+{% extends 'site.html.twig' %}
+
+{% block title %}{{ 'login.page_title'|trans }}{% endblock %}
+
+{% block main %}
+    {% set focus = 'outline-offset-2 outline-(--px-brand) focus-visible:outline-2' %}
+
+    <h1 class="text-3xl font-semibold tracking-tight">{{ 'login.title'|trans }}</h1>
+    <p class="mt-3 text-(--px-text-2)">{{ 'login.intro'|trans }}</p>
+
+    <form method="post" action="{{ path('login_start') }}" class="mt-8 flex flex-col" novalidate>
+        <label for="handle" class="text-sm font-medium">{{ 'login.handle.label'|trans }}</label>
+        <input
+            type="text"
+            id="handle"
+            name="handle"
+            value="{{ handle }}"
+            placeholder="{{ 'login.handle.placeholder'|trans }}"
+            autocomplete="username"
+            autocapitalize="none"
+            autocorrect="off"
+            spellcheck="false"
+            required
+            {% if error %}aria-invalid="true" aria-describedby="handle-error"{% endif %}
+            class="mt-2 h-12 border border-(--px-line) bg-(--px-panel) px-4 text-(--px-text) placeholder:text-(--px-text-2) aria-invalid:border-(--px-error) {{ focus }}"
+        >
+        {% if error %}
+            <p id="handle-error" role="alert" class="mt-2 text-sm text-(--px-error)">{{ error|trans }}</p>
+        {% endif %}
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('login') }}" data-controller="csrf-protection">
+
+        <button type="submit" class="mt-6 h-12 bg-(--px-brand) px-8 font-medium text-(--px-brand-ink) transition-colors hover:bg-(--px-brand-high) active:scale-[0.98] {{ focus }}">{{ 'login.submit'|trans }}</button>
+    </form>
+
+    <p class="mt-6 text-sm text-(--px-text-2)">{{ 'login.no_password'|trans }}</p>
+
+    <p class="mt-8 text-sm text-(--px-text-2)">
+        {{ 'login.no_account'|trans }}
+        <a href="{{ path('providers') }}" class="inline-flex min-h-11 items-center text-(--px-brand) underline-offset-4 hover:underline {{ focus }}">{{ 'login.choose_provider'|trans }}</a>
+    </p>
+{% endblock %}

@@ -5,8 +5,15 @@ framework:
     enabled_locales: [en, fr]
 
     # Note that the session will be started ONLY if you read or write from it.
+    # It holds the OAuth tokens of the account, so it lives as long as the provider allows: 90 days
+    # without a visit, the lifetime of an unused refresh token at the reference provider. Each token
+    # refresh renews the session id, and with it the expiry of the cookie. LocaleDomainListener sets
+    # the domain of the cookie, so that one session serves both languages.
     session:
         isolate_attributes: true
+        save_path: '%kernel.project_dir%/var/sessions/%kernel.environment%'
+        cookie_lifetime: 7776000
+        gc_maxlifetime: 7776000
 
     #esi: true
     #fragments: true

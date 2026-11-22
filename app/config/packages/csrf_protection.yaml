@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../schema.json
+framework:
+    csrf_protection:
+        # Checked against the origin of the request, without a session: a visitor who only looks
+        # at the login page gets no session cookie.
+        stateless_token_ids:
+            - login
+            - provider
+            - logout

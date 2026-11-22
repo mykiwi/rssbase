@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+    {# Temporary: the page should serve this font itself, through AssetMapper. #}
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link rel="stylesheet" href="https://fonts.bunny.net/css?family=jetbrains-mono:400,500,600&display=swap">
+    <style>
+        body {
+            --px-field: #0e0e14;
+            --px-panel: #1a1b26;
+            --px-surface: #24283b;
+            --px-line: #414868;
+            --px-text: #c0caf5;
+            --px-text-2: #a9b1d6;
+            --px-brand: #ff9e64;
+            --px-brand-high: #ffc9a6;
+            --px-brand-ink: #0c0e10;
+            --px-error: #f7768e;
+
+            /* The tones of the pixel field, darkest first. */
+            --pixel-dim: #45301f;
+            --pixel-mid: #a8683f;
+            --pixel-lit: var(--px-brand);
+            --pixel-high: var(--px-brand-high);
+            --pixel-crest: #ffe6d5;
+
+            /* The page fills the window exactly, next to anything else the body holds, such as the
+               space that the debug toolbar reserves in development. */
+            display: flex;
+            flex-direction: column;
+            min-height: 100svh;
+
+            color-scheme: dark;
+            background: var(--px-field);
+            color: var(--px-text);
+            font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+        }
+
+        ::selection {
+            background: #292e42;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% block page %}
+        <div class="flex flex-1 flex-col">
+            <twig:Site:Header />
+
+            <main class="mx-auto flex w-full max-w-xl flex-1 flex-col px-4 pt-12 pb-24 sm:px-6">
+                {% block main %}{% endblock %}
+            </main>
+        </div>
+    {% endblock %}
+{% endblock %}

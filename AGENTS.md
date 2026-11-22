@@ -20,7 +20,8 @@ Run them from the repository root, through the dev shell:
 
 - `nix develop -c castor install`: installs the application.
 - `nix develop -c castor start`: serves it in the foreground on `http://localhost:8000`, or the next free port. When the code changes, it restarts the workers,
-  rebuilds the stylesheet and reloads the browser. `castor stop` stops it.
+  rebuilds the stylesheet and reloads the browser. `castor stop` stops it. Browsers refuse a cookie for `localhost`: to stay signed in on both languages, use
+  `http://rssbase.localhost:8000` and `http://fr.rssbase.localhost:8000`.
 - `nix develop -c castor qa`: formats, lints and analyzes with Mago, checks with symfony-lsp and the `bin/console lint:*` commands, checks the translations, runs the PHPUnit `default` and `e2e` suites. With `CI=1`,
   it checks the formatting instead of fixing it and runs `composer audit`. `castor list` shows the single tasks (`qa:phpunit`, `qa:e2e`...).
 - `nix develop -c castor docker:up`: serves `app/` mounted in the development image on `http://localhost:8080`, or the next free port. When the code
@@ -28,6 +29,16 @@ Run them from the repository root, through the dev shell:
 - `nix develop -c castor mate tools:list`: lists the diagnostic tools of Mate (profiler, logs, container), from any directory of the repository. Usage:
   [`app/mate/AGENT_INSTRUCTIONS.md`](app/mate/AGENT_INSTRUCTIONS.md).
 - `.mcp.json` declares the Playwright MCP server, to drive a browser.
+
+## Sign-in
+
+- The application is its own AT Protocol OAuth client (`app/src/AtProto/`). Without `ATPROTO_CLIENT_PRIVATE_JWK`, it is a loopback client: sessions last two
+  weeks, and the provider sends the browser back to `http://127.0.0.1:<port>/oauth/callback`, which forwards to the site the visitor started from. With the
+  key, it is a confidential client whose metadata is `https://<domain>/oauth-client-metadata.json`. Generate the key and store it as a secret:
+  `bin/console app:atproto:generate-client-key | bin/console secrets:set ATPROTO_CLIENT_PRIVATE_JWK -`.
+- The OAuth tokens and the DPoP key live in the PHP session, in `app/var/sessions/<environment>`. The `account` table is only a trace of the logins:
+  `bin/console dbal:run-sql 'SELECT did, handle, last_login_at FROM account'`.
+- The tests never reach the network: `app/tests/Fake/FakeAtProtoNetwork.php` answers for DNS, DID documents, the PDS and the authorization server.
 
 ## Domain rules
 

@@ -8,6 +8,17 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     app.name: RssBase
+    # Write access to the whole account at first, to narrow to the RssBase collections once the lexicon exists.
+    app.atproto.scope: 'atproto repo:*'
+    # The providers offered to visitors without an account, an editorial choice. Each issuer lists
+    # "create" in the "prompt_values_supported" of its metadata.
+    app.atproto.providers:
+        - { id: eurosky, name: Eurosky, issuer: 'https://eurosky.social', region: eu, label: recommended }
+        - { id: bluesky, name: Bluesky, issuer: 'https://bsky.social', region: us, label: popular }
+        - { id: blacksky, name: Blacksky, issuer: 'https://blacksky.app', region: us }
+        - { id: npmx, name: NPMX, issuer: 'https://npmx.social', region: eu }
+    app.atproto.providers_directory_url: 'https://atmosphereaccount.com/hosts'
+    app.atproto.self_hosting_url: 'https://atproto.com/guides/self-hosting'
 
 services:
     # default configuration for services in *this* file
@@ -22,3 +33,35 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    # The client of App\AtProto\: a handle, a did:web or a DID document must not make the application
+    # call its own network, nor read an answer without end.
+    atproto.client:
+        class: App\AtProto\BoundedHttpClient
+        arguments: ['@atproto.public_network_client']
+
+    atproto.public_network_client:
+        class: Symfony\Component\HttpClient\NoPrivateNetworkHttpClient
+        arguments: ['@atproto.http_client']
+
+when@test:
+    parameters:
+        # Every provider leads to the fake authorization server, which the test suite answers for.
+        app.atproto.providers:
+            - { id: eurosky, name: Eurosky, issuer: 'https://auth.fake.test', region: eu, label: recommended }
+            - { id: bluesky, name: Bluesky, issuer: 'https://auth.fake.test', region: us, label: popular }
+            - { id: blacksky, name: Blacksky, issuer: 'https://auth.fake.test', region: us }
+            - { id: npmx, name: NPMX, issuer: 'https://auth.fake.test', region: eu }
+
+    services:
+        _defaults:
+            autowire: true
+            autoconfigure: true
+
+        App\Tests\Fake\:
+            resource: '../tests/Fake/'
+
+        # NoPrivateNetworkHttpClient resolves each host through DNS before sending anything: the tests
+        # call the fake network directly.
+        atproto.public_network_client: '@atproto.http_client'
+        App\AtProto\Identity\DnsTxtRecords: '@App\Tests\Fake\FakeAtProtoNetwork'

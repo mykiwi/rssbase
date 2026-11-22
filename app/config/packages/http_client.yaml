@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=../schema.json
+http_client:
+    scoped_clients:
+        # The servers of AT Protocol accounts, whose addresses come from what visitors type: handles,
+        # DID documents and the PDS they declare. App\AtProto\BoundedHttpClient sets the limits of
+        # each request: the ones written here would not survive NoPrivateNetworkHttpClient.
+        atproto.http_client:
+            scope: '^https://'
+            headers:
+                User-Agent: '%app.name%'
+
+when@test:
+    http_client:
+        scoped_clients:
+            atproto.http_client:
+                scope: '^https://'
+                # The test suite never reaches the network: the fake answers for every AT Protocol server.
+                mock_response_factory: App\Tests\Fake\FakeAtProtoNetwork

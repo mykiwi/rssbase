@@ -13,3 +13,45 @@ nav.language_none: No language found
 nav.changelog: Changelog
 nav.source: Source code
 nav.social: Social media
+
+login.page_title: 'Sign in: {app_name}'
+login.title: Sign in
+login.intro: Use your AT Protocol account, from Bluesky or another provider.
+login.handle.label: Handle
+login.handle.placeholder: you.bsky.social
+login.submit: Continue
+login.no_password: '{app_name} never asks for your password: you approve it on the site of your provider.'
+login.error.account_not_found: No account has this handle. Check how it’s spelled, then try again.
+login.error.provider_unreachable: Your provider can’t be reached right now. Try again in a moment.
+login.error.denied: You didn’t approve {app_name} at your provider, so you aren’t signed in.
+login.error.failed: The sign-in didn’t complete. Try again.
+login.error.session_ended: Your provider ended your session. Sign in again to continue.
+login.no_account: No account yet?
+login.choose_provider: Choose a provider
+
+providers.page_title: 'Choose a provider: {app_name}'
+providers.title: Choose a provider
+providers.intro: Your provider hosts your account and its data. You can move to another one later without losing anything.
+providers.filter.label: Hosting location
+providers.filter.all: All
+providers.filter.eu: EU
+providers.filter.us: US
+providers.region.eu: Hosted in the EU
+providers.region.us: Hosted in the US
+providers.label.recommended: Recommended
+providers.label.popular: Most popular
+providers.description.eurosky: 'A European portal to AT Protocol: one account for dozens of apps, run from the Netherlands.'
+providers.description.bluesky: The provider of the Bluesky app, where most accounts live.
+providers.description.blacksky: A provider built for communities that want to govern their own spaces.
+providers.description.npmx: The provider of the npmx community, hosted in Germany.
+providers.link.directory: Browse all providers
+providers.link.self_hosting: Host your own
+providers.have_account: Already have an account?
+providers.sign_in: Sign in
+
+feeds.page_title: 'My feeds: {app_name}'
+feeds.title: My feeds
+feeds.empty.title: You don’t follow any feed yet
+feeds.empty.text: The feeds you follow will show here.
+
+account.logout: Sign out

@@ -1,0 +1,137 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\EventListener;
+
+use App\AtProto\Identity\Exception\ProviderUnreachable;
+use App\AtProto\OAuth\Exception\OAuthError;
+use App\AtProto\OAuth\OAuthClient;
+use App\Security\AtProtoUser;
+use App\Security\AuthorizationFlow;
+use App\Security\LoginFailure;
+use App\Security\PostponedRefresh;
+use App\Security\SessionRenewal;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Http\SecurityRequestAttributes;
+
+/**
+ * Keeps the tokens of a signed-in account fresh, and ends the session when the provider no longer
+ * accepts them: the user revoked RssBase, or the session expired at the provider.
+ *
+ * The session is open while the tokens refresh, and PHP locks it: two requests of one browser cannot
+ * spend the same single-use refresh token.
+ */
+final readonly class TokenRefreshListener
+{
+    /**
+     * How long the requests of a user do not wait again for a provider that did not answer.
+     */
+    private const int RETRY_DELAY = 60;
+
+    /**
+     * An error that says nothing of the tokens, such as a proof the provider could not check, may
+     * pass. After this many in a row, the provider no longer accepts the session.
+     */
+    private const int MAX_REFUSALS = 5;
+
+    public function __construct(
+        private Security $security,
+        private AuthorizationFlow $flow,
+        private OAuthClient $client,
+        private SessionRenewal $renewal,
+        private UrlGeneratorInterface $urlGenerator,
+    ) {}
+
+    /**
+     * After the firewall, which loads the user from the session.
+     */
+    #[AsEventListener(priority: 4)]
+    public function __invoke(RequestEvent $event): void
+    {
+        if (!$event->isMainRequest() || !$this->security->getUser() instanceof AtProtoUser) {
+            return;
+        }
+
+        $session = $event->getRequest()->getSession();
+        $now = time();
+
+        if ($this->renewal->isRefused($session, $now)) {
+            $this->endSession($event);
+
+            return;
+        }
+
+        if (!$this->isDue($session, $now)) {
+            return;
+        }
+
+        try {
+            $this->refresh($session, $now);
+        } catch (OAuthError $error) {
+            $refusals = $this->refusals($session) + 1;
+
+            if ($error->endsAccess() || $refusals >= self::MAX_REFUSALS) {
+                $this->endSession($event);
+
+                return;
+            }
+
+            $this->postpone($session, $now, $refusals);
+        } catch (ProviderUnreachable) {
+            // The provider is down, not the access: the user stays signed in, for as long as it takes.
+            $this->postpone($session, $now, $this->refusals($session));
+        }
+    }
+
+    private function refusals(SessionInterface $session): int
+    {
+        return $this->flow->postponedRefresh($session)->refusals ?? 0;
+    }
+
+    private function postpone(SessionInterface $session, int $now, int $refusals): void
+    {
+        $this->flow->postponeRefresh($session, new PostponedRefresh($now + self::RETRY_DELAY, $refusals));
+    }
+
+    private function isDue(SessionInterface $session, int $now): bool
+    {
+        return (
+            true === $this->flow->tokens($session)?->isExpired($now)
+            && !$this->renewal->isSuperseded($session)
+            && false !== $this->flow->postponedRefresh($session)?->isOver($now)
+        );
+    }
+
+    /**
+     * @throws OAuthError
+     * @throws ProviderUnreachable
+     */
+    private function refresh(SessionInterface $session, int $now): void
+    {
+        $tokens = $this->flow->tokens($session);
+
+        if (null === $tokens) {
+            return;
+        }
+
+        $this->flow->saveTokens($session, $this->client->refresh($tokens));
+        // A new id renews the expiry of the session cookie: an active session does not expire.
+        $this->renewal->renew($session, $now);
+    }
+
+    private function endSession(RequestEvent $event): void
+    {
+        $this->security->logout(validateCsrfToken: false);
+        $event->getRequest()->getSession()->set(
+            SecurityRequestAttributes::AUTHENTICATION_ERROR,
+            LoginFailure::sessionEnded(),
+        );
+        $event->setResponse(new RedirectResponse($this->urlGenerator->generate('login')));
+    }
+}

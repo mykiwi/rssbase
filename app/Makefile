@@ -2,7 +2,7 @@
 # castor asks for the named targets its tasks need, with --jobs so that independent ones build in parallel.
 
 .DELETE_ON_ERROR:
-.PHONY: install vendor importmap bundles stylesheet chromium database
+.PHONY: install vendor importmap bundles stylesheet chromium database test-database
 
 install: vendor importmap bundles stylesheet chromium database
 
@@ -12,6 +12,7 @@ bundles: var/make/bundles
 stylesheet: var/tailwind/app.built.css
 chromium: var/make/chromium
 database: var/data_dev.db
+test-database: var/data_test.db
 
 # Without the auto-scripts of composer.json: importmap and bundles are targets of their own, built in
 # parallel, and the cache needs no clearing because Symfony rebuilds the container when vendors change.
@@ -51,4 +52,10 @@ var/make/chromium: var/make/playwright-php.version
 .PRECIOUS: var/data_dev.db
 var/data_dev.db: vendor/composer/installed.json $(wildcard src/Migrations/*.php)
 	bin/console doctrine:migrations:migrate -n --allow-no-migration --all-or-nothing
+	touch $@
+
+# The database of the test suites, migrated like the others: the tests check the schema the migrations build.
+.PRECIOUS: var/data_test.db
+var/data_test.db: vendor/composer/installed.json $(wildcard src/Migrations/*.php)
+	bin/console doctrine:migrations:migrate -n --allow-no-migration --all-or-nothing --env=test
 	touch $@
