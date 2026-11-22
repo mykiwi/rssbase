@@ -43,7 +43,7 @@ final readonly class HttpsUrl implements \Stringable
      */
     public function withQuery(string $query): self
     {
-        return new self("{$this->value}?{$query}");
+        return new self($this->value . (str_contains($this->value, '?') ? '&' : '?') . $query);
     }
 
     public function __toString(): string
