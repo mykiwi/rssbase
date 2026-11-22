@@ -2,7 +2,7 @@
 
 > Pitch en une phrase : RssBase est un lecteur RSS ouvert à tout compte AT Protocol, qui résout la captivité des données de lecture en stockant abonnements, état de lecture et favoris dans le PDS AT Protocol de l'utilisateur, via un lexicon ouvert.
 
-_Document vivant — enrichi au fil du cycle de vie, refondu lors d'un pivot stratégique. Date de dernière mise à jour : 2026-11-21._
+_Document vivant — enrichi au fil du cycle de vie, refondu lors d'un pivot stratégique. Date de dernière mise à jour : 2026-11-22._
 
 ## Changelog
 
@@ -12,6 +12,7 @@ _Document vivant — enrichi au fil du cycle de vie, refondu lors d'un pivot str
 | 2026-11-20 | Éditer | Hypothèses | H4 : état de lecture = date du dernier article vu par flux, pas un marqueur par article |
 | 2026-11-21 | Éditer | Métriques | North Star réduite à une condition : abonnements et favoris sont dans le PDS via AT Protocol, l'état de lecture n'y est pas obligatoire. Les conditions d'usage (30 jours) et de second client sont retirées |
 | 2026-11-21 | Éditer | Audience | Plus de limite à un utilisateur en V1 : tout titulaire d'un compte AT Protocol peut utiliser RssBase. Seuils et horizons réalignés |
+| 2026-11-22 | Éditer | Notes pour les features à venir | Pointeur « Login AT Protocol » annoté de la story qui le porte, sync post-livraison de la story 002-f-connexion-atproto |
 
 ## Le problème
 
@@ -116,7 +117,7 @@ Couche sociale, au contenu à définir (hypothèse 3).
 
 ## Notes pour les features à venir
 
-- Login AT Protocol (OAuth).
+- Login AT Protocol (OAuth). → story `002-f-connexion-atproto`
 - Import OPML depuis FreshRSS ou Miniflux.
 - Lexicon des abonnements, de l'état de lecture (curseur « dernier article vu » par flux) et des favoris.
 - Bascule public/privé par abonnement.

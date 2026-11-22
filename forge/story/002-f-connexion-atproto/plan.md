@@ -21,17 +21,35 @@ en **boucle locale** : `client_id` de la forme `http://localhost?redirect_uri=..
 développement et des tests.
 
 Tout l'état d'une connexion vit dans la session PHP côté serveur : la demande en cours (vérificateur PKCE, clé DPoP, émetteur attendu, DID attendu),
-puis les jetons, la clé DPoP, le dernier nonce et la portée accordée. Un appareil a donc une session et un jeu de jetons. Se déconnecter détruit la
-session, sans appel au fournisseur. Le verrou de session de PHP sérialise le rafraîchissement des jetons, qui sont à usage unique. L'utilisateur de
-Symfony Security est un objet tenu en session (DID, handle, adresse de l'avatar, écriture accordée ou non) : aucune requête en base par page.
+puis les jetons, la clé DPoP, le dernier nonce et la portée accordée. Un appareil a donc une session et un jeu de jetons. Le verrou de session de PHP
+sérialise le rafraîchissement des jetons, qui sont à usage unique. L'utilisateur de Symfony Security est un objet tenu en session (DID, handle, adresse
+de l'avatar, écriture accordée ou non) : aucune requête en base par page.
+
+Chaque rafraîchissement donne un nouvel identifiant à la session, pour renouveler l'échéance de son cookie (`SessionRenewal`). La copie laissée sous
+l'ancien identifiant sert les requêtes déjà parties, ne rafraîchit jamais les jetons et est refusée après cinq minutes. Les copies d'une session
+partagent un nom de famille : se déconnecter sur l'une les termine toutes à leur requête suivante (`SignOutListener`, mémoire des familles
+déconnectées dans `cache.app` pour 90 jours), sans appel au fournisseur. Le rafraîchissement suit trois issues : `invalid_grant` ou `invalid_client`
+terminent la session ; toute autre erreur OAuth est redemandée après une minute, et la cinquième d'affilée termine la session (`PostponedRefresh`) ;
+une panne, un `429` ou une erreur 5xx sont redemandés après une minute, sans limite.
 
 La base ne reçoit que la trace de connexion : une table `account`, clée par le DID, mise à jour par une seule requête d'insertion ou de mise à jour à
 chaque connexion réussie, datée par l'horloge de SQLite.
 
 Une seule adresse de retour OAuth existe (`/oauth/callback` sur le site anglais, ou sur `127.0.0.1` en boucle locale, où la spécification interdit
 `localhost`). Le paramètre `state` transporte le site de départ, signé avec le secret de l'application. Quand le retour arrive sur un autre hôte que
-celui de départ, le contrôleur le renvoie tel quel vers l'hôte de départ, qui seul possède le cookie de session et termine l'échange. Le cookie de
-session est posé sur le domaine parent, celui que `LocaleDomainListener` calcule déjà, pour valoir sur les deux langues.
+celui de départ, le contrôleur le renvoie tel quel vers l'hôte de départ, qui seul possède le cookie de session et termine l'échange, à condition que
+ce site soit un site de RssBase : l'autre langue de son propre domaine, ou un nom local (`localhost`, `*.localhost`) quand un client en boucle locale
+reçoit le retour sur `127.0.0.1`. Le cookie de session est posé sur le domaine parent, celui que `LocaleDomainListener` calcule déjà, pour valoir sur
+les deux langues, sauf pour une adresse IP ou un nom à un seul label que les navigateurs refusent : `localhost` ne partage donc pas la session entre
+langues, et le développement passe par `rssbase.localhost` et `fr.rssbase.localhost`.
+
+Les appels sortants passent par un client unique (`atproto.client`) : `BoundedHttpClient` pose sur chaque requête un délai d'inactivité de 5 s, une
+durée maximale de 10 s, aucune redirection et un plafond de 256 Kio, devant `NoPrivateNetworkHttpClient`, qui refuse les réseaux privés à chaque
+saut. Les limites sont posées par requête parce que `NoPrivateNetworkHttpClient` remplace les options configurées du client scopé par ses propres
+valeurs par défaut. Seule l'adresse well-known d'un handle suit jusqu'à trois redirections, que la spécification du handle autorise.
+
+Les notions du protocole circulent en objets valeur (`Did`, `Handle`, `Pds`, `Issuer`, `HttpsUrl`, `Scope`, `State`, `Site`, `TokenPair`,
+`FormBody`), qui se valident à la construction. L'entité `Account` porte un `Did` et un `Handle` par deux types DBAL.
 
 La portée demandée est un paramètre, `atproto repo:*` dans cette story (écriture sur tout le compte dans un premier temps, à resserrer sur les
 collections RssBase quand le lexicon existera). La portée réellement accordée se lit dans la réponse du serveur de jetons : un fournisseur qui ne
@@ -51,22 +69,32 @@ Le choix d'un fournisseur réutilise le même flux, démarré depuis l'émetteur
 - **`access_control` en refus par défaut** : tout exige `ROLE_USER`, sauf l'accueil, la connexion, le choix d'un fournisseur, le retour OAuth et le
   document de métadonnées, en `PUBLIC_ACCESS`. C'est la règle 11 du pitch, qui vaut aussi pour les pages à venir. Le routeur passe avant le pare-feu :
   une adresse inconnue reste une 404.
-- **`symfony/http-client` avec `NoPrivateNetworkHttpClient`** : les adresses appelées viennent de la saisie du visiteur (domaine du handle, `did:web`,
-  PDS du document DID). Le client dédié refuse les réseaux privés, ne suit aucune redirection et a un délai court. Les tests le remplacent par le faux
-  fournisseur.
-- **`web-token/jwt-library`** : signature ES256 des preuves DPoP et de l'assertion du client, génération et sérialisation des clés en JWK.
-  L'application ne vérifie aucun jeton : les jetons d'accès AT Protocol sont opaques pour le client.
-- **Session native sur fichiers** : `var/sessions/<environnement>`, cookie de longue durée, durée de vie alignée sur le jeton de rafraîchissement.
-  Le domaine du cookie est fixé à chaque requête par `LocaleDomainListener`, avant toute ouverture de session.
-- **Écouteur `kernel.request` de rafraîchissement** : pour un utilisateur connecté dont le jeton d'accès a expiré, rafraîchit les jetons. Sur
-  `invalid_grant`, déconnecte et renvoie à la connexion avec le message de fin de session (règle 17). Sur une panne réseau, ne déconnecte pas.
+- **`symfony/http-client` avec `NoPrivateNetworkHttpClient`, derrière `BoundedHttpClient`** : les adresses appelées viennent de la saisie du
+  visiteur (domaine du handle, `did:web`, PDS du document DID). La chaîne refuse les réseaux privés à chaque saut et borne le temps, les redirections
+  et la taille de chaque réponse. Les tests retirent `NoPrivateNetworkHttpClient`, qui résout chaque hôte par le vrai DNS, et répondent par le faux
+  réseau (`mock_response_factory`).
+- **`DpopProofFactory` de Symfony Security 8.2** (`Symfony\Component\Security\Http\OAuth2\Dpop`) : preuves DPoP signées en ES256 ; `DpopKey`
+  tient la clé de la session et le dernier nonce.
+- **`web-token/jwt-library`** : assertion du client confidentiel, génération et sérialisation des clés en JWK. L'application ne vérifie aucun jeton :
+  les jetons d'accès AT Protocol sont opaques pour le client.
+- **Session native sur fichiers** : `var/sessions/<environnement>`, cookie et session de 90 jours sans visite, la durée de vie d'un jeton de
+  rafraîchissement inutilisé chez le fournisseur de référence. Le domaine du cookie est fixé à chaque requête principale par `LocaleDomainListener`,
+  avant toute ouverture de session ; les sous-requêtes, rendues session ouverte, n'y touchent pas.
+- **Écouteur `kernel.request` de rafraîchissement** (`TokenRefreshListener`) : pour un utilisateur connecté dont le jeton d'accès a expiré,
+  rafraîchit les jetons puis renouvelle l'identifiant de session. Il refuse une copie de session périmée ou dont la famille s'est déconnectée, et
+  applique les trois issues décrites plus haut (règles 16 et 17).
+- **Écouteur de `LogoutEvent`** (`SignOutListener`, sur le répartiteur du pare-feu `main`, avant le vidage de la session) : mémorise la déconnexion
+  de la famille de la session.
+- **Processeur Monolog** (`RedactAuthorizationCode`) : masque le code d'autorisation dans l'adresse que le canal `request` journalise.
 - **Jeton CSRF sans état** de Symfony sur les trois formulaires POST (connexion, choix d'un fournisseur, déconnexion) ;
   `assets/controllers/csrf_protection_controller.js` existe déjà.
 - **Requête d'insertion ou de mise à jour en DBAL** dans `AccountRepository`, avec `CURRENT_TIMESTAMP` : une seule requête atomique, sans lecture
   préalable, datée par la base (règle « Database queries » d'`AGENTS.md`).
 - **Mise en page partagée** : l'en-tête et les couleurs de l'accueil, aujourd'hui écrits dans `home/index.html.twig`, passent dans une mise en page et
   un composant Twig anonyme que les quatre écrans étendent.
-- **Filtre des fournisseurs par liens** (`?region=eu`) : rendu côté serveur, sans JavaScript, testable en `WebTestCase`.
+- **Filtre des fournisseurs par liens** (`?region=eu`) : rendu côté serveur, sans JavaScript, testable en `WebTestCase`. La région se lit par
+  `#[MapQueryParameter]` sur l'enum `Region`.
+- **Types DBAL** (`DidType`, `HandleType`, déclarés dans `config/packages/doctrine.yaml`) : l'entité manipule des objets valeur sur des colonnes texte.
 
 ### Alternatives écartées
 
@@ -90,8 +118,8 @@ Le choix d'un fournisseur réutilise le même flux, démarré depuis l'émetteur
 | Champ | Type | Nullable | Contrainte |
 |---|---|---|---|
 | `id` | entier, auto-incrémenté | non | clé primaire |
-| `did` | chaîne (2048) | non | unique (index `uniq_account_did`) |
-| `handle` | chaîne (253) | non | |
+| `did` | `Did`, type DBAL `did` (texte, 2048) | non | unique (index `uniq_account_did`) |
+| `handle` | `Handle`, type DBAL `handle` (texte, 253) | non | |
 | `lastLoginAt` (`last_login_at`) | `datetime_immutable` | non | écrit par `CURRENT_TIMESTAMP` |
 
 La clé métier est le DID : un compte dont le handle change garde sa ligne et prend le nouveau handle (règle 30). Le handle n'est ni unique ni indexé :
@@ -105,69 +133,88 @@ cloisonnement, c'est une trace d'exploitation lue par `bin/console dbal:run-sql`
 
 | Fichier | Rôle |
 |---|---|
+| `app/src/AtProto/HttpsUrl.php` | Objet valeur : adresse https, test « hôte seul », ajout d'une requête. |
+| `app/src/AtProto/JsonObject.php` | Lecture typée d'un document JSON reçu du réseau. |
+| `app/src/AtProto/BoundedHttpClient.php` | Délai, durée maximale, redirections et taille de chaque requête sortante. |
 | `app/src/AtProto/Identity/Handle.php` | Objet valeur : normalise la saisie (espaces, `@`, casse, complétion `.bsky.social`) et valide la syntaxe. |
-| `app/src/AtProto/Identity/HandleResolver.php` | Handle vers DID par DNS `_atproto` puis `/.well-known/atproto-did`. |
-| `app/src/AtProto/Identity/DidResolver.php` | Document DID (`did:plc`, `did:web`) : PDS et handle déclaré. |
-| `app/src/AtProto/Identity/IdentityResolver.php` | Assemble les deux résolutions et la vérification bidirectionnelle ; rend une identité (DID, handle, PDS). |
-| `app/src/AtProto/Identity/Exception/*.php` | Compte introuvable, fournisseur injoignable : les deux causes d'échec que l'interface distingue. |
-| `app/src/AtProto/OAuth/AuthorizationServerLocator.php` | PDS vers métadonnées de ressource protégée, puis métadonnées du serveur d'autorisation, avec contrôle de l'émetteur. |
+| `app/src/AtProto/Identity/Did.php`, `Pds.php`, `Identity.php` | Objets valeur : DID, PDS (hôte https seul), identité vérifiée (DID, handle, PDS). |
+| `app/src/AtProto/Identity/HandleResolver.php` | Handle vers DID par DNS `_atproto` puis `/.well-known/atproto-did` (trois redirections au plus). |
+| `app/src/AtProto/Identity/DnsTxtRecords.php`, `SystemDnsTxtRecords.php` | Lecture des enregistrements TXT, remplaçable en test. |
+| `app/src/AtProto/Identity/DidResolver.php`, `DidDocument.php` | Document DID (`did:plc`, `did:web`) : PDS et handle déclaré. |
+| `app/src/AtProto/Identity/IdentityResolver.php` | Assemble les deux résolutions et la vérification bidirectionnelle. |
+| `app/src/AtProto/Identity/Exception/AccountNotFound.php`, `ProviderUnreachable.php` | Les deux causes d'échec que l'interface distingue. |
+| `app/src/AtProto/OAuth/AuthorizationServerLocator.php`, `AuthorizationServer.php`, `Issuer.php` | PDS vers métadonnées de ressource protégée, puis du serveur d'autorisation, avec contrôle de l'émetteur et des points de terminaison https. |
 | `app/src/AtProto/OAuth/ClientIdentity.php` | Mode du client (confidentiel ou boucle locale), `client_id`, adresse de retour, document de métadonnées, assertion du client. |
-| `app/src/AtProto/OAuth/DpopProofFactory.php` | Clé DPoP par session et preuve signée par requête (`htm`, `htu`, `jti`, `iat`, `nonce`, `ath`). |
-| `app/src/AtProto/OAuth/OAuthClient.php` | PAR, adresse d'autorisation, échange du code, rafraîchissement, reprise sur `use_dpop_nonce`. |
-| `app/src/AtProto/OAuth/PendingAuthorization.php` | État d'une demande en cours, tenu en session. |
-| `app/src/AtProto/OAuth/TokenSet.php` | Jetons, échéance, portée accordée, émetteur, clé DPoP, nonce, tenus en session. |
-| `app/src/AtProto/OAuth/SignedState.php` | Fabrique et vérifie le `state` qui transporte le site de départ. |
+| `app/src/AtProto/OAuth/DpopKey.php`, `DpopResponse.php` | Clé DPoP de la session et dernier nonce ; réponse d'un serveur à une requête DPoP. |
+| `app/src/AtProto/OAuth/OAuthClient.php`, `FormBody.php`, `PushedAuthorization.php` | PAR, adresse d'autorisation, échange du code, rafraîchissement, reprise sur `use_dpop_nonce`, classement des erreurs. |
+| `app/src/AtProto/OAuth/Exception/OAuthError.php` | Refus OAuth, et ceux qui terminent l'accès (`invalid_grant`, `invalid_client`). |
+| `app/src/AtProto/OAuth/PendingAuthorization.php`, `State.php` | État d'une demande en cours, tenu en session. |
+| `app/src/AtProto/OAuth/TokenSet.php`, `TokenPair.php`, `Scope.php` | Jetons, échéance, portée accordée, émetteur, clé DPoP, tenus en session. |
+| `app/src/AtProto/OAuth/SignedState.php`, `Site.php` | Fabrique et vérifie le `state` qui transporte le site de départ. |
+| `app/src/AtProto/OAuth/Base64Url.php` | Encodage base64url des vérificateurs et signatures. |
 | `app/src/AtProto/Profile/AvatarLocator.php` | Lit `app.bsky.actor.profile` sur le PDS et rend l'adresse du fichier de l'avatar, ou rien. |
-| `app/src/AtProto/Provider/Provider.php`, `ProviderCatalog.php` | Les fournisseurs proposés (nom, émetteur, région, étiquette) lus dans un paramètre. |
+| `app/src/AtProto/Provider/Provider.php`, `ProviderCatalog.php`, `Region.php`, `ProviderLabel.php` | Les fournisseurs proposés (nom, émetteur, région, étiquette) lus dans un paramètre. |
 | `app/src/Security/AtProtoUser.php` | Utilisateur en session : DID, handle, avatar, écriture accordée. |
 | `app/src/Security/SessionUserProvider.php` | Rend l'utilisateur de la session sans le recharger. |
 | `app/src/Security/AtProtoAuthenticator.php` | Authentifie sur la route de retour OAuth, trace la connexion, redirige vers la page demandée. |
-| `app/src/Security/LoginEntryPoint.php` | Renvoie un visiteur vers la connexion (si le point d'entrée par défaut ne suffit pas). |
+| `app/src/Security/AuthorizationFlow.php` | Demande en cours et jetons de la session, report du rafraîchissement. |
+| `app/src/Security/LoginEntryPoint.php` | Renvoie un visiteur vers la connexion. |
+| `app/src/Security/LoginFailure.php` | Cause d'un échec, sous forme de clé de traduction. |
+| `app/src/Security/SessionRenewal.php`, `PostponedRefresh.php` | Renouvellement d'identifiant de session, famille et déconnexion commune ; refus consécutifs d'un rafraîchissement. |
 | `app/src/EventListener/TokenRefreshListener.php` | Rafraîchit les jetons expirés ; ferme la session quand le fournisseur a retiré l'accès. |
+| `app/src/EventListener/SignOutListener.php` | Mémorise la déconnexion de la famille de la session. |
+| `app/src/Log/RedactAuthorizationCode.php` | Masque le code d'autorisation dans le journal `request`. |
 | `app/src/Controller/LoginController.php` | `GET /login` (formulaire) et `POST /login` (départ depuis un handle). |
-| `app/src/Controller/ProviderController.php` | `GET /providers` (liste filtrée) et `POST /providers/{provider}` (départ avec `prompt=create`). |
-| `app/src/Controller/OAuthCallbackController.php` | `GET /oauth/callback` : renvoi vers le site de départ quand l'hôte diffère. |
+| `app/src/Controller/ProviderController.php` | `GET /providers` (liste filtrée) et `POST /providers/{id}` (départ avec `prompt=create`). |
+| `app/src/Controller/OAuthCallbackController.php` | `GET /oauth/callback` : renvoi vers le site de départ, s'il est un site de RssBase, quand l'hôte diffère. |
 | `app/src/Controller/ClientMetadataController.php` | `GET /oauth-client-metadata.json` en mode confidentiel, 404 sinon. |
 | `app/src/Controller/FeedsController.php` | `GET /feeds` : « Mes flux », état vide. |
 | `app/src/Command/GenerateClientKeyCommand.php` | Génère la clé ES256 du client au format JWK, à placer dans les secrets. |
+| `app/src/Doctrine/DidType.php`, `HandleType.php` | Types DBAL des colonnes `did` et `handle`. |
 | `app/src/Entity/Account.php` | Trace de connexion. |
-| `app/src/Repository/AccountRepository.php` | `recordLogin(did, handle)` : insertion ou mise à jour datée par la base. |
-| `app/src/Migrations/Version*.php` | Création de la table `account`, générée. |
+| `app/src/Repository/AccountRepository.php` | `recordLogin(Did, Handle)` : insertion ou mise à jour datée par la base. |
+| `app/src/Migrations/Version20261121221813.php` | Création de la table `account`, générée. |
 | `app/config/packages/security.yaml` | Pare-feu, fournisseur d'utilisateur, déconnexion, `access_control`. |
-| `app/config/packages/http_client.yaml` | Client dédié AT Protocol (délai, pas de redirection) ; fabrique de réponses du faux fournisseur en test. |
+| `app/config/packages/csrf_protection.yaml` | Jetons CSRF sans état `login`, `provider`, `logout`. |
+| `app/config/packages/http_client.yaml` | Client scopé AT Protocol (`User-Agent`) ; fabrique de réponses du faux réseau en test. |
+| `app/config/routes/security.yaml` | Routes du pare-feu (déconnexion). |
 | `app/templates/site.html.twig` | Mise en page commune : couleurs, police, en-tête. |
 | `app/templates/components/Site/Header.html.twig` | En-tête : logo, menu des langues, liens, compte connecté et déconnexion. |
 | `app/templates/login/index.html.twig` | Champ handle, message d'échec, phrase sur le mot de passe, lien vers les fournisseurs. |
 | `app/templates/provider/index.html.twig` | Fournisseurs, filtre Tous / UE / US, liens sortants, retour à la connexion. |
 | `app/templates/feeds/index.html.twig` | État vide de « Mes flux ». |
-| `app/tests/Fake/FakeAtProtoNetwork.php` | Faux réseau AT Protocol : résolution, métadonnées, PAR, jetons, profil. Vérifie PKCE, DPoP et l'assertion du client. |
-| `app/tests/Fake/FakeAuthorizationController.php` | Page d'approbation du faux fournisseur, servie par le noyau de test. |
-| `app/tests/Unit/AtProto/Identity/HandleTest.php` | Normalisation et complétion du handle. |
-| `app/tests/Unit/AtProto/OAuth/*Test.php` | Preuve DPoP, assertion du client, `state` signé, `client_id` en boucle locale. |
-| `app/tests/Functional/LoginTest.php` | Connexion par handle, échecs, page demandée retrouvée, redirections d'un utilisateur connecté. |
+| `app/tests/Fake/FakeAtProtoNetwork.php` | Faux réseau AT Protocol : DNS, documents DID, PDS, profil, pannes et refus simulés. |
+| `app/tests/Fake/FakeAuthorizationServer.php`, `FakeOAuthEndpoints.php`, `FakeOAuthStore.php`, `FakeTokenGrants.php`, `FakeClientVerifier.php`, `FakeDpopVerifier.php`, `FakeJwt.php`, `FakeOAuthError.php`, `FakeField.php` | Faux serveur d'autorisation : PAR, jetons, vérification de PKCE, de DPoP et de l'assertion du client. |
+| `app/tests/Fake/FakeProviderRoute.php` | Page d'approbation du faux fournisseur, servie au navigateur par une route Playwright. |
+| `app/tests/Unit/AtProto/Identity/HandleTest.php`, `PdsTest.php`, `HandleResolverTest.php`, `IdentityResolverTest.php` | Normalisation du handle, PDS, résolution. |
+| `app/tests/Unit/AtProto/OAuth/*Test.php` | Client, assertion, `state` signé, localisation du serveur, exigences du faux serveur. |
+| `app/tests/Unit/AtProto/BoundedHttpClientTest.php`, `HttpsUrlTest.php`, `Profile/AvatarLocatorTest.php` | Limites des requêtes, adresses, avatar. |
+| `app/tests/Functional/LoginTest.php`, `LoginFailureTest.php`, `SignsInThroughTheFakeProvider.php` | Connexion par handle, échecs, page demandée retrouvée, redirections d'un utilisateur connecté. |
 | `app/tests/Functional/ProviderTest.php` | Liste, filtre, départ chez un fournisseur et retour connecté. |
-| `app/tests/Functional/SessionTest.php` | Déconnexion, second appareil, fin de session chez le fournisseur, compte sans écriture. |
-| `app/tests/Functional/ClientMetadataTest.php` | Document de métadonnées en mode confidentiel, 404 en boucle locale. |
-| `app/tests/Integration/AccountRepositoryTest.php` | Première connexion, reconnexion, changement de handle sans doublon. |
+| `app/tests/Functional/SessionTest.php`, `RefreshFailureTest.php` | Deux langues, durée du cookie, déconnexion, second appareil, rafraîchissement et ses échecs. |
+| `app/tests/Functional/OAuthCallbackTest.php`, `ClientMetadataTest.php`, `AccountDisplayTest.php` | Renvoi du retour OAuth, document de métadonnées, compte affiché. |
+| `app/tests/Integration/AccountRepositoryTest.php`, `RedactAuthorizationCodeTest.php` | Trace de connexion, journal sans code. |
+| `app/tests/Integration/SessionKernelTestCase.php`, `SessionRenewalTest.php`, `TokenRefreshListenerTest.php`, `LocaleDomainListenerTest.php` | Écouteurs et renouvellement sur les sessions natives de PHP. |
 | `app/tests/E2E/LoginBrowserTest.php` | Parcours complet dans Chromium, session commune aux deux langues, réouverture du navigateur. |
 
 ### Fichiers à modifier
 
 | Fichier | Modification |
 |---|---|
-| `app/composer.json`, `app/composer.lock`, `app/symfony.lock`, `app/config/bundles.php` | Ajouter `symfony/security-bundle`, `symfony/security-csrf`, `symfony/http-client` (déjà présent par transitivité) et `web-token/jwt-library`. |
-| `app/config/packages/framework.yaml` | Session : stockage sur fichiers dans `var/sessions`, durée du cookie et de la session ; CSRF sans état pour les trois formulaires. |
-| `app/config/services.yaml` | Paramètres `app.atproto.scope` (`atproto repo:*`) et `app.atproto.providers` (les quatre fournisseurs et les deux liens sortants). |
-| `app/.env`, `app/.env.test` | `ATPROTO_CLIENT_PRIVATE_JWK` vide par défaut (boucle locale). |
-| `app/src/EventListener/LocaleDomainListener.php` | Fixer aussi le domaine du cookie de session sur le domaine calculé, sauf adresse IP ou nom à un seul label. |
+| `app/composer.json`, `app/composer.lock`, `app/symfony.lock`, `app/config/bundles.php` | Ajouter `symfony/security-bundle`, `symfony/security-csrf`, `symfony/http-client` et `web-token/jwt-library`. |
+| `app/config/reference.php`, `app/config/schema.json` | Régénérés avec le conteneur. |
+| `app/config/packages/framework.yaml` | Session : stockage sur fichiers dans `var/sessions/<environnement>`, cookie et session de 90 jours. |
+| `app/config/packages/doctrine.yaml` | Déclarer les types DBAL `did` et `handle`. |
+| `app/config/services.yaml` | Paramètres `app.atproto.scope` (`atproto repo:*`), `app.atproto.providers` et les deux liens sortants ; chaîne `atproto.client` ; faux réseau en test. |
+| `app/.env` | `ATPROTO_CLIENT_PRIVATE_JWK` vide par défaut (boucle locale). |
+| `app/Makefile` | Cible `test-database` : base de test migrée. |
+| `app/src/EventListener/LocaleDomainListener.php` | Fixer aussi le domaine du cookie de session sur le domaine calculé, sauf adresse IP ou nom à un seul label ; ignorer les sous-requêtes. |
 | `app/src/Controller/HomeController.php` | Rediriger un utilisateur connecté vers « Mes flux ». |
 | `app/templates/home/index.html.twig` | Étendre la mise en page commune ; « Commencer » mène à la connexion ; l'en-tête et les couleurs sortent du gabarit. |
 | `app/translations/messages+intl-icu.en.yaml`, `.fr.yaml` | Clés `login.*`, `providers.*`, `feeds.*`, `account.*`. |
-| `app/tests/Functional/HomePageTest.php`, `app/tests/E2E/HomePageBrowserTest.php` | Suivre le nouveau lien « Commencer » et la mise en page partagée. |
-| `castor.php`, `.castor/docker.php` | Servir aussi `127.0.0.1:<port>` (retour OAuth en boucle locale) et, si le prototype le confirme, `*.rssbase.localhost`. |
-| `infra/frankenphp/Caddyfile` | Seulement si les nouveaux noms d'hôte l'exigent. |
-| `app/.gitignore` | Ignorer `var/sessions` s'il ne l'est pas déjà. |
-| `AGENTS.md` | Adresse de retour en `127.0.0.1`, clé du client dans les secrets, commande de génération de la clé, lecture de la trace. |
+| `castor.php`, `infra/packages/docker-image-dev.nix` | Servir aussi `*.rssbase.localhost` et `127.0.0.1` (retour OAuth en boucle locale). |
+| `.castor/qa.php` | Construire la base de test avant les suites ; contrôle des traductions limité au domaine `messages`. |
+| `AGENTS.md` | Section « Sign-in » : boucle locale et retour sur `127.0.0.1`, clé du client dans les secrets, sessions, lecture de la trace, faux réseau ; adresses `rssbase.localhost`. |
 
 ## Hors scope
 
@@ -176,7 +223,7 @@ cloisonnement, c'est une trace d'exploitation lue par `bin/console dbal:run-sql`
 - **Révocation des jetons à la déconnexion** : écartée au pitch (règle 22).
 - **Écriture dans le PDS, lexicon, resserrement de la portée** : `abonnement-flux`.
 - **Purge des fichiers de session et des traces anciennes** : le ramasse-miettes de PHP suffit à ce stade.
-- **`forge/stack.md`** : à recartographier par `/forge:stack` après livraison (client AT Protocol, Security, sessions), pas à la main.
+- **`forge/stack.md`** : pas de retouche à la main pendant l'implémentation ; réaligné par `/forge:sync` à la clôture.
 - **`forge/product-backlog.md`** : la ligne `creation-compte-fournisseur`, absorbée par cette story, se retire par `/forge:product-backlog`.
 - **Mise en cache du profil** : l'avatar se lit à la connexion et vit le temps de la session.
 
@@ -199,19 +246,21 @@ cloisonnement, c'est une trace d'exploitation lue par `bin/console dbal:run-sql`
 
 | Code | Type | Ce qu'on vérifie |
 |---|---|---|
-| `app/src/AtProto/Identity/Handle.php` | unit | `@`, espaces, casse ; nom sans point complété par `.bsky.social` ; syntaxe invalide refusée. |
-| `app/src/AtProto/OAuth/DpopProofFactory.php` | unit | En-tête (`typ`, `alg`, `jwk` public seulement), revendications, `ath` pour un jeton d'accès, signature vérifiable avec la clé publique. |
-| `app/src/AtProto/OAuth/ClientIdentity.php` | unit | `client_id` et adresse de retour dans les deux modes ; assertion (`iss`, `sub`, `aud`, `jti`, `iat`) ; contenu du document de métadonnées. |
-| `app/src/AtProto/OAuth/SignedState.php` | unit | Aller-retour ; signature altérée ou site étranger refusés. |
-| `app/src/AtProto/Identity/IdentityResolver.php` | unit (faux réseau) | DNS puis well-known ; handle non confirmé par le document DID refusé ; `did:web` ; adresse de réseau privé refusée. |
-| `app/src/Controller/LoginController.php`, `AtProtoAuthenticator.php` | functional | Connexion complète contre le faux fournisseur ; handle introuvable, fournisseur injoignable, approbation refusée, chacun avec son message et le handle conservé ; `state`, `iss` ou `sub` faux refusés ; reprise sur `use_dpop_nonce`. |
+| `app/src/AtProto/Identity/Handle.php`, `Pds.php` | unit | `@`, espaces, casse ; nom sans point complété par `.bsky.social` ; syntaxe invalide refusée ; PDS réduit à un hôte https. |
+| `app/src/AtProto/Identity/HandleResolver.php`, `IdentityResolver.php` | unit (faux réseau) | DNS puis well-known, redirections permises ; handle non confirmé par le document DID refusé ; `did:web` ; adresse de réseau privé refusée. |
+| `app/src/AtProto/BoundedHttpClient.php`, `HttpsUrl.php` | unit | Plafond de 256 Kio ; délai et durée maximale reçus par le transport derrière `NoPrivateNetworkHttpClient` ; redirection suivie seulement si la requête le permet ; requête ajoutée à une adresse qui en a une. |
+| `app/src/AtProto/OAuth/OAuthClient.php`, `ClientIdentity.php`, `AuthorizationServerLocator.php` | unit (faux serveur) | PAR, échange, rafraîchissement à usage unique, reprise sur nonce, preuve DPoP et assertion vérifiées par le faux serveur ; `client_id` et adresse de retour des deux modes ; émetteur ou point de terminaison hors https refusés ; 429 et 5xx ne sont pas des refus. |
+| `app/src/AtProto/OAuth/SignedState.php` | unit | Aller-retour ; signature altérée ou site qui n'est pas une origine refusés. |
+| `app/src/Controller/LoginController.php`, `AtProtoAuthenticator.php` | functional | Connexion complète contre le faux fournisseur ; handle introuvable, fournisseur injoignable, approbation refusée, chacun avec son message et le handle conservé ; `state`, `iss` ou `sub` faux refusés ; réponse utilisée une seule fois. |
+| `app/src/Controller/OAuthCallbackController.php` | functional | Renvoi vers l'autre langue du même domaine ; refus d'un domaine étranger ; en boucle locale, renvoi seulement vers un nom local. |
 | `app/config/packages/security.yaml` | functional | `/feeds` anonyme renvoie à la connexion puis revient à `/feeds` ; adresse inconnue toujours en 404 ; utilisateur connecté redirigé depuis l'accueil, la connexion et les fournisseurs. |
-| `app/src/EventListener/TokenRefreshListener.php` | functional | Jeton expiré rafraîchi sans rien montrer ; `invalid_grant` ramène à la connexion avec le message de fin de session ; panne réseau ne déconnecte pas. |
+| `app/src/EventListener/TokenRefreshListener.php` | functional + integration (sessions natives) | Jeton expiré rafraîchi sans rien montrer ; `invalid_grant` et clé du client inconnue ramènent à la connexion avec le message de fin de session ; panne et 429 ne déconnectent pas et ne sont pas redemandés aussitôt ; cinq refus d'affilée terminent la session ; ancien identifiant refusé après le délai de grâce, jamais rafraîchi ; déconnexion sur l'ancien identifiant termine le nouveau. |
+| `app/src/Security/SessionRenewal.php`, `app/src/EventListener/LocaleDomainListener.php` | integration (sessions natives) | Marque de l'ancien identifiant et son refus ; déconnexion de la famille ; sous-requête sans réglage de session. |
 | `app/src/Controller/ProviderController.php` | functional | Quatre fournisseurs et leurs étiquettes ; filtres UE et US ; liens sortants ; départ avec `prompt=create` sans `login_hint` ; retour connecté ; émetteur différent de celui du compte refusé. |
 | Portée accordée | functional | Faux fournisseur qui ne rend que `atproto` : connexion réussie, `AtProtoUser` sans écriture, même page « Mes flux ». |
-| `app/src/Repository/AccountRepository.php` | integration (SQLite) | Insertion, reconnexion qui avance la date, nouveau handle sur le même DID sans seconde ligne. |
+| `app/src/Repository/AccountRepository.php`, `app/src/Log/RedactAuthorizationCode.php` | integration (SQLite) | Insertion, reconnexion qui avance la date, nouveau handle sur le même DID sans seconde ligne ; code masqué dans le journal. |
 | `app/src/Controller/ClientMetadataController.php` | functional | JSON conforme et clé publique seule en mode confidentiel ; 404 en boucle locale. |
-| Parcours complet | E2E | Accueil, « Commencer », handle, approbation, « Mes flux » avec avatar ou image neutre ; l'autre site de langue sans reconnexion ; déconnexion ; aucune erreur de console. |
+| Parcours complet | E2E | Accueil, « Commencer », handle, approbation sur la page du faux fournisseur servie par une route Playwright, « Mes flux » avec avatar ; l'autre site de langue sans reconnexion ; réouverture du navigateur ; déconnexion ; aucune erreur de console. |
 
 **Hors scope tests** :
 
@@ -299,12 +348,12 @@ cloisonnement, c'est une trace d'exploitation lue par `bin/console dbal:run-sql`
 
 | Risque | Probabilité | Mitigation |
 |---|---|---|
-| Un navigateur refuse un cookie posé sur le domaine `localhost` : la session commune aux deux langues ne marche pas en développement ni en E2E | élevée | Prototype en début d'étape 7 ; repli sur `rssbase.localhost` et `fr.rssbase.localhost` (première question ouverte). |
+| Un navigateur refuse un cookie posé sur le domaine `localhost` : la session commune aux deux langues ne marche pas en développement ni en E2E | élevée | Survenu (Chromium 157) ; repli appliqué : `rssbase.localhost` et `fr.rssbase.localhost`, servis par `castor start` et l'image de développement. |
 | Écart avec la spécification OAuth AT Protocol, invisible contre un faux fournisseur écrit par la même main | moyenne | Faux fournisseur écrit depuis `atproto.com/specs/oauth` et le code de référence ; lecture de `wecoprod/atproto-oauth-bundle` en contrôle ; vérification manuelle contre `bsky.social`. |
-| Requêtes vers le réseau interne à partir d'un handle ou d'un `did:web` forgé | moyenne | `NoPrivateNetworkHttpClient`, aucune redirection suivie, délai court, test dédié. |
-| `web-token/jwt-library` exige `gmp` ou `bcmath`, absents du PHP maison | faible | Vérifier à l'étape 4 ; sinon ajouter `bcmath` dans `infra/packages/php.nix` (recompilation). |
+| Requêtes vers le réseau interne à partir d'un handle ou d'un `did:web` forgé | moyenne | `NoPrivateNetworkHttpClient` à chaque saut, limites de temps, de redirection et de taille posées par `BoundedHttpClient`, tests dédiés. |
+| `web-token/jwt-library` exige `gmp` ou `bcmath`, absents du PHP maison | faible | Non survenu : ES256 signe avec OpenSSL seul, aucune extension ajoutée. |
 | Blacksky ou NPMX n'accordent pas `repo:*` (versions dérivées) | moyenne | Comportement prévu : connexion en identité seule, lue dans la portée accordée. |
-| Le PDS sert l'avatar avec des en-têtes qui empêchent son affichage dans une page tierce | moyenne | Vérifier à l'étape 9 ; repli sur une route de l'application qui relaie l'image (deuxième question ouverte). |
+| Le PDS sert l'avatar avec des en-têtes qui empêchent son affichage dans une page tierce | moyenne | Non survenu : avec les en-têtes du PDS de référence, Chromium affiche l'image ; pas de relais. |
 | État conservé entre requêtes en mode worker (nonce, clé, utilisateur) | faible | Aucun service ne garde d'état de requête : tout passe par la session. |
 | Deux requêtes simultanées rafraîchissent le même jeton à usage unique | faible | Verrou de session de PHP ; le rafraîchissement se fait session ouverte. |
 | Mode confidentiel faux en production faute de vérification réelle | moyenne | Assertion contrôlée par le faux fournisseur ; vérification réelle inscrite à la story d'hébergement. |
@@ -314,10 +363,11 @@ cloisonnement, c'est une trace d'exploitation lue par `bin/console dbal:run-sql`
 - **Cookie de session sur `localhost`** : à prototyper dans Chromium en début d'étape 7. Un cookie posé avec `Domain=localhost` depuis `fr.localhost`
   est-il conservé et renvoyé à `localhost` ? Options : (a) oui, rien à changer, (b) non, le développement et les tests E2E de session passent par
   `rssbase.localhost` et `fr.rssbase.localhost`, servis par `castor start` en plus de `localhost`. Recommandé : (b) si le prototype échoue, c'est le
-  plus petit changement qui tient la règle 18 ; `localhost` reste utilisable pour une seule langue.
+  plus petit changement qui tient la règle 18 ; `localhost` reste utilisable pour une seule langue. → tranché : (b), le prototype a échoué
+  (Chromium refuse `Domain=localhost` posé depuis `fr.localhost`).
 - **Affichage de l'avatar depuis le PDS** : `com.atproto.sync.getBlob` répond avec `content-disposition: attachment` et une politique de contenu
   restrictive. Options : (a) balise d'image pointant sur le PDS, (b) route de l'application qui relaie l'image avec un cache. Recommandé : (a), et (b)
-  seulement si un navigateur refuse l'image.
+  seulement si un navigateur refuse l'image. → tranché : (a), l'image s'affiche dans Chromium.
 - **Permissions fines chez Blacksky et NPMX** : non vérifiable sans compte. Rien à trancher, le repli est prévu ; à constater à l'usage.
 - **Resserrement de la portée** : `repo:*` vaut « dans un premier temps ». Options : (a) `repo:<collection>` par collection RssBase, (b) un ensemble
   de permissions publié avec le lexicon. Recommandé : à trancher dans `abonnement-flux`, avec le lexicon ; les comptes connectés approuveront à nouveau.

@@ -54,6 +54,11 @@
       "date": "2026-11-22",
       "type": "Review",
       "description": "Troisième passe, relecture indépendante de c7ab833 et 53cc556 : prêt à commiter, 0 bloquant, 0 important, 3 mineurs nouveaux ([TEST] délai d'une minute après un refus, [TEST] remise à zéro du compteur de refus, [TEST] limite de trois redirections), mineur DNS complété."
+    },
+    {
+      "date": "2026-11-22",
+      "type": "Sync",
+      "description": "25 écarts relevés dont 23 réalignés dans le plan, 21/21 critères d'acceptation et 5/8 critères de sortie cochés, 3 non livrés, 9 dettes ouvertes ; backlog, vision et stack.md retouchés."
     }
   ]
 }

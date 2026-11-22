@@ -102,27 +102,27 @@ RssBase n'a pas de compte maison. L'identité vient du fournisseur AT Protocol d
 
 ## Critères d'acceptation
 
-- [ ] Depuis l'accueil, « Commencer » ouvre la page de connexion, qui ne contient aucun champ de mot de passe.
-- [ ] Un visiteur qui saisit un handle valide part chez son fournisseur, approuve RssBase, et revient sur « Mes flux », connecté, sur le site de la langue d'où il est parti.
-- [ ] `@Nom.Bsky.Social` entouré d'espaces connecte le même compte que `nom.bsky.social`.
-- [ ] Un nom saisi sans domaine connecte le compte du même nom en `.bsky.social`.
-- [ ] Un handle introuvable ramène à la page de connexion avec le handle saisi dans le champ et un message qui dit que le compte est introuvable.
-- [ ] Un refus d'approbation chez le fournisseur ramène à la page de connexion avec un message qui le dit, distinct de celui du handle introuvable et de celui du fournisseur injoignable.
-- [ ] Un visiteur non connecté qui ouvre « Mes flux » est ramené à la page de connexion, puis arrive sur « Mes flux » une fois connecté.
-- [ ] « Mes flux » affiche un état vide, l'avatar et le handle du compte connecté, et un bouton de déconnexion.
-- [ ] Un compte sans avatar s'affiche avec une image neutre.
-- [ ] Un utilisateur connecté qui ouvre l'accueil ou la page de connexion se retrouve sur « Mes flux ».
-- [ ] Après fermeture et réouverture du navigateur, l'utilisateur est toujours connecté.
-- [ ] Un utilisateur connecté sur le site français qui ouvre le site anglais y voit « Mes flux » sans repasser par la connexion, et inversement.
-- [ ] Après « Se déconnecter », l'utilisateur est sur l'accueil et « Mes flux » le ramène à la connexion ; un second appareil connecté au même compte le reste.
-- [ ] Après révocation de l'accès chez le fournisseur, la visite suivante ramène à la page de connexion avec un message qui explique que la session a pris fin.
-- [ ] Un compte dont le fournisseur n'accorde pas l'écriture se connecte quand même et voit le même « Mes flux ».
-- [ ] La page de connexion mène à l'écran « choisir un fournisseur », qui liste Eurosky (« recommandé »), Bluesky (« le plus populaire »), Blacksky et NPMX avec leur lieu d'hébergement.
-- [ ] Le filtre UE ne laisse que Eurosky et NPMX, le filtre US que Bluesky et Blacksky, le filtre Tous les quatre.
-- [ ] L'écran des fournisseurs propose les liens « tous les fournisseurs », « héberger le sien » et « Déjà un compte ? Se connecter ».
-- [ ] Choisir un fournisseur ouvre directement son site, sans écran intermédiaire ; le compte créé et RssBase approuvé, le visiteur arrive connecté sur « Mes flux ».
-- [ ] Après une connexion, l'exploitant retrouve le handle du compte et la date du jour comme dernière connexion ; une reconnexion ultérieure met la date à jour sans créer de doublon.
-- [ ] Tous les écrans et messages de cette feature existent en français et en anglais.
+- [x] Depuis l'accueil, « Commencer » ouvre la page de connexion, qui ne contient aucun champ de mot de passe.
+- [x] Un visiteur qui saisit un handle valide part chez son fournisseur, approuve RssBase, et revient sur « Mes flux », connecté, sur le site de la langue d'où il est parti.
+- [x] `@Nom.Bsky.Social` entouré d'espaces connecte le même compte que `nom.bsky.social`.
+- [x] Un nom saisi sans domaine connecte le compte du même nom en `.bsky.social`.
+- [x] Un handle introuvable ramène à la page de connexion avec le handle saisi dans le champ et un message qui dit que le compte est introuvable.
+- [x] Un refus d'approbation chez le fournisseur ramène à la page de connexion avec un message qui le dit, distinct de celui du handle introuvable et de celui du fournisseur injoignable.
+- [x] Un visiteur non connecté qui ouvre « Mes flux » est ramené à la page de connexion, puis arrive sur « Mes flux » une fois connecté.
+- [x] « Mes flux » affiche un état vide, l'avatar et le handle du compte connecté, et un bouton de déconnexion.
+- [x] Un compte sans avatar s'affiche avec une image neutre.
+- [x] Un utilisateur connecté qui ouvre l'accueil ou la page de connexion se retrouve sur « Mes flux ».
+- [x] Après fermeture et réouverture du navigateur, l'utilisateur est toujours connecté.
+- [x] Un utilisateur connecté sur le site français qui ouvre le site anglais y voit « Mes flux » sans repasser par la connexion, et inversement.
+- [x] Après « Se déconnecter », l'utilisateur est sur l'accueil et « Mes flux » le ramène à la connexion ; un second appareil connecté au même compte le reste.
+- [x] Après révocation de l'accès chez le fournisseur, la visite suivante ramène à la page de connexion avec un message qui explique que la session a pris fin.
+- [x] Un compte dont le fournisseur n'accorde pas l'écriture se connecte quand même et voit le même « Mes flux ».
+- [x] La page de connexion mène à l'écran « choisir un fournisseur », qui liste Eurosky (« recommandé »), Bluesky (« le plus populaire »), Blacksky et NPMX avec leur lieu d'hébergement.
+- [x] Le filtre UE ne laisse que Eurosky et NPMX, le filtre US que Bluesky et Blacksky, le filtre Tous les quatre.
+- [x] L'écran des fournisseurs propose les liens « tous les fournisseurs », « héberger le sien » et « Déjà un compte ? Se connecter ».
+- [x] Choisir un fournisseur ouvre directement son site, sans écran intermédiaire ; le compte créé et RssBase approuvé, le visiteur arrive connecté sur « Mes flux ».
+- [x] Après une connexion, l'exploitant retrouve le handle du compte et la date du jour comme dernière connexion ; une reconnexion ultérieure met la date à jour sans créer de doublon.
+- [x] Tous les écrans et messages de cette feature existent en français et en anglais.
 
 ## Hors scope
 

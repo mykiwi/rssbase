@@ -2,7 +2,7 @@
 
 > Carte des capacités fonctionnelles et backlog priorisé dérivé de `forge/vision.md`.
 
-_Document vivant — enrichi/édité au fil du cycle de vie, refondu lors d'un pivot. Date de dernière mise à jour : 2026-11-21._
+_Document vivant — enrichi/édité au fil du cycle de vie, refondu lors d'un pivot. Date de dernière mise à jour : 2026-11-22._
 
 ## Changelog
 
@@ -12,6 +12,7 @@ Historique des évolutions structurantes (création, enrichissements, éditions 
 |------|--------|----------|-------|
 | 2026-11-21 | Création | — | Backlog initial dérivé de la vision |
 | 2026-11-21 | Éditer | Justifications vision, notes | North Star de la vision reformulée : abonnements et favoris dans le PDS via AT Protocol, état de lecture non obligatoire ; audience ouverte à tout compte AT Protocol |
+| 2026-11-22 | Éditer | `connexion-atproto`, note `creation-compte-fournisseur` | La ligne couvre aussi le choix d'un fournisseur pour qui n'a pas de compte (C1.4, P2), livré avec la connexion ; liste des fournisseurs et fournisseur mis en avant tranchés au cadrage, sync post-livraison de la story 002-f-connexion-atproto |
 
 ## Domaines fonctionnels
 
@@ -151,9 +152,9 @@ AT Protocol n'est pas un domaine : c'est une règle transverse qui s'applique au
 
 ### MVP — Lancement initial · `0/3 livrées`
 
-- [ ] `connexion-atproto` — Permettre à un visiteur de se connecter par son handle, de rester connecté et de se déconnecter, pour accéder à l'espace réservé sans confier son mot de passe à RssBase.
-  - Pas encore cadrée
-  - C1.1, C1.5, C1.6, C1.7 · P1, P4 · dép. — · Vision : North Star (sans connexion AT Protocol, aucune écriture dans le PDS) / note « Login AT Protocol »
+- [ ] `connexion-atproto` — Permettre à un visiteur de se connecter par son handle, ou de créer son compte chez un fournisseur proposé, de rester connecté et de se déconnecter, pour accéder à l'espace réservé sans confier son mot de passe à RssBase.
+  - Story `002-f-connexion-atproto` · **clôture en cours**
+  - C1.1, C1.4, C1.5, C1.6, C1.7 · P1, P2, P4 · dép. — · Vision : North Star (sans connexion AT Protocol, aucune écriture dans le PDS) / note « Login AT Protocol »
 - [ ] `abonnement-flux` — Permettre à un utilisateur de s'abonner à un flux, de lister ses abonnements et de se désabonner, pour constituer sa liste de lecture dans son propre compte.
   - Pas encore cadrée
   - C2.1, C2.3, C2.4 · P5 · dép. `connexion-atproto` · Vision : North Star (abonnements dans le PDS) / problème central / principe 1
@@ -197,7 +198,7 @@ _(dérivé — recalculé à chaque passe, ne pas maintenir à la main)_
 
 ### Capacités par horizon
 
-- **MVP** — livrées : — · planifiées : C1.1, C1.5, C1.6, C1.7, C2.1, C2.3, C2.4, C3.1, C3.2, C3.3
+- **MVP** — livrées : — · planifiées : C1.1, C1.4, C1.5, C1.6, C1.7, C2.1, C2.3, C2.4, C3.1, C3.2, C3.3
 - **V2** — livrées : — · planifiées : C1.2, C1.3, C1.4, C2.2, C2.5, C3.4, C3.5, C4.1, C4.2, C4.3
 - **V3** — livrées : — · planifiées : C5.1, C5.2
 
@@ -208,7 +209,7 @@ _(dérivé — recalculé à chaque passe, ne pas maintenir à la main)_
 ### Parcours supportés
 
 - **P1** : partiellement supporté en MVP (C1.2 et C1.3 reportées en V2 : connexion par le seul champ handle).
-- **P2** : non supporté en MVP (C1.4 en V2).
+- **P2** : supporté en MVP (C1.4 portée par `connexion-atproto`).
 - **P3** : partiellement supporté en MVP (C2.2 reportée en V2 : les flux s'ajoutent un par un).
 - **P4** : partiellement supporté en MVP (C3.4, C3.5 et C4.1 reportées en V2 : lecture sans état de lecture ni favoris).
 - **P5** : partiellement supporté en MVP (C2.5 reportée en V2 : tous les abonnements sont publics).
@@ -220,4 +221,4 @@ _(dérivé — recalculé à chaque passe, ne pas maintenir à la main)_
 - **État de lecture hors MVP** : le MVP n'écrit que des abonnements. Le cœur du problème de la vision (état de lecture portable) n'arrive qu'avec `curseur-lecture`, première ligne de la V2.
 - **Références d'écrans pour D1** (captures fournies le 2026-11-21, parcours d'inscription de Colibri et modale d'une autre application) : saisie du handle avec suggestions de comptes ; écran « Est-ce vous ? » avec avatar, nom et handle ; choix d'un fournisseur avec filtre Tous / UE / US, étiquettes « recommandé » et « le plus populaire », liens « tous les fournisseurs » et « héberger le sien » ; variante compacte à un seul champ. L'écran d'annonce du départ chez le fournisseur (« Taking you to... ») a été écarté.
 - **Hypothèses de la vision à lever au cadrage** : H2 (lexicon communautaire existant pour les flux) avant `abonnement-flux` ; H1 (spaces disponibles) avant `curseur-lecture`, `favoris` et `bascule-public-prive`, qui écrivent des données privées.
-- **`creation-compte-fournisseur`** : qui choisit la liste des fournisseurs et celui mis en avant reste à décider.
+- **`creation-compte-fournisseur`** : qui choisit la liste des fournisseurs et celui mis en avant reste à décider. → tranché dans `002-f-connexion-atproto` : liste éditoriale de RssBase, Eurosky mis en avant ; la capacité est livrée avec `connexion-atproto`.
