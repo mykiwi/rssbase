@@ -109,13 +109,24 @@ final class LoginFailureTest extends WebTestCase
         $replay = (string) $client->getResponse()->headers->get('Location');
         $client->request('GET', $replay);
         self::assertResponseRedirects('/feeds');
-        // Another browser that captured the answer cannot use it.
-        $client->getCookieJar()->clear();
 
+        $exchanges = self::tokenRequests();
+
+        // The request the answer belongs to left the session with the first use: the code is not
+        // sent to the provider a second time.
         $client->request('GET', $replay);
-        $client->followRedirect();
 
-        self::assertSignInFailed($client);
+        self::assertResponseRedirects('/login');
+        static::assertSame($exchanges, self::tokenRequests());
+    }
+
+    private static function tokenRequests(): int
+    {
+        return \count(array_keys(
+            FakeAtProtoNetwork::requests(),
+            'POST ' . FakeAuthorizationServer::TOKEN_ENDPOINT,
+            strict: true,
+        ));
     }
 
     private static function assertSignInFailed(KernelBrowser $client): void
