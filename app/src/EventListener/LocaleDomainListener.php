@@ -32,6 +32,12 @@ final class LocaleDomainListener
     #[AsEventListener(priority: 16)]
     public function __invoke(RequestEvent $event): void
     {
+        // A sub-request, such as the one that renders an error page, has the host of the main request,
+        // and the session may be open by then.
+        if (!$event->isMainRequest()) {
+            return;
+        }
+
         $domain = $event->getRequest()->getHost();
         foreach ($this->enabledLocales as $locale) {
             if (!str_starts_with($domain, "{$locale}.")) {
