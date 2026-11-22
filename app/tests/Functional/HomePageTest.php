@@ -14,11 +14,15 @@ final class HomePageTest extends WebTestCase
         $client->request('GET', uri: '/');
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextSame('h1', text: 'Open Source RSS Reader for an open internet using AT Protocol');
+        self::assertSelectorTextSame('h1', text: 'Open Source RSS Reader for an open internet using Atmosphere');
+        self::assertSelectorTextSame(
+            'h1 a[href="https://atmosphereaccount.com/"][target="_blank"]',
+            text: 'Atmosphere',
+        );
         self::assertSelectorTextSame('header nav > a[href="https://github.com/mykiwi/rssbase"]', text: 'Source code');
         self::assertSelectorTextSame('header nav > a:first-of-type', text: 'Changelog');
         self::assertSelectorTextSame('header nav > a:last-of-type', text: 'Social media');
-        self::assertSelectorTextSame('main a', text: 'Start');
+        self::assertSelectorTextSame('main a[href="/login"]', text: 'Start');
     }
 
     public function testTheFrenchSubdomainServesTheFrenchPage(): void
@@ -32,9 +36,9 @@ final class HomePageTest extends WebTestCase
         self::assertResponseIsSuccessful();
         static::assertSame('http://fr.localhost/', $client->getRequest()->getUri());
         self::assertSelectorExists('html[lang="fr"]');
-        self::assertSelectorTextSame('h1', text: 'Lecteur RSS Open Source pour un internet ouvert avec AT Protocol');
+        self::assertSelectorTextSame('h1', text: 'Lecteur RSS Open Source pour un internet ouvert avec Atmosphere');
         self::assertSelectorTextContains('header nav [aria-current="true"]', text: 'Français');
-        self::assertSelectorTextSame('main a', text: 'Commencer');
+        self::assertSelectorTextSame('main a[href="/login"]', text: 'Commencer');
 
         $client->clickLink('English');
 

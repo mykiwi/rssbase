@@ -1,7 +1,8 @@
 home.page_title: '{app_name}: open source RSS reader on AT Protocol'
 home.title.reader: Open Source RSS Reader
 home.title.internet: for an open internet
-home.title.protocol: using AT Protocol
+home.title.atmosphere: 'using {atmosphere}'
+home.title.atmosphere_link: Atmosphere (opens in a new tab)
 home.start: Start
 
 nav.elsewhere: Elsewhere

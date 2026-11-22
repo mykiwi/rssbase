@@ -17,7 +17,7 @@ final class HomePageBrowserTest extends PlaywrightTestCase
         $this->assertResponseStatusCode(200);
         // The title breaks into lines on a wide screen: the comparison ignores them.
         static::assertSame(
-            'Open Source RSS Reader for an open internet using AT Protocol',
+            'Open Source RSS Reader for an open internet using Atmosphere',
             $page->locator('h1')->evaluate('title => title.textContent.replace(/\\s+/g, " ").trim()'),
         );
         $this->assertSelectorVisible('h1');
@@ -25,7 +25,7 @@ final class HomePageBrowserTest extends PlaywrightTestCase
         // Tailwind fills the start button: an unstyled link has no background.
         static::assertNotSame(
             'rgba(0, 0, 0, 0)',
-            $page->locator('main a')->evaluate('button => getComputedStyle(button).backgroundColor'),
+            $page->locator('main a[href="/login"]')->evaluate('button => getComputedStyle(button).backgroundColor'),
         );
 
         // The pixel field paints squares once its controller is connected.
