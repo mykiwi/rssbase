@@ -7,10 +7,10 @@
 
 ## Synthèse
 
-- **Écarts** : 25 — 23 réalignés dans `plan.md`, 2 laissés tels quels.
+- **Écarts** : 27 — 25 réalignés dans `plan.md`, 2 laissés tels quels.
 - **Critères** : 21 / 21 atteints, cochés dans `pitch.md`, tous prouvés contre le faux fournisseur ; 5 / 8 critères de sortie cochés dans `plan.md`.
 - **Non livré** : 3 critères de sortie (vérification contre un vrai fournisseur, absence de requête réseau en E2E, code d'autorisation hors du profiler).
-- **Dette** : 9 items, dont 2 critiques.
+- **Dette** : 10 items, dont 2 critiques.
 
 L'approche a tenu : client OAuth maison sur Symfony Security, jetons en session, trace en base. La sécurité des sessions et des appels sortants a grossi au fil de trois passes de review (renouvellement d'identifiant, famille de session, client HTTP borné, classement des erreurs de rafraîchissement), et les objets valeur ont remplacé les chaînes à la demande de l'utilisateur. Aucune connexion n'a été faite contre un vrai fournisseur.
 
@@ -35,6 +35,7 @@ L'approche a tenu : client OAuth maison sur Symfony Security, jetons en session,
 | Base de test implicite | Cible `test-database` d'`app/Makefile`, appelée par castor | Les tests fonctionnels écrivent en base (implémentation) | `plan.md` §Périmètre |
 | `.castor/docker.php` pour les noms d'hôte de l'image | `infra/packages/docker-image-dev.nix` | `SERVER_NAME` est défini dans l'image (code) | `plan.md` §Périmètre |
 | `app/.env.test`, `app/.gitignore`, `infra/frankenphp/Caddyfile`, tests de l'accueil à modifier | Non modifiés | Inutiles : clé vide héritée de `.env`, `var/` déjà ignoré, Caddyfile piloté par `SERVER_NAME`, texte de « Commencer » inchangé (code) | `plan.md` §Périmètre |
+| Filtre des fournisseurs par liens, rendu côté serveur | Filtre dans le navigateur (Stimulus), page qui contient tous les fournisseurs, liens conservés sans JavaScript | Demande de l'utilisateur (rapidité) ; un Live Component, essayé d'abord, coûtait un aller-retour au serveur et ne gardait pas l'historique | `plan.md` §Mécanismes mobilisés, §Périmètre, §Stratégie de test |
 | Session : durée alignée sur le jeton de rafraîchissement | 90 jours sans visite, renouvelés à chaque rafraîchissement | Durée de vie d'un jeton inutilisé chez le fournisseur de référence (implémentation) | `plan.md` §Mécanismes mobilisés |
 | Liens externes de l'en-tête toujours visibles | Masqués sur petit écran une fois connecté, handle tronqué | En-tête trop large à 375 px (implémentation, commit `6064ce3`) | — |
 | `LoginEntryPoint` « si le point d'entrée par défaut ne suffit pas » | Classe livrée | Non tracée | `plan.md` §Périmètre |
@@ -58,6 +59,7 @@ L'approche a tenu : client OAuth maison sur Symfony Security, jetons en session,
 | `SessionRenewal`, `SignOutListener`, `PostponedRefresh`, `BoundedHttpClient` | Correctifs de review | `plan.md` §Approche retenue, §Périmètre |
 | Tests sur sessions natives (`SessionKernelTestCase`, `SessionRenewalTest`, `TokenRefreshListenerTest`, `LocaleDomainListenerTest`) | Le stockage simulé des tests fonctionnels ne garde pas de copie sous l'ancien identifiant (review) | `plan.md` §Stratégie de test |
 | Liens de langue qui gardent la page courante | Repli sur l'accueil auparavant (implémentation) | — |
+| Marques des fournisseurs et drapeaux sur l'écran des fournisseurs, étiquette posée sur la bordure, chevron | Demande de l'utilisateur après comparaison avec l'écran de référence de Colibri ; sprite SVG inline faute de `symfony/asset` | `plan.md` §Mécanismes mobilisés, §Périmètre |
 
 ## Dette technique identifiée
 
@@ -70,6 +72,7 @@ L'approche a tenu : client OAuth maison sur Symfony Security, jetons en session,
 7. **[TEST] La limite de trois redirections du handle n'est pas prouvée** — `app/src/AtProto/Identity/HandleResolver.php:20`, `app/tests/Unit/AtProto/Identity/HandleResolverTest.php:37` — affirmer la valeur 3, ou tester une chaîne de quatre redirections.
 8. **Code d'autorisation visible dans le profiler de développement, police chargée depuis `fonts.bunny.net` en E2E** — critères de sortie non atteints ; la police doit passer par AssetMapper (commentaire déjà présent dans `app/templates/site.html.twig`).
 9. **Mémoire des déconnexions effacée par `cache:pool:clear cache.global_clearer`** — une copie de session déconnectée redevient valide jusqu'à son échéance ; `cache:clear` la conserve. Point « Hors review ».
+10. **Marques d'Eurosky et de npmx redessinées** — `app/templates/provider/_marks.html.twig` — Eurosky ne publie son étoile qu'en PNG, le favicon de npmx dessine « ./ » en texte ; les comparer aux originaux avant publication.
 
 ## Leçons apprises
 

@@ -92,8 +92,12 @@ Le choix d'un fournisseur réutilise le même flux, démarré depuis l'émetteur
   préalable, datée par la base (règle « Database queries » d'`AGENTS.md`).
 - **Mise en page partagée** : l'en-tête et les couleurs de l'accueil, aujourd'hui écrits dans `home/index.html.twig`, passent dans une mise en page et
   un composant Twig anonyme que les quatre écrans étendent.
-- **Filtre des fournisseurs par liens** (`?region=eu`) : rendu côté serveur, sans JavaScript, testable en `WebTestCase`. La région se lit par
-  `#[MapQueryParameter]` sur l'enum `Region`.
+- **Filtre des fournisseurs dans le navigateur** (contrôleur Stimulus `provider-filter`) : la page contient tous les fournisseurs, le filtre
+  masque les autres régions sans appel au serveur et écrit la région dans l'adresse (`?region=eu`, une entrée d'historique par choix, le
+  retour arrière la rétablit). Sans JavaScript, les liens du filtre chargent la page de la région, rendue côté serveur avec les autres
+  fournisseurs masqués ; la région se lit par `#[MapQueryParameter]` sur l'enum `Region`.
+- **Sprite SVG inline** (`provider/_marks.html.twig`, référencé par `<use>`) : drapeaux UE et US, marques des quatre fournisseurs. Le projet
+  n'a pas `symfony/asset`, donc pas de fonction `asset()` pour servir des fichiers d'image.
 - **Types DBAL** (`DidType`, `HandleType`, déclarés dans `config/packages/doctrine.yaml`) : l'entité manipule des objets valeur sur des colonnes texte.
 
 ### Alternatives écartées
@@ -153,7 +157,7 @@ cloisonnement, c'est une trace d'exploitation lue par `bin/console dbal:run-sql`
 | `app/src/AtProto/OAuth/SignedState.php`, `Site.php` | Fabrique et vérifie le `state` qui transporte le site de départ. |
 | `app/src/AtProto/OAuth/Base64Url.php` | Encodage base64url des vérificateurs et signatures. |
 | `app/src/AtProto/Profile/AvatarLocator.php` | Lit `app.bsky.actor.profile` sur le PDS et rend l'adresse du fichier de l'avatar, ou rien. |
-| `app/src/AtProto/Provider/Provider.php`, `ProviderCatalog.php`, `Region.php`, `ProviderLabel.php` | Les fournisseurs proposés (nom, émetteur, région, étiquette) lus dans un paramètre. |
+| `app/src/AtProto/Provider/Provider.php`, `ProviderCatalog.php`, `Region.php`, `ProviderLabel.php` | Les fournisseurs proposés (nom, émetteur, région, étiquette) lus dans un paramètre, tous rendus dans la page. |
 | `app/src/Security/AtProtoUser.php` | Utilisateur en session : DID, handle, avatar, écriture accordée. |
 | `app/src/Security/SessionUserProvider.php` | Rend l'utilisateur de la session sans le recharger. |
 | `app/src/Security/AtProtoAuthenticator.php` | Authentifie sur la route de retour OAuth, trace la connexion, redirige vers la page demandée. |
@@ -165,7 +169,7 @@ cloisonnement, c'est une trace d'exploitation lue par `bin/console dbal:run-sql`
 | `app/src/EventListener/SignOutListener.php` | Mémorise la déconnexion de la famille de la session. |
 | `app/src/Log/RedactAuthorizationCode.php` | Masque le code d'autorisation dans le journal `request`. |
 | `app/src/Controller/LoginController.php` | `GET /login` (formulaire) et `POST /login` (départ depuis un handle). |
-| `app/src/Controller/ProviderController.php` | `GET /providers` (liste filtrée) et `POST /providers/{id}` (départ avec `prompt=create`). |
+| `app/src/Controller/ProviderController.php` | `GET /providers` (tous les fournisseurs, région de l'adresse) et `POST /providers/{id}` (départ avec `prompt=create`). |
 | `app/src/Controller/OAuthCallbackController.php` | `GET /oauth/callback` : renvoi vers le site de départ, s'il est un site de RssBase, quand l'hôte diffère. |
 | `app/src/Controller/ClientMetadataController.php` | `GET /oauth-client-metadata.json` en mode confidentiel, 404 sinon. |
 | `app/src/Controller/FeedsController.php` | `GET /feeds` : « Mes flux », état vide. |
@@ -181,7 +185,9 @@ cloisonnement, c'est une trace d'exploitation lue par `bin/console dbal:run-sql`
 | `app/templates/site.html.twig` | Mise en page commune : couleurs, police, en-tête. |
 | `app/templates/components/Site/Header.html.twig` | En-tête : logo, menu des langues, liens, compte connecté et déconnexion. |
 | `app/templates/login/index.html.twig` | Champ handle, message d'échec, phrase sur le mot de passe, lien vers les fournisseurs. |
-| `app/templates/provider/index.html.twig` | Fournisseurs, filtre Tous / UE / US, liens sortants, retour à la connexion. |
+| `app/templates/provider/index.html.twig` | Fournisseurs (marque, drapeau, étiquette sur la bordure, chevron), filtre Tous / UE / US avec drapeaux, liens sortants, retour à la connexion. |
+| `app/templates/provider/_marks.html.twig` | Sprite SVG : drapeaux UE et US, marques d'Eurosky, Bluesky, Blacksky et npmx. |
+| `app/assets/controllers/provider_filter_controller.js` | Filtre des fournisseurs dans la page, adresse et historique. |
 | `app/templates/feeds/index.html.twig` | État vide de « Mes flux ». |
 | `app/tests/Fake/FakeAtProtoNetwork.php` | Faux réseau AT Protocol : DNS, documents DID, PDS, profil, pannes et refus simulés. |
 | `app/tests/Fake/FakeAuthorizationServer.php`, `FakeOAuthEndpoints.php`, `FakeOAuthStore.php`, `FakeTokenGrants.php`, `FakeClientVerifier.php`, `FakeDpopVerifier.php`, `FakeJwt.php`, `FakeOAuthError.php`, `FakeField.php` | Faux serveur d'autorisation : PAR, jetons, vérification de PKCE, de DPoP et de l'assertion du client. |
@@ -196,6 +202,7 @@ cloisonnement, c'est une trace d'exploitation lue par `bin/console dbal:run-sql`
 | `app/tests/Integration/AccountRepositoryTest.php`, `RedactAuthorizationCodeTest.php` | Trace de connexion, journal sans code. |
 | `app/tests/Integration/SessionKernelTestCase.php`, `SessionRenewalTest.php`, `TokenRefreshListenerTest.php`, `LocaleDomainListenerTest.php` | Écouteurs et renouvellement sur les sessions natives de PHP. |
 | `app/tests/E2E/LoginBrowserTest.php` | Parcours complet dans Chromium, session commune aux deux langues, réouverture du navigateur. |
+| `app/tests/E2E/ProviderFilterBrowserTest.php` | Filtre sans rechargement ni requête, adresse et retour arrière, sur le site français. |
 
 ### Fichiers à modifier
 
@@ -260,6 +267,7 @@ cloisonnement, c'est une trace d'exploitation lue par `bin/console dbal:run-sql`
 | Portée accordée | functional | Faux fournisseur qui ne rend que `atproto` : connexion réussie, `AtProtoUser` sans écriture, même page « Mes flux ». |
 | `app/src/Repository/AccountRepository.php`, `app/src/Log/RedactAuthorizationCode.php` | integration (SQLite) | Insertion, reconnexion qui avance la date, nouveau handle sur le même DID sans seconde ligne ; code masqué dans le journal. |
 | `app/src/Controller/ClientMetadataController.php` | functional | JSON conforme et clé publique seule en mode confidentiel ; 404 en boucle locale. |
+| `app/assets/controllers/provider_filter_controller.js` | E2E | Filtre UE sur le site français : deux fournisseurs visibles, onglet actif, `?region=eu` dans l'adresse ; retour arrière vers les quatre ; aucune page rechargée, aucune ressource demandée. |
 | Parcours complet | E2E | Accueil, « Commencer », handle, approbation sur la page du faux fournisseur servie par une route Playwright, « Mes flux » avec avatar ; l'autre site de langue sans reconnexion ; réouverture du navigateur ; déconnexion ; aucune erreur de console. |
 
 **Hors scope tests** :

@@ -59,6 +59,20 @@
       "date": "2026-11-22",
       "type": "Sync",
       "description": "25 écarts relevés dont 23 réalignés dans le plan, 21/21 critères d'acceptation et 5/8 critères de sortie cochés, 3 non livrés, 9 dettes ouvertes ; backlog, vision et stack.md retouchés."
+    },
+    {
+      "date": "2026-11-22",
+      "type": "Sync",
+      "description": "Relance après l'écran des fournisseurs : 2 écarts réalignés dans le plan (marques et drapeaux, filtre Stimulus), 1 dette ajoutée ; critères inchangés."
+    },
+    {
+      "date": "2026-11-22",
+      "type": "Livraison",
+      "description": "Connexion par compte AT Protocol livrée, écran des fournisseurs avec marques, drapeaux et filtre inclus."
     }
-  ]
+  ],
+  "delivery": {
+    "date": "2026-11-22",
+    "release": null
+  }
 }
