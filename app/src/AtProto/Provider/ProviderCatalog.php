@@ -32,12 +32,9 @@ final readonly class ProviderCatalog
     /**
      * @return list<Provider> in the order of the catalog, which is the order of the screen
      */
-    public function inRegion(?Region $region): array
+    public function all(): array
     {
-        return array_values(array_filter(
-            $this->providers,
-            static fn(Provider $provider): bool => null === $region || $provider->region === $region,
-        ));
+        return $this->providers;
     }
 
     public function find(string $id): ?Provider

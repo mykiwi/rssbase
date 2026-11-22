@@ -74,8 +74,9 @@ final class ProviderController extends AbstractController
         return $this->render(
             'provider/index.html.twig',
             [
-                'providers' => $this->catalog->inRegion($region),
-                'region' => $region?->value,
+                // All of them: the filter shows a region in the page, without asking the server.
+                'providers' => $this->catalog->all(),
+                'region' => $region,
                 'directory_url' => $this->directoryUrl,
                 'self_hosting_url' => $this->selfHostingUrl,
                 'error' => $error,

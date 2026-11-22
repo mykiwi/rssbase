@@ -45,12 +45,14 @@ final class ProviderTest extends WebTestCase
             ],
             $client
                 ->getCrawler()
-                ->filter('[data-test="providers"] button > span:first-child')
-                ->each(static fn($node): string => (string) preg_replace(
-                    '/\s+/',
-                    replacement: ' ',
-                    subject: trim($node->text()),
-                )),
+                ->filter('[data-test="providers"] button')
+                ->each(static fn($card): string => implode(' ', array_filter([
+                    $card->filter('[data-test="provider-name"]')->text(),
+                    $card->filter('[data-test="provider-label"]')->count() > 0
+                        ? $card->filter('[data-test="provider-label"]')->text()
+                        : null,
+                    $card->filter('[data-test="provider-region"]')->attr('aria-label'),
+                ]))),
         );
     }
 
@@ -69,7 +71,7 @@ final class ProviderTest extends WebTestCase
         self::assertSelectorTextSame('[data-test="provider-filter"] [aria-current="page"]', text: $filter);
         static::assertSame($providers, $client
             ->getCrawler()
-            ->filter('[data-test="provider-name"]')
+            ->filter('[data-test="providers"] li:not([hidden]) [data-test="provider-name"]')
             ->each(static fn($node): string => $node->text()));
     }
 
