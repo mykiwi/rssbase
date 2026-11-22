@@ -4,13 +4,13 @@
 > **Registre** : technique
 > **Story** : `forge/story/002-f-connexion-atproto/`
 > **Amont** : `plan.md` · `pitch.md`
-> **Diff examiné** : branche `feat/connexion-atproto` contre `main`, 30 commits, environ 12 900 lignes ajoutées (dont 4 500 générées). Quatre lectures : les 14 commits de l'implémentation ; les 8 suivants (objets valeur et premières corrections), avec une relecture indépendante de toute la branche ; les 6 corrections de la deuxième passe, relues à part ; les 2 derniers correctifs (`c7ab833`, `53cc556`), relus à part avec la chaîne HTTP de production
+> **Diff examiné** : branche `feat/connexion-atproto` contre `main`, 30 commits, environ 12 900 lignes ajoutées (dont 4 500 générées). Quatre lectures : les 14 commits de l'implémentation ; les 8 suivants (objets valeur et premières corrections), avec une relecture indépendante de toute la branche ; les 6 corrections de la deuxième passe, relues à part ; les 2 derniers correctifs (`c7ab833`, `53cc556`), relus à part avec la chaîne HTTP de production ; cinquième lecture, après la livraison : l'écran des fournisseurs (`771155b`) et le correctif du menu des langues sur écran tactile (arbre de travail)
 
 ## Synthèse
 
 - **Bloquants restants** : 0 / 0
 - **Importants restants** : 0 / 5
-- **Mineurs restants** : 5 / 18
+- **Mineurs restants** : 6 / 19
 - **Statut** : **PRÊT À COMMITER**
 
 Les corrections sont commitées sur la branche, chaque commit vert pris seul, `CI=1 castor qa` vert sur l'état final (121 tests, 3 parcours navigateur). La relecture des deux derniers commits (`c7ab833`, `53cc556`) ne trouve aucun défaut de comportement, seulement trois trous de couverture, montrés par mutation. Prochaine étape : `/forge:sync`. Le fichier est conservé pour les deux mineurs ouverts et la section « Hors review ».
@@ -47,6 +47,7 @@ _(aucun)_
 - [ ] **[TEST] Le délai d'une minute après un refus OAuth n'est prouvé par aucun test** — `app/src/EventListener/TokenRefreshListener.php:85` — vérifié par mutation : avec un report à une date déjà passée, les 121 tests passent. Sans ce délai, cinq requêtes rapprochées suffiraient à fermer la session. Action : affirmer `notBefore` dans `testAFewRefusalsOfARefreshKeepTheUserSignedIn`.
 - [ ] **[TEST] La remise à zéro du compteur de refus après un rafraîchissement réussi n'est prouvée par aucun test** — `app/src/Security/AuthorizationFlow.php:92` — vérifié par mutation : sans le `remove`, les 121 tests passent. Les refus s'additionneraient alors sur toute la vie de la session, et le cinquième fermerait une session que le fournisseur accepte encore (règle 16). Action : un test « quatre refus, un succès, un refus » qui attend un compteur à 1.
 - [ ] **[TEST] La limite de trois redirections du handle n'est pas prouvée** — `app/src/AtProto/Identity/HandleResolver.php:20`, `app/tests/Unit/AtProto/Identity/HandleResolverTest.php:37` — vérifié : avec 20 redirections permises, tout passe, le test n'affirme que « plus de zéro ». Action : affirmer la valeur 3, ou tester une chaîne de quatre redirections.
+- [ ] **[TEST] Le correctif du zoom du menu des langues n'a pas de test automatique** — `app/assets/controllers/language_menu_controller.js:47`, `app/templates/components/Site/Header.html.twig:53` — `app/AGENTS.md` demande un test qui reproduit le bug d'abord. Les tests navigateur passent par un contexte de bureau commun à la suite (`BrowserRegistry::contextOptions()`), sans moyen de simuler un écran tactile pour un seul test ; la session CDP de la bibliothèque n'a pas de méthode publique pour l'ouvrir. Vérifié à la main dans Chromium en émulation tactile : plus de focus à l'ouverture, champ en 16 px ; bureau inchangé. Action : un contexte tactile dans playwright-symfony, ou un test dans une suite à part configurée avec `hasTouch`.
 
 ## Points positifs
 
@@ -65,6 +66,7 @@ _(aucun)_
 - `framework.trusted_hosts` à fixer au déploiement : le retour OAuth ne redirige plus vers un hôte étranger, mais l'application construit toujours ses propres adresses depuis l'en-tête `Host`.
 - Vérifié par la relecture des deux derniers commits, avec le vrai transport sur un serveur local en http : la durée maximale vaut pour toute la chaîne de redirections, le délai d'inactivité pour chaque saut, le plafond de 256 Kio après redirection ; une redirection vers une adresse privée est refusée ; la quatrième redirection d'un handle rend « compte introuvable ». Non couvert : des sauts en https réels.
 - La mémoire des déconnexions vit dans `cache.app` (fichiers sous `var/share/<env>/pools/app`) : elle survit à `cache:clear`, pas à `cache:pool:clear cache.global_clearer`, après quoi une copie de session déconnectée redeviendrait valide jusqu'à son échéance.
+- Menu des langues sur un vrai iPhone : plus de zoom à l'ouverture, ni en touchant le champ de recherche. Chromium ne reproduit pas le zoom de Safari sur iOS.
 - Renouvellement de session en conditions réelles : après un rafraîchissement de jeton, vérifier dans un navigateur que le nouveau cookie arrive et que l'ancien identifiant est refusé cinq minutes plus tard. Le test automatique couvre le marquage, pas l'échange de cookies.
 - Permissions `repo:*` chez Blacksky et NPMX : comportement réel inconnu, le repli sur l'identité seule est prévu.
 - Deux autres critères de sortie du plan restent décochés : la police chargée depuis `fonts.bunny.net` pendant les tests E2E (antérieur à la story), et le code d'autorisation visible dans le profiler de développement.

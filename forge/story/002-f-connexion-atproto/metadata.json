@@ -69,6 +69,11 @@
       "date": "2026-11-22",
       "type": "Livraison",
       "description": "Connexion par compte AT Protocol livrée, écran des fournisseurs avec marques, drapeaux et filtre inclus."
+    },
+    {
+      "date": "2026-11-22",
+      "type": "Review",
+      "description": "Passe sur l'écran des fournisseurs (771155b) et le correctif du zoom du menu des langues : prêt à commiter, 0 bloquant, 0 important, 1 mineur ouvert ([TEST] correctif du zoom sans test automatique)."
     }
   ],
   "delivery": {
