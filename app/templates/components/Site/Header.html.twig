@@ -50,7 +50,7 @@
             <div id="language-menu" data-language-menu-target="panel" hidden class="absolute top-full right-3 z-10 mt-1 w-72 max-w-[calc(100vw-2rem)] border border-(--px-line) bg-(--px-panel) pb-2 text-left">
                 <label class="flex items-center gap-3 border-b border-(--px-line) px-4 text-(--px-text-2) focus-within:border-(--px-brand)">
                     <svg viewBox="0 0 24 24" class="size-4 shrink-0 fill-none stroke-current stroke-2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                    <input type="search" data-language-menu-target="search" data-action="input->language-menu#filter keydown.enter->language-menu#choose" aria-label="{{ 'nav.language_search'|trans }}" placeholder="{{ 'nav.language_search'|trans }}" autocomplete="off" class="h-12 w-full bg-transparent text-sm text-(--px-text) outline-none placeholder:text-(--px-text-2)">
+                    <input type="search" data-language-menu-target="search" data-action="input->language-menu#filter keydown.enter->language-menu#choose" aria-label="{{ 'nav.language_search'|trans }}" placeholder="{{ 'nav.language_search'|trans }}" autocomplete="off" class="h-12 w-full bg-transparent text-base text-(--px-text) pointer-fine:text-sm outline-none placeholder:text-(--px-text-2)">
                 </label>
 
                 <p class="px-4 pt-3 pb-1.5 text-xs text-(--px-text-2)">{{ 'nav.language_current'|trans }}</p>
