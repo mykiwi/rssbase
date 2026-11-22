@@ -8,6 +8,7 @@ use App\Security\SessionRenewal;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
@@ -22,11 +23,13 @@ final class SessionRenewalTest extends TestCase
     private const int GRACE = 300;
 
     private string $savePath;
+    private SessionRenewal $renewal;
 
     protected function setUp(): void
     {
         $this->savePath = sys_get_temp_dir() . '/rssbase-sessions-' . bin2hex(random_bytes(4));
         new Filesystem()->mkdir($this->savePath);
+        $this->renewal = new SessionRenewal(new ArrayAdapter());
     }
 
     protected function tearDown(): void
@@ -38,24 +41,52 @@ final class SessionRenewalTest extends TestCase
     #[PreserveGlobalState(false)]
     public function testTheOldIdIsMarkedThenRefused(): void
     {
-        $renewal = new SessionRenewal();
         $session = $this->session();
         $session->set('tokens', value: 'the tokens');
         $oldId = $session->getId();
 
-        $renewal->renew($session, self::NOW);
+        $this->renewal->renew($session, self::NOW);
 
         static::assertNotSame($oldId, $session->getId());
-        static::assertFalse($renewal->isSuperseded($session));
+        static::assertFalse($this->renewal->isSuperseded($session));
+        static::assertFalse($this->renewal->isRefused($session, self::NOW + self::GRACE + 1));
         static::assertSame('the tokens', $session->get('tokens'));
         $session->save();
 
         // A request that left the browser before the new id arrived still finds its session.
         $old = $this->session($oldId);
         static::assertSame('the tokens', $old->get('tokens'));
-        static::assertTrue($renewal->isSuperseded($old));
-        static::assertFalse($renewal->isRefused($old, self::NOW + self::GRACE));
-        static::assertTrue($renewal->isRefused($old, self::NOW + self::GRACE + 1));
+        static::assertTrue($this->renewal->isSuperseded($old));
+        static::assertFalse($this->renewal->isRefused($old, self::NOW + self::GRACE));
+        static::assertTrue($this->renewal->isRefused($old, self::NOW + self::GRACE + 1));
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testSigningOutOnTheOldIdEndsTheNewOne(): void
+    {
+        $session = $this->session();
+        $oldId = $session->getId();
+        $this->renewal->renew($session, self::NOW);
+        $newId = $session->getId();
+        $session->save();
+
+        $old = $this->session($oldId);
+        $this->renewal->signOut($old);
+        $old->save();
+
+        static::assertTrue($this->renewal->isRefused($this->session($newId), self::NOW));
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testSigningOutASessionThatWasNeverRenewedLeavesNoTrace(): void
+    {
+        $session = $this->session();
+
+        $this->renewal->signOut($session);
+
+        static::assertFalse($this->renewal->isRefused($session, self::NOW));
     }
 
     private function session(?string $id = null): Session
