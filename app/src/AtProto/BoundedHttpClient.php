@@ -36,8 +36,9 @@ final readonly class BoundedHttpClient implements HttpClientInterface
     #[\Override]
     public function request(string $method, string $url, array $options = []): ResponseInterface
     {
-        // The documents of the network are read where they are: a server that redirects is not answering.
-        $options['max_redirects'] = 0;
+        // The documents of the network are read where they are, unless the specification of one allows
+        // it to move: a request then says how far it follows.
+        $options['max_redirects'] ??= 0;
         $options['timeout'] = self::IDLE_TIMEOUT;
         $options['max_duration'] = self::MAX_DURATION;
         $options['on_progress'] = static function (int $downloaded, int $expected): void {

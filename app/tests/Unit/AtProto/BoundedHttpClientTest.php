@@ -56,4 +56,38 @@ final class BoundedHttpClientTest extends TestCase
         static::assertSame(5.0, $timeout);
         static::assertSame(10.0, $maxDuration);
     }
+
+    public function testARedirectionIsNotFollowedUnlessTheRequestAllowsSome(): void
+    {
+        $client = new BoundedHttpClient(new NoPrivateNetworkHttpClient($transport = self::redirectingServer()));
+
+        static::assertSame(301, $client->request('GET', url: 'https://1.1.1.1/')->getStatusCode());
+        static::assertSame(1, $transport->getRequestsCount());
+    }
+
+    public function testARequestThatAllowsRedirectionsFollowsThem(): void
+    {
+        $client = new BoundedHttpClient(new NoPrivateNetworkHttpClient($transport = self::redirectingServer()));
+
+        $response = $client->request('GET', url: 'https://1.1.1.1/', options: ['max_redirects' => 3]);
+
+        static::assertSame('moved here', $response->getContent());
+        static::assertSame(2, $transport->getRequestsCount());
+    }
+
+    /**
+     * A server whose first address moved to a second one.
+     */
+    private static function redirectingServer(): MockHttpClient
+    {
+        return new MockHttpClient(static fn(string $method, string $url): MockResponse => (
+            str_ends_with($url, '/moved')
+                ? new MockResponse('moved here')
+                : new MockResponse(info: [
+                    'http_code' => 301,
+                    'redirect_url' => 'https://1.1.1.1/moved',
+                    'response_headers' => ['location' => 'https://1.1.1.1/moved'],
+                ])
+        ));
+    }
 }

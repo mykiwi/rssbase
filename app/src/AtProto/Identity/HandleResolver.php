@@ -13,6 +13,12 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 final readonly class HandleResolver
 {
+    /**
+     * The specification allows the well-known address of a handle to redirect, as a domain that moved
+     * to "www" does, for a reasonable number of hops.
+     */
+    private const int MAX_REDIRECTS = 3;
+
     public function __construct(
         private DnsTxtRecords $dns,
         #[Autowire(service: 'atproto.client')]
@@ -45,7 +51,9 @@ final readonly class HandleResolver
     private function resolveWithWellKnown(Handle $handle): ?Did
     {
         try {
-            $response = $this->client->request('GET', "https://{$handle}/.well-known/atproto-did");
+            $response = $this->client->request('GET', "https://{$handle}/.well-known/atproto-did", [
+                'max_redirects' => self::MAX_REDIRECTS,
+            ]);
             if (200 !== $response->getStatusCode()) {
                 return null;
             }
