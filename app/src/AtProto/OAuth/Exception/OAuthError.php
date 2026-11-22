@@ -20,4 +20,14 @@ final class OAuthError extends \RuntimeException
     ) {
         parent::__construct(\sprintf('"%s" answered the OAuth error "%s".', $url, $error));
     }
+
+    /**
+     * Whether the server no longer accepts the tokens of the session: the refresh token is spent,
+     * expired or revoked, or the server no longer knows the client. Any other error, such as too many
+     * requests or a proof it could not check, says nothing of the tokens.
+     */
+    public function endsAccess(): bool
+    {
+        return \in_array($this->error, ['invalid_grant', 'invalid_client'], strict: true);
+    }
 }

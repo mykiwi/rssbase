@@ -50,6 +50,25 @@ final class RefreshFailureTest extends WebTestCase
         static::assertSame($attempts, self::tokenRequests());
     }
 
+    public function testAProviderThatLimitsTheRateOfRequestsKeepsTheUserSignedIn(): void
+    {
+        $client = static::createClient();
+        self::answer(
+            $client,
+            self::submitHandle($client, FakeAtProtoNetwork::ALICE, site: 'http://rssbase.localhost'),
+            FakeAtProtoNetwork::ALICE_DID,
+        );
+        FakeAtProtoNetwork::limitRateOf('auth.fake.test');
+        $client->request('GET', uri: 'http://rssbase.localhost/feeds');
+        self::assertResponseIsSuccessful();
+        $attempts = self::tokenRequests();
+
+        $client->request('GET', uri: 'http://rssbase.localhost/feeds');
+
+        self::assertResponseIsSuccessful();
+        static::assertSame($attempts, self::tokenRequests());
+    }
+
     public function testAProviderThatNoLongerKnowsTheKeyOfTheClientEndsTheSession(): void
     {
         $key = JWKFactory::createECKey('P-256', ['kid' => 'key-1']);

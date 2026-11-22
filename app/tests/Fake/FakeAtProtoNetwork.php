@@ -41,6 +41,9 @@ final class FakeAtProtoNetwork implements DnsTxtRecords
     private static array $unreachableHosts = [];
 
     /** @var list<string> */
+    private static array $rateLimitedHosts = [];
+
+    /** @var list<string> */
     private static array $requests = [];
 
     public static function reset(): void
@@ -48,6 +51,7 @@ final class FakeAtProtoNetwork implements DnsTxtRecords
         self::$dns = [];
         self::$documents = [];
         self::$unreachableHosts = [];
+        self::$rateLimitedHosts = [];
         self::$requests = [];
         FakeAuthorizationServer::reset();
 
@@ -141,6 +145,14 @@ final class FakeAtProtoNetwork implements DnsTxtRecords
     }
 
     /**
+     * The host answers every request with the error of a server that receives too many.
+     */
+    public static function limitRateOf(string $host): void
+    {
+        self::$rateLimitedHosts[] = $host;
+    }
+
+    /**
      * @return list<string> the method and URL of each request the network received, in order
      */
     public static function requests(): array
@@ -157,6 +169,13 @@ final class FakeAtProtoNetwork implements DnsTxtRecords
 
         if (\in_array(parse_url($url, \PHP_URL_HOST), self::$unreachableHosts, strict: true)) {
             return new MockResponse(info: ['error' => 'Connection refused.']);
+        }
+
+        if (\in_array(parse_url($url, \PHP_URL_HOST), self::$rateLimitedHosts, strict: true)) {
+            return new MockResponse('{"error":"RateLimitExceeded","message":"Rate Limit Exceeded"}', [
+                'http_code' => 429,
+                'response_headers' => ['content-type' => 'application/json', 'dpop-nonce' => 'nonce-of-a-busy-server'],
+            ]);
         }
 
         if ('POST' === $method && str_starts_with($url, FakeAuthorizationServer::ISSUER . '/')) {

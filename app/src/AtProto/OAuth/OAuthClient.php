@@ -88,8 +88,9 @@ final readonly class OAuthClient
      * Refresh tokens are single-use: the caller must keep the new set, and only one refresh may run at a
      * time for a session.
      *
-     * @throws OAuthError          when the provider refuses the refresh token: the access ended
-     * @throws ProviderUnreachable when the provider does not answer: the same tokens may refresh later
+     * @throws OAuthError          when the provider refuses: OAuthError::endsAccess() tells whether
+     *                             the same tokens may still refresh later
+     * @throws ProviderUnreachable when the provider does not answer
      */
     public function refresh(TokenSet $tokens): TokenSet
     {

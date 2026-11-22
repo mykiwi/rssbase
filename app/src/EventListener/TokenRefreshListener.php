@@ -66,14 +66,23 @@ final readonly class TokenRefreshListener
 
         try {
             $this->refresh($session, $now);
-        } catch (OAuthError) {
-            // The provider refuses the refresh token, or no longer knows the client: asking again
-            // gives the same answer.
-            $this->endSession($event);
+        } catch (OAuthError $error) {
+            if ($error->endsAccess()) {
+                $this->endSession($event);
+
+                return;
+            }
+
+            $this->postpone($session, $now);
         } catch (ProviderUnreachable) {
             // The provider is down, not the access: the user stays signed in.
-            $this->flow->postponeRefresh($session, new \DateTimeImmutable('@' . ($now + self::RETRY_DELAY)));
+            $this->postpone($session, $now);
         }
+    }
+
+    private function postpone(SessionInterface $session, int $now): void
+    {
+        $this->flow->postponeRefresh($session, new \DateTimeImmutable('@' . ($now + self::RETRY_DELAY)));
     }
 
     private function isDue(SessionInterface $session, int $now): bool
