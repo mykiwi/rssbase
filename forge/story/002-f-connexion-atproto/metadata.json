@@ -39,6 +39,16 @@
       "date": "2026-11-22",
       "type": "Review",
       "description": "Prêt à commiter ; 2 importants et 6 mineurs corrigés : [SECU] retour OAuth limité aux sites de RssBase, [ROBUSTESSE] rafraîchissement redemandé après une minute et tout refus OAuth met fin à la session, [SECU] ancien identifiant de session refusé après cinq minutes (SessionRenewal), [ROBUSTESSE] réponses bornées à 256 Kio (BoundedHttpClient), [ROBUSTESSE] Pds limité à un hôte, [TEST] DID propre à AccountRepositoryTest, [CONV] Pds::fromString et JsonObject::text retirés, [DOC] entrée des objets valeur. 1 mineur laissé en dette : [ROBUSTESSE] résolution DNS sans délai propre."
+    },
+    {
+      "date": "2026-11-22",
+      "type": "Review",
+      "description": "Deuxième passe ouverte, avec relecture indépendante : corrections requises, 0 bloquant, 2 importants ([ROBUSTESSE] limites de temps du client HTTP inopérantes en production, [BUG] toute erreur OAuth 4xx termine la session), 5 mineurs nouveaux, 1 mineur ancien ouvert."
+    },
+    {
+      "date": "2026-11-22",
+      "type": "Review",
+      "description": "Prêt à commiter ; 3 importants et 7 mineurs corrigés sur la deuxième passe et sa relecture : [ROBUSTESSE] limites de temps et de redirection posées par requête (BoundedHttpClient), [BUG] seuls invalid_grant, invalid_client ou cinq refus d'affilée terminent la session (PostponedRefresh), [BUG] redirections de l'adresse well-known d'un handle suivies, [BUG] LocaleDomainListener ignore les sous-requêtes, [ROBUSTESSE] déconnexion étendue à toutes les copies d'une session (famille, SignOutListener, cache.app), [ROBUSTESSE] HttpsUrl::withQuery, [TEST] écouteur testé sur sessions natives, usage unique de la réponse, limite de redirections. 2 mineurs laissés en dette : [ROBUSTESSE] résolution DNS sans délai propre, [ROBUSTESSE] réponse perdue pendant un renouvellement."
     }
   ]
 }
