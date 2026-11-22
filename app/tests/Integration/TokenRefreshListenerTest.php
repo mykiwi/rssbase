@@ -4,39 +4,23 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration;
 
-use App\AtProto\Identity\Did;
-use App\AtProto\Identity\Handle;
-use App\AtProto\JsonObject;
-use App\AtProto\OAuth\AuthorizationServerLocator;
-use App\AtProto\OAuth\DpopKey;
-use App\AtProto\OAuth\Issuer;
-use App\AtProto\OAuth\TokenSet;
-use App\EventListener\TokenRefreshListener;
-use App\Security\AtProtoUser;
 use App\Security\AuthorizationFlow;
+use App\Security\PostponedRefresh;
 use App\Security\SessionRenewal;
 use App\Tests\Fake\FakeAtProtoNetwork;
 use App\Tests\Fake\FakeAuthorizationServer;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
-use Symfony\Component\HttpKernel\Event\RequestEvent;
-use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
 
 /**
  * The listener of the application on the sessions of PHP, as in production: the storage of the
  * functional tests keeps no copy of a session under its old id.
  */
-final class TokenRefreshListenerTest extends KernelTestCase
+final class TokenRefreshListenerTest extends SessionKernelTestCase
 {
     private const int GRACE = 300;
 
@@ -105,70 +89,73 @@ final class TokenRefreshListenerTest extends KernelTestCase
     }
 
     /**
+     * An error that says nothing of the tokens may pass: the provider is asked again.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testAFewRefusalsOfARefreshKeepTheUserSignedIn(): void
+    {
+        $session = $this->session();
+        $flow = self::service(AuthorizationFlow::class);
+        $flow->saveTokens($session, self::tokens(lastFor: 0));
+        $flow->postponeRefresh($session, new PostponedRefresh(notBefore: time() - 1, refusals: 3));
+        FakeAtProtoNetwork::refuseRequestsTo('auth.fake.test', status: 400, error: 'invalid_dpop_proof');
+
+        $response = $this->visit($session);
+
+        static::assertNull($response);
+        static::assertSame(4, $flow->postponedRefresh($session)?->refusals);
+    }
+
+    /**
+     * A provider that refuses every refresh no longer accepts the session, whatever error it names.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testAProviderThatKeepsRefusingARefreshEndsTheSession(): void
+    {
+        $session = $this->session();
+        $flow = self::service(AuthorizationFlow::class);
+        $flow->saveTokens($session, self::tokens(lastFor: 0));
+        $flow->postponeRefresh($session, new PostponedRefresh(notBefore: time() - 1, refusals: 4));
+        FakeAtProtoNetwork::refuseRequestsTo('auth.fake.test', status: 400, error: 'invalid_dpop_proof');
+
+        $response = $this->visit($session);
+
+        static::assertSame('/login', $response?->headers->get('Location'));
+    }
+
+    /**
+     * A provider that is down, or that receives too many requests, refuses nothing.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testAProviderThatCannotAnswerIsNeverCountedAsRefusing(): void
+    {
+        $session = $this->session();
+        $flow = self::service(AuthorizationFlow::class);
+        $flow->saveTokens($session, self::tokens(lastFor: 0));
+        $flow->postponeRefresh($session, new PostponedRefresh(notBefore: time() - 1, refusals: 4));
+        FakeAtProtoNetwork::refuseRequestsTo('auth.fake.test', status: 429, error: 'RateLimitExceeded');
+
+        $response = $this->visit($session);
+
+        static::assertNull($response);
+        static::assertSame(4, $flow->postponedRefresh($session)?->refusals);
+    }
+
+    /**
      * A session renewed at the given time: its old id keeps a marked copy. With tokens that last, only
      * the mark and the sign-out of the family can end it.
      */
     private function renewSession(int $at, int $tokensLastFor): void
     {
         $session = $this->session();
-        $server = self::service(AuthorizationServerLocator::class)
-            ->forIssuer(Issuer::fromString(FakeAuthorizationServer::ISSUER));
-        self::service(AuthorizationFlow::class)
-            ->saveTokens($session, TokenSet::fromResponse(
-                new JsonObject([
-                    'sub' => FakeAtProtoNetwork::ALICE_DID,
-                    'scope' => 'atproto',
-                    'token_type' => 'DPoP',
-                    'access_token' => bin2hex(random_bytes(8)),
-                    'refresh_token' => bin2hex(random_bytes(8)),
-                    'expires_in' => $tokensLastFor,
-                ]),
-                $server,
-                DpopKey::generate(),
-            ));
+        self::service(AuthorizationFlow::class)->saveTokens($session, self::tokens($tokensLastFor));
         $this->oldId = $session->getId();
         self::service(SessionRenewal::class)->renew($session, $at);
         $this->newId = $session->getId();
         $session->save();
-    }
-
-    /**
-     * @return ?Response what the listener answers instead of the page, if anything
-     */
-    private function visit(Session $session): ?Response
-    {
-        $event = new RequestEvent(
-            self::$kernel ?? throw new \LogicException('The kernel is not booted.'),
-            $this->signIn($session),
-            HttpKernelInterface::MAIN_REQUEST,
-        );
-        self::service(TokenRefreshListener::class)($event);
-        $session->save();
-
-        return $event->getResponse();
-    }
-
-    /**
-     * The firewall has loaded the user of the session, and this is the request being handled.
-     */
-    private function signIn(Session $session): Request
-    {
-        $request = Request::create('http://rssbase.localhost/feeds');
-        $request->setSession($session);
-        self::service(RequestStack::class)->push($request);
-        self::service(TokenStorageInterface::class)
-            ->setToken(
-                new PostAuthenticationToken(
-                    new AtProtoUser(
-                        Did::fromString(FakeAtProtoNetwork::ALICE_DID),
-                        Handle::fromString(FakeAtProtoNetwork::ALICE),
-                    ),
-                    'main',
-                    ['ROLE_USER'],
-                ),
-            );
-
-        return $request;
     }
 
     private function session(?string $id = null): Session
@@ -182,20 +169,5 @@ final class TokenRefreshListenerTest extends KernelTestCase
         $session->start();
 
         return $session;
-    }
-
-    /**
-     * @template T of object
-     *
-     * @param class-string<T> $id
-     *
-     * @return T
-     */
-    private static function service(string $id): object
-    {
-        $service = self::getContainer()->get($id);
-        static::assertInstanceOf($id, $service);
-
-        return $service;
     }
 }

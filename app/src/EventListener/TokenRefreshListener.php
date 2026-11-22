@@ -10,6 +10,7 @@ use App\AtProto\OAuth\OAuthClient;
 use App\Security\AtProtoUser;
 use App\Security\AuthorizationFlow;
 use App\Security\LoginFailure;
+use App\Security\PostponedRefresh;
 use App\Security\SessionRenewal;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
@@ -32,6 +33,12 @@ final readonly class TokenRefreshListener
      * How long the requests of a user do not wait again for a provider that did not answer.
      */
     private const int RETRY_DELAY = 60;
+
+    /**
+     * An error that says nothing of the tokens, such as a proof the provider could not check, may
+     * pass. After this many in a row, the provider no longer accepts the session.
+     */
+    private const int MAX_REFUSALS = 5;
 
     public function __construct(
         private Security $security,
@@ -67,22 +74,29 @@ final readonly class TokenRefreshListener
         try {
             $this->refresh($session, $now);
         } catch (OAuthError $error) {
-            if ($error->endsAccess()) {
+            $refusals = $this->refusals($session) + 1;
+
+            if ($error->endsAccess() || $refusals >= self::MAX_REFUSALS) {
                 $this->endSession($event);
 
                 return;
             }
 
-            $this->postpone($session, $now);
+            $this->postpone($session, $now, $refusals);
         } catch (ProviderUnreachable) {
-            // The provider is down, not the access: the user stays signed in.
-            $this->postpone($session, $now);
+            // The provider is down, not the access: the user stays signed in, for as long as it takes.
+            $this->postpone($session, $now, $this->refusals($session));
         }
     }
 
-    private function postpone(SessionInterface $session, int $now): void
+    private function refusals(SessionInterface $session): int
     {
-        $this->flow->postponeRefresh($session, new \DateTimeImmutable('@' . ($now + self::RETRY_DELAY)));
+        return $this->flow->postponedRefresh($session)->refusals ?? 0;
+    }
+
+    private function postpone(SessionInterface $session, int $now, int $refusals): void
+    {
+        $this->flow->postponeRefresh($session, new PostponedRefresh($now + self::RETRY_DELAY, $refusals));
     }
 
     private function isDue(SessionInterface $session, int $now): bool
@@ -90,7 +104,7 @@ final readonly class TokenRefreshListener
         return (
             true === $this->flow->tokens($session)?->isExpired($now)
             && !$this->renewal->isSuperseded($session)
-            && $this->flow->mayRefresh($session, $now)
+            && false !== $this->flow->postponedRefresh($session)?->isOver($now)
         );
     }
 

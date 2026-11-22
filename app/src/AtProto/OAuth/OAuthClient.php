@@ -21,6 +21,8 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 final readonly class OAuthClient
 {
+    private const int TOO_MANY_REQUESTS = 429;
+
     public function __construct(
         #[Autowire(service: 'atproto.client')]
         private HttpClientInterface $client,
@@ -125,9 +127,11 @@ final readonly class OAuthClient
 
         $error = $response->body->string('error');
 
-        // Only a refusal names an OAuth error. A server error, or a nonce the server asks for twice,
-        // says nothing of the request: the same request may succeed later.
-        if (null === $error || $response->status >= 500 || $response->asksForNonce()) {
+        // Only a refusal names an OAuth error. A server error, too many requests, or a nonce the server
+        // asks for twice say nothing of the request: the same request may succeed later.
+        $cannotAnswer = $response->status >= 500 || self::TOO_MANY_REQUESTS === $response->status;
+
+        if (null === $error || $cannotAnswer || $response->asksForNonce()) {
             throw new ProviderUnreachable(\sprintf('"%s" answered %d.', $url, $response->status));
         }
 

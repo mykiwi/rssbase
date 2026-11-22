@@ -58,7 +58,7 @@ final class RefreshFailureTest extends WebTestCase
             self::submitHandle($client, FakeAtProtoNetwork::ALICE, site: 'http://rssbase.localhost'),
             FakeAtProtoNetwork::ALICE_DID,
         );
-        FakeAtProtoNetwork::limitRateOf('auth.fake.test');
+        FakeAtProtoNetwork::refuseRequestsTo('auth.fake.test', status: 429, error: 'RateLimitExceeded');
         $client->request('GET', uri: 'http://rssbase.localhost/feeds');
         self::assertResponseIsSuccessful();
         $attempts = self::tokenRequests();

@@ -20,6 +20,7 @@ use App\AtProto\OAuth\TokenSet;
 use App\Tests\Fake\FakeAtProtoNetwork;
 use App\Tests\Fake\FakeAuthorizationServer;
 use Jose\Component\KeyManagement\JWKFactory;
+use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
@@ -121,12 +122,14 @@ final class OAuthClientTest extends TestCase
         $this->client(privateJwk: '')->refresh($tokens);
     }
 
-    public function testAServerErrorIsNotARefusal(): void
+    #[TestWith([503, 'server_error'])]
+    #[TestWith([429, 'RateLimitExceeded'])]
+    public function testAServerThatCannotAnswerDoesNotRefuse(int $status, string $error): void
     {
         $tokens = $this->signIn();
         $context = new RequestContext(host: 'rssbase.example');
-        $failing = new MockHttpClient(new MockResponse('{"error":"server_error"}', [
-            'http_code' => 503,
+        $failing = new MockHttpClient(new MockResponse(json_encode(['error' => $error], \JSON_THROW_ON_ERROR), [
+            'http_code' => $status,
             'response_headers' => ['content-type' => 'application/json', 'dpop-nonce' => 'nonce-1'],
         ]));
 

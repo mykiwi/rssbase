@@ -40,8 +40,8 @@ final class FakeAtProtoNetwork implements DnsTxtRecords
     /** @var list<string> */
     private static array $unreachableHosts = [];
 
-    /** @var list<string> */
-    private static array $rateLimitedHosts = [];
+    /** @var array<string, array{int, string}> the status and the error a host answers every request with */
+    private static array $refusals = [];
 
     /** @var list<string> */
     private static array $requests = [];
@@ -51,7 +51,7 @@ final class FakeAtProtoNetwork implements DnsTxtRecords
         self::$dns = [];
         self::$documents = [];
         self::$unreachableHosts = [];
-        self::$rateLimitedHosts = [];
+        self::$refusals = [];
         self::$requests = [];
         FakeAuthorizationServer::reset();
 
@@ -145,11 +145,12 @@ final class FakeAtProtoNetwork implements DnsTxtRecords
     }
 
     /**
-     * The host answers every request with the error of a server that receives too many.
+     * The host answers every request with this error, such as 429 "RateLimitExceeded" for a server
+     * that receives too many.
      */
-    public static function limitRateOf(string $host): void
+    public static function refuseRequestsTo(string $host, int $status, string $error): void
     {
-        self::$rateLimitedHosts[] = $host;
+        self::$refusals[$host] = [$status, $error];
     }
 
     /**
@@ -171,9 +172,10 @@ final class FakeAtProtoNetwork implements DnsTxtRecords
             return new MockResponse(info: ['error' => 'Connection refused.']);
         }
 
-        if (\in_array(parse_url($url, \PHP_URL_HOST), self::$rateLimitedHosts, strict: true)) {
-            return new MockResponse('{"error":"RateLimitExceeded","message":"Rate Limit Exceeded"}', [
-                'http_code' => 429,
+        $refusal = self::$refusals[(string) parse_url($url, \PHP_URL_HOST)] ?? null;
+        if (null !== $refusal) {
+            return new MockResponse(json_encode(['error' => $refusal[1]], \JSON_THROW_ON_ERROR), [
+                'http_code' => $refusal[0],
                 'response_headers' => ['content-type' => 'application/json', 'dpop-nonce' => 'nonce-of-a-busy-server'],
             ]);
         }

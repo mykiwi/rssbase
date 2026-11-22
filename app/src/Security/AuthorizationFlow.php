@@ -29,7 +29,7 @@ final readonly class AuthorizationFlow
 {
     private const string PENDING = 'atproto.pending';
     private const string TOKENS = 'atproto.tokens';
-    private const string REFRESH_NOT_BEFORE = 'atproto.refresh_not_before';
+    private const string POSTPONED_REFRESH = 'atproto.postponed_refresh';
 
     public function __construct(
         private OAuthClient $client,
@@ -89,22 +89,21 @@ final readonly class AuthorizationFlow
     public function saveTokens(SessionInterface $session, TokenSet $tokens): void
     {
         $session->set(self::TOKENS, $tokens);
-        $session->remove(self::REFRESH_NOT_BEFORE);
+        $session->remove(self::POSTPONED_REFRESH);
     }
 
     /**
-     * After a refresh that the provider did not answer: the next requests do not wait for it again.
+     * After a refresh that failed without ending the access: the next requests do not wait for the
+     * provider again.
      */
-    public function postponeRefresh(SessionInterface $session, \DateTimeImmutable $until): void
+    public function postponeRefresh(SessionInterface $session, PostponedRefresh $refresh): void
     {
-        $session->set(self::REFRESH_NOT_BEFORE, $until);
+        $session->set(self::POSTPONED_REFRESH, $refresh);
     }
 
-    public function mayRefresh(SessionInterface $session, int $now): bool
+    public function postponedRefresh(SessionInterface $session): ?PostponedRefresh
     {
-        $notBefore = self::ofClass($session->get(self::REFRESH_NOT_BEFORE), \DateTimeImmutable::class);
-
-        return null === $notBefore || $now >= $notBefore->getTimestamp();
+        return self::ofClass($session->get(self::POSTPONED_REFRESH), PostponedRefresh::class);
     }
 
     /**
