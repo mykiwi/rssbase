@@ -61,6 +61,7 @@ Monolithe Symfony servi par FrankenPHP en mode worker : un lecteur RSS adossé �
 - **Pipeline CI** : _non renseigné_ (pas de `.github/` ni d'autre CI). `castor qa` reconnaît `CI` : vérification du formatage au lieu de sa correction, et `composer audit` (`.castor/qa.php`).
 - **Tests** : PHPUnit `13.4.8` résolu, suites `default` (fonctionnel, intégration) et `e2e` ; navigateur par `playwright-php/playwright` `v1.6.0` et `playwright-php/playwright-symfony` `v0.12.0` dans le noyau de test, Chromium téléchargé par `playwright-install` (`app/composer.lock`, `app/phpunit.dist.xml`).
 - **Analyse statique / style** : Mago `1.60.2`, binaire officiel (format, lint, analyse, Twig), zéro signalement jusqu'au niveau note (`infra/packages/mago.nix`, `app/mago.toml`) ; symfony-lsp `0.24.2`, binaire officiel (`infra/packages/symfony-lsp.nix`).
+- **DNS** : flarectl `0.119.0`, binaire officiel, pour les enregistrements de la zone Cloudflare `rssbase.io` (`infra/packages/flarectl.nix`, `flake.nix`).
 - **Hooks git / automatisation deps** : aucun hook git. Hook Claude Code `PostToolUse` qui passe Mago sur chaque fichier PHP ou Twig édité (`.claude/settings.json`, `.claude/hooks/mago.sh`).
 - **Déploiement** : _non renseigné_
 
@@ -82,7 +83,7 @@ Monolithe Symfony servi par FrankenPHP en mode worker : un lecteur RSS adossé �
 ## Contraintes & dette de stack connues
 
 - **Symfony beta** : `minimum-stability: beta` à retirer au passage à Symfony 8.2.0 stable (`app/composer.json`).
-- **Surcharges en attente de nixpkgs** : source de PHP 8.6.0 (`infra/packages/php.nix`), ICU de `intl` (`infra/packages/php.nix`), binaire de Mago (`infra/packages/mago.nix`) ; chacune porte la condition de son retrait.
+- **Surcharges en attente de nixpkgs** : source de PHP 8.6.0 (`infra/packages/php.nix`), ICU de `intl` (`infra/packages/php.nix`), binaire de Mago (`infra/packages/mago.nix`), binaire de flarectl (`infra/packages/flarectl.nix`) ; chacune porte la condition de son retrait.
 - **Paquets maison** : PHP ZTS et FrankenPHP absents du cache binaire, recompilés en local à chaque changement d'extension ou de version (environ 3 minutes pour FrankenPHP).
 - **Binaires hors Nix** : Tailwind, Chromium et `@playwright/mcp` sont téléchargés par leurs outils ; Chromium n'est pas épinglé par un lockfile (`playwright` `^1.62` installé sans lockfile).
 - **Mode worker et E2E** : la suite `e2e` passe par le noyau de test, pas par FrankenPHP ; le mode worker n'est vérifié qu'à la main.
@@ -97,3 +98,4 @@ Monolithe Symfony servi par FrankenPHP en mode worker : un lecteur RSS adossé �
 - 2026-11-20 — Éditer — outillage — Mate invoqué par `castor mate`, `castor start` reconstruit la feuille de style (correctifs de review)
 - 2026-11-20 — Éditer — langages — `ext-intl` et `ext-pdo_sqlite` requis par `app/composer.json`, sync post-livraison de la story 001-t-stack-hello-world
 - 2026-11-22 — Enrichir — backend, données, ops, outillage — SecurityBundle, client AT Protocol maison sur HttpClient et `web-token/jwt-library`, première entité, sessions sur fichiers, clé du client OAuth, noms d'hôte `rssbase.localhost` et `127.0.0.1`, sync post-livraison de la story 002-f-connexion-atproto
+- 2026-11-22 — Enrichir — DevOps — flarectl 0.119.0 en paquet maison pour le DNS Cloudflare de `rssbase.io`, sync post-livraison de la story 003-f-abonnement-flux

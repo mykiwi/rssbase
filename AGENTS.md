@@ -10,7 +10,7 @@ Tailwind through AssetMapper. Details: [`forge/stack.md`](forge/stack.md).
 
 - `app/`: the Symfony application. [`app/AGENTS.md`](app/AGENTS.md) gives its Symfony conventions.
 - `flake.nix`: the dev shell. It pins tool versions through `nixpkgs-multiverse`, except for the packages of `infra/packages/`, which pin their own
-  source or binary (PHP, FrankenPHP, Mago, symfony-lsp, the development image). `infra/frankenphp/Caddyfile` is the server configuration.
+  source or binary (PHP, FrankenPHP, Mago, symfony-lsp, flarectl, the development image). `infra/frankenphp/Caddyfile` is the server configuration.
 - `castor.php` and `.castor/`: the tasks. They ask `app/Makefile` for generated files (vendor, importmap, stylesheet, Chromium, database), which it
   rebuilds only when a source changed.
 

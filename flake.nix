@@ -23,6 +23,7 @@
       frankenphp = pkgs.callPackage ./infra/packages/frankenphp.nix { inherit php; };
       mago = pkgs.callPackage ./infra/packages/mago.nix { };
       symfony-lsp = pkgs.callPackage ./infra/packages/symfony-lsp.nix { };
+      flarectl = pkgs.callPackage ./infra/packages/flarectl.nix { };
       docker-image-dev = pkgs.callPackage ./infra/packages/docker-image-dev.nix { inherit frankenphp; };
 
       shortcuts = pkgs.runCommand "shortcuts" { } ''
@@ -39,6 +40,7 @@
           frankenphp
           mago
           symfony-lsp
+          flarectl
           docker-image-dev
           ;
       };
@@ -51,6 +53,7 @@
           frankenphp
           mago
           symfony-lsp
+          flarectl
           pins.nodejs_26
           pkgs.jq
           pkgs.gnumake
@@ -67,6 +70,7 @@
           frankenphp
           mago
           symfony-lsp
+          flarectl
           ;
       };
     };
