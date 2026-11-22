@@ -1,0 +1,30 @@
+{
+  "version": 3,
+  "title": "S'abonner à des flux depuis RssBase et garder ses abonnements dans son compte AT Protocol",
+  "created": "2026-11-22",
+  "updated": "2026-11-22",
+  "tags": [
+    "abonnements",
+    "at-protocol",
+    "lexicon",
+    "mvp"
+  ],
+  "backlog": "abonnement-flux",
+  "changelog": [
+    {
+      "date": "2026-11-22",
+      "type": "Création",
+      "description": "Pitch rédigé : saisie d'un site ou d'un flux, format propre à RssBase qui lit aussi Skyreader, liste du plus récent au plus ancien, désabonnement immédiat avec Annuler, écriture limitée aux données RssBase."
+    },
+    {
+      "date": "2026-11-22",
+      "type": "Planification",
+      "description": "Plan technique rédigé en 9 étapes : lexicon io.rssbase.feed.*, clé dérivée de l'adresse, liste relue dans le PDS, Live Component pour Annuler, essai réel de la permission en étape 1. Ajout au pitch à relever : message de liste indisponible."
+    },
+    {
+      "date": "2026-11-22",
+      "type": "Sync",
+      "description": "Passe avant implémentation : flarectl (demande utilisateur, DNS du lexicon) réaligné dans le plan, 0 critère coché, pas de report ; backlog, vision et stack.md retouchés."
+    }
+  ]
+}

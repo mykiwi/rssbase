@@ -150,13 +150,13 @@ AT Protocol n'est pas un domaine : c'est une règle transverse qui s'applique au
 
 > Les cases sont **dérivées** de `forge/story/*/metadata.json` (champ `backlog` + `delivery`) — ne les coche pas à la main, la prochaine passe les recalculerait. Une case est cochée quand la story est **livrée** (`delivery` présent) ; les états intermédiaires se lisent sur la ligne « Story ».
 
-### MVP — Lancement initial · `0/3 livrées`
+### MVP — Lancement initial · `1/3 livrées`
 
-- [ ] `connexion-atproto` — Permettre à un visiteur de se connecter par son handle, ou de créer son compte chez un fournisseur proposé, de rester connecté et de se déconnecter, pour accéder à l'espace réservé sans confier son mot de passe à RssBase.
-  - Story `002-f-connexion-atproto` · **clôture en cours**
+- [x] `connexion-atproto` — Permettre à un visiteur de se connecter par son handle, ou de créer son compte chez un fournisseur proposé, de rester connecté et de se déconnecter, pour accéder à l'espace réservé sans confier son mot de passe à RssBase.
+  - Story `002-f-connexion-atproto` · **livrée**
   - C1.1, C1.4, C1.5, C1.6, C1.7 · P1, P2, P4 · dép. — · Vision : North Star (sans connexion AT Protocol, aucune écriture dans le PDS) / note « Login AT Protocol »
 - [ ] `abonnement-flux` — Permettre à un utilisateur de s'abonner à un flux, de lister ses abonnements et de se désabonner, pour constituer sa liste de lecture dans son propre compte.
-  - Pas encore cadrée
+  - Story `003-f-abonnement-flux` · **implémentation en cours**
   - C2.1, C2.3, C2.4 · P5 · dép. `connexion-atproto` · Vision : North Star (abonnements dans le PDS) / problème central / principe 1
 - [ ] `lecture-chronologique` — Permettre à un utilisateur de parcourir et de lire les articles de ses flux par ordre chronologique, pour lire au quotidien dans RssBase.
   - Pas encore cadrée
@@ -198,7 +198,7 @@ _(dérivé — recalculé à chaque passe, ne pas maintenir à la main)_
 
 ### Capacités par horizon
 
-- **MVP** — livrées : — · planifiées : C1.1, C1.4, C1.5, C1.6, C1.7, C2.1, C2.3, C2.4, C3.1, C3.2, C3.3
+- **MVP** — livrées : C1.1, C1.4, C1.5, C1.6, C1.7 · planifiées : C2.1, C2.3, C2.4, C3.1, C3.2, C3.3
 - **V2** — livrées : — · planifiées : C1.2, C1.3, C1.4, C2.2, C2.5, C3.4, C3.5, C4.1, C4.2, C4.3
 - **V3** — livrées : — · planifiées : C5.1, C5.2
 

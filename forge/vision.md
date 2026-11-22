@@ -13,6 +13,7 @@ _Document vivant — enrichi au fil du cycle de vie, refondu lors d'un pivot str
 | 2026-11-21 | Éditer | Métriques | North Star réduite à une condition : abonnements et favoris sont dans le PDS via AT Protocol, l'état de lecture n'y est pas obligatoire. Les conditions d'usage (30 jours) et de second client sont retirées |
 | 2026-11-21 | Éditer | Audience | Plus de limite à un utilisateur en V1 : tout titulaire d'un compte AT Protocol peut utiliser RssBase. Seuils et horizons réalignés |
 | 2026-11-22 | Éditer | Notes pour les features à venir | Pointeur « Login AT Protocol » annoté de la story qui le porte, sync post-livraison de la story 002-f-connexion-atproto |
+| 2026-11-22 | Éditer | Notes pour les features à venir | Pointeur « Lexicon des abonnements » annoté de la story qui le porte, sync post-livraison de la story 003-f-abonnement-flux |
 
 ## Le problème
 
@@ -119,7 +120,7 @@ Couche sociale, au contenu à définir (hypothèse 3).
 
 - Login AT Protocol (OAuth). → story `002-f-connexion-atproto`
 - Import OPML depuis FreshRSS ou Miniflux.
-- Lexicon des abonnements, de l'état de lecture (curseur « dernier article vu » par flux) et des favoris.
+- Lexicon des abonnements, de l'état de lecture (curseur « dernier article vu » par flux) et des favoris. → story `003-f-abonnement-flux` (abonnements)
 - Bascule public/privé par abonnement.
 - Migration du stockage local temporaire vers les spaces.
 - Script ou client de preuve d'interop.
